@@ -9,7 +9,9 @@ export const router = createBrowserRouter([
     element: <App />,
     children: [
       { index: true, element: <HomePage /> },
-      { path: "share/:token", element: <ShareViewPage /> },
+      // The API mints share links as `{base}/s/{token}`.
+      { path: "s/:token", element: <ShareViewPage /> },
+      { path: "*", element: <HomePage /> },
     ],
   },
 ]);
