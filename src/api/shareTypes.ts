@@ -21,6 +21,7 @@ export interface SharedItemResponse {
   dueAt?: string | null;
   quantity?: number | null;
   unit?: string | null;
+  priority?: number | null; // 0 = none, 1..9 scale
   tags: string[]; // tag ids — resolve labels/colors against SharedListResponse.tags
   sortOrder: string;
 }
@@ -29,6 +30,7 @@ export interface SharedListResponse {
   name: string;
   kind: ListKind;
   color?: string | null;
+  simplePriority?: boolean; // true (default) = star toggle; false = 0–9 scale
   access: ShareAccess;
   tags: SharedTagResponse[];
   items: SharedItemResponse[];
@@ -42,6 +44,7 @@ export interface CreateItemRequest {
   dueAt?: string | null;
   quantity?: number | null;
   unit?: string | null;
+  priority?: number | null;
   tagIds?: string[] | null;
   occurredAt?: string | null;
 }
@@ -57,6 +60,8 @@ export interface UpdateItemRequest {
   quantity?: number | null;
   unit?: string | null;
   quantityProvided?: boolean;
+  priority?: number | null;
+  priorityProvided?: boolean;
   addTagIds?: string[] | null;
   removeTagIds?: string[] | null;
   occurredAt?: string | null;

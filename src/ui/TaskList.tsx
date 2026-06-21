@@ -17,12 +17,14 @@ interface Props {
   items: SharedItemResponse[];
   isShopping: boolean;
   canEdit: boolean;
+  simplePriority: boolean;
   completedMode: CompletedMode;
   expanded: Set<string>;
   tagsById: Map<string, SharedTagResponse>;
   onToggle: (item: SharedItemResponse) => void;
   onOpen: (item: SharedItemResponse) => void;
   onToggleExpand: (id: string) => void;
+  onSetPriority: (itemId: string, priority: number) => void;
   onDelete: (item: SharedItemResponse) => void;
   onMove: (itemId: string, sortOrder: string, parentItemId: string | null) => void;
 }
@@ -31,12 +33,14 @@ export function TaskList({
   items,
   isShopping,
   canEdit,
+  simplePriority,
   completedMode,
   expanded,
   tagsById,
   onToggle,
   onOpen,
   onToggleExpand,
+  onSetPriority,
   onDelete,
   onMove,
 }: Props) {
@@ -78,12 +82,14 @@ export function TaskList({
                 row={row}
                 isShopping={isShopping}
                 canEdit={canEdit}
+                simplePriority={simplePriority}
                 sortable={!(completedMode === 'below' && row.item.completed)}
                 expanded={expanded.has(row.item.id)}
                 tagsById={tagsById}
                 onToggle={onToggle}
                 onOpen={onOpen}
                 onToggleExpand={onToggleExpand}
+                onSetPriority={onSetPriority}
                 onDelete={onDelete}
               />
             </div>

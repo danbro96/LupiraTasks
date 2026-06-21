@@ -4,6 +4,7 @@ import type { SharedItemResponse, SharedTagResponse } from '../api/shareTypes';
 import type { VisibleRow } from '../domain/itemTree';
 import { formatDue } from '../domain/dueDate';
 import { Checkbox } from './Checkbox';
+import { PriorityControl } from './PriorityControl';
 import { ChevronDownIcon, ChevronRightIcon, GripIcon, TrashIcon } from './icons';
 
 const INDENT = 18; // px per nesting level
@@ -19,12 +20,15 @@ interface Props {
   row: VisibleRow<SharedItemResponse>;
   isShopping: boolean;
   canEdit: boolean;
+  /** The list's priority mode: a star (0↔1) when true, a 0–9 picker badge when false. */
+  simplePriority: boolean;
   sortable: boolean;
   expanded: boolean;
   tagsById: Map<string, SharedTagResponse>;
   onToggle: (item: SharedItemResponse) => void;
   onOpen: (item: SharedItemResponse) => void;
   onToggleExpand: (id: string) => void;
+  onSetPriority: (itemId: string, priority: number) => void;
   onDelete: (item: SharedItemResponse) => void;
 }
 
@@ -32,12 +36,14 @@ export function TaskRow({
   row,
   isShopping,
   canEdit,
+  simplePriority,
   sortable,
   expanded,
   tagsById,
   onToggle,
   onOpen,
   onToggleExpand,
+  onSetPriority,
   onDelete,
 }: Props) {
   const { item, depth, hasChildren } = row;
@@ -83,6 +89,13 @@ export function TaskRow({
           </span>
         ) : null}
       </button>
+
+      <PriorityControl
+        simple={simplePriority}
+        value={item.priority ?? 0}
+        editable={canEdit}
+        onChange={n => onSetPriority(item.id, n)}
+      />
 
       {hasChildren ? (
         <button

@@ -43,6 +43,7 @@ export function SharedListView({ token }: { token: string }) {
   }
 
   const isShopping = list.kind === 'Shopping';
+  const simplePriority = list.simplePriority !== false; // default (undefined) = simple star mode
   const selected = selectedId ? (items.find(i => i.id === selectedId) ?? null) : null;
 
   const toggleExpand = (id: string) =>
@@ -77,12 +78,14 @@ export function SharedListView({ token }: { token: string }) {
         items={items}
         isShopping={isShopping}
         canEdit={canEdit}
+        simplePriority={simplePriority}
         completedMode={mode}
         expanded={expanded}
         tagsById={tagsById}
         onToggle={actions.toggleComplete}
         onOpen={it => setSelectedId(it.id)}
         onToggleExpand={toggleExpand}
+        onSetPriority={actions.setPriority}
         onDelete={actions.remove}
         onMove={actions.move}
       />

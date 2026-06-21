@@ -6,6 +6,8 @@ import { dueInDays, dueNextWeekend, dueOnDate, formatDue, toDateInputValue } fro
 import { oneLine } from '../domain/text';
 import { Checkbox } from './Checkbox';
 import { AddTaskBar } from './AddTaskBar';
+import { PriorityControl } from './PriorityControl';
+import { priorityLabel } from '../domain/priority';
 import { CloseIcon } from './icons';
 
 const DUE_QUICK: { label: string; iso: () => string }[] = [
@@ -34,6 +36,7 @@ interface Props {
 
 export function TaskDetail({ item, list, items, canEdit, actions, onClose, onOpen }: Props) {
   const isShopping = list.kind === 'Shopping';
+  const simplePriority = list.simplePriority !== false;
   const [title, setTitle] = useState(item.title);
   const [notes, setNotes] = useState(item.notes ?? '');
   const [qty, setQty] = useState(item.quantity != null ? String(item.quantity) : '');
@@ -137,6 +140,21 @@ export function TaskDetail({ item, list, items, canEdit, actions, onClose, onOpe
             <p className={`field-value${due?.overdue ? ' overdue' : ''}`}>
               {due ? (due.overdue ? `Overdue · ${due.label}` : due.label) : 'None'}
             </p>
+          )}
+
+          <div className="section-label">PRIORITY</div>
+          {canEdit ? (
+            <div className="priority-detail">
+              <PriorityControl
+                simple={simplePriority}
+                value={item.priority ?? 0}
+                editable
+                onChange={n => actions.setPriority(item.id, n)}
+              />
+              <span className="field-value">{priorityLabel(simplePriority, item.priority ?? 0)}</span>
+            </div>
+          ) : (
+            <p className="field-value">{priorityLabel(simplePriority, item.priority ?? 0)}</p>
           )}
 
           {isShopping ? (

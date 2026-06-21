@@ -503,3 +503,81 @@ code {
   margin-top: var(--sp-xl);
   width: 100%;
 }
+
+/* Priority: a star (simple mode) or a numeric badge → 0–9 popover (scale mode). */
+.priority-star {
+  color: var(--text-subtle);
+}
+.priority-star.on {
+  color: var(--primary);
+}
+span.priority-star {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px;
+  flex: none;
+}
+.priority-badge {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.priority-badge.on {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+.priority-badge-btn {
+  border: 0;
+  background: transparent;
+  padding: 4px;
+  display: inline-flex;
+}
+.priority-wrap {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+}
+.priority-pop {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 20;
+  margin-top: 4px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--sp-sm);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+.priority-pop-cell {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+.priority-pop-cell.on {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+  font-weight: 700;
+}
+.priority-detail {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+}

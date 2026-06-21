@@ -72,6 +72,7 @@ export function useSharedList(token: string) {
         dueAt: body.dueAt ?? null,
         quantity: body.quantity ?? null,
         unit: body.unit ?? null,
+        priority: body.priority ?? 0,
         tags: body.tagIds ?? [],
         sortOrder: body.sortOrder,
       },
@@ -91,6 +92,7 @@ export function useSharedList(token: string) {
           next.quantity = body.quantity ?? null;
           next.unit = body.unit ?? null;
         }
+        if (body.priorityProvided) next.priority = body.priority ?? 0;
         if (body.addTagIds?.length) next.tags = Array.from(new Set([...it.tags, ...body.addTagIds]));
         if (body.removeTagIds?.length) next.tags = it.tags.filter(t => !body.removeTagIds!.includes(t));
         return next;
@@ -141,6 +143,9 @@ export function useSharedList(token: string) {
       },
       setQuantity(itemId: string, quantity: number | null, unit: string | null) {
         updateMut.mutate({ itemId, body: { quantity, unit, quantityProvided: true } });
+      },
+      setPriority(itemId: string, priority: number) {
+        updateMut.mutate({ itemId, body: { priority, priorityProvided: true } });
       },
       toggleTag(itemId: string, tagId: string, on: boolean) {
         updateMut.mutate({ itemId, body: on ? { addTagIds: [tagId] } : { removeTagIds: [tagId] } });
