@@ -78,6 +78,18 @@ internal static class AuthExtensions
                 o.TokenValidationParameters.RoleClaimType = "groups";
                 o.Scope.Clear();
                 foreach (var s in scopes) o.Scope.Add(s);
+                // OIDC is the challenge scheme, so unauthenticated /api/* lands here. XHRs want a 401 to
+                // react to (authedFetch then routes to /auth/login), not a 302 to Authentik. Full-page
+                // flows like /auth/login are not under /api and still redirect.
+                o.Events.OnRedirectToIdentityProvider = context =>
+                {
+                    if (context.Request.Path.StartsWithSegments("/api"))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.HandleResponse();
+                    }
+                    return Task.CompletedTask;
+                };
             });
 
         // Keeps the forwarded LupiraTasksApi access token fresh via the refresh token (offline_access).
