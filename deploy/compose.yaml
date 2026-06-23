@@ -1,0 +1,38 @@
+services:
+  tasks-web:
+    image: danbro96/lupira-tasks-web:${IMAGE_TAG:-latest}
+    container_name: lupira-tasks-web
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Auth__Oidc__Authority: ${AUTH_AUTHORITY:-https://auth.lupira.com/application/o/tasks/}
+      Auth__Oidc__ClientId: ${AUTH_CLIENT_ID:-lupira-tasks}
+      ReverseProxy__Clusters__tasks-api__Destinations__primary__Address: ${TASKS_API_BASE_URL:-https://tasks-api.lupira.com}
+      DataProtection__KeyPath: /keys
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL:-http/protobuf}
+      OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
+      OTEL_METRIC_EXPORT_INTERVAL: ${OTEL_METRIC_EXPORT_INTERVAL:-300000}
+      OTEL_RESOURCE_ATTRIBUTES: ${OTEL_RESOURCE_ATTRIBUTES:-deployment.environment=prod,host.name=medelynas,service.name=lupira-tasks-web}
+    volumes:
+      - tasks-web-keys:/keys
+    ports:
+      - "${TASKS_WEB_PORT:-40981}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/livez || exit 1"]
+      interval: 30s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - medelynas_telemetry
+      - default
+
+networks:
+  medelynas_telemetry:
+    external: true
+    name: medelynas_telemetry
+  default:
+    driver: bridge
+
+volumes:
+  tasks-web-keys:

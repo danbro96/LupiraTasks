@@ -15,14 +15,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: src/LupiraTasksWeb.Client/package-lock.json
 
-      - run: npm ci
-      - run: npm test
-      - run: npm run build
+      - name: Build BFF
+        run: dotnet build LupiraTasksWeb.slnx -c Release
+
+      - name: Client (install, lint, test, build)
+        working-directory: src/LupiraTasksWeb.Client
+        run: |
+          npm ci
+          npm run lint
+          npm test
+          npm run build
 
   docker:
     needs: build

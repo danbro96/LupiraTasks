@@ -1,62 +1,68 @@
 # Lupira Tasks Web
 
-Single-page web client for [LupiraTasks](../LupiraTasksApi), built with Vite, React 19,
-and TypeScript.
+Web client for [LupiraTasks](../LupiraTasksApi), delivered as a **BFF (Backend-For-Frontend)**: a
+single .NET 10 image that serves a Vite + React 19 SPA and proxies its API calls. **Mobile-app-first:**
+this client mirrors the [mobile app](../LupiraTasksMobile)'s design, screen flow, and layered structure.
+Unlike the offline-first app, it is **online-only** — the server is the single source of truth.
 
-## What it does (v1)
+## Why a BFF
 
-The first version is **shared-link only**: someone with a share link
-(`https://<host>/s/<token>`) opens it in a browser and uses the connected list — no SSO,
-no account. The link's access level decides what's possible:
+Auth runs server-side: the .NET app drives Authentik OIDC (Authorization Code + PKCE), keeps the tokens,
+and hands the browser an **HttpOnly cookie session**. The SPA never holds a token, so an XSS can't
+exfiltrate one, and the user's access token is forwarded to LupiraTasksApi on member calls (Duende,
+auto-refreshed). It reuses the **shared public `lupira-tasks` client** (the one mobile uses) — a BFF's
+protection comes from holding tokens server-side, not from a client secret — so the issuer + audience
+already match what the API validates, and the API and mobile are unchanged. The SPA talks only to its
+own origin, so there is no CORS.
 
-- **Read** link → view-only (the UI hides every edit affordance and shows a "View only" badge).
-- **ReadWrite** link → full list usage with parity to the mobile app: add / edit / complete /
-  reopen / delete / reorder (drag) / nest tasks, edit due dates, notes, tags, and (for Shopping
-  lists) quantity + unit.
+## Two surfaces
 
-It talks **directly** to the API's `/shared/{token}` endpoints on every interaction. There is
-**no offline support and no browser persistence** — the token lives only in memory for the
-session, and the server is the single source of truth.
+- **Member (SSO):** every route except share links requires signing in. The landing `/` is the list of
+  lists; `/lists/:listId` is one list's tasks. Create / rename / archive lists, manage members and roles,
+  mint / revoke share links, and assign tasks.
+- **Share (account-less):** `/s/:token` opens a single list with no sign-in — proxied anonymously.
+  Opening a share link **while signed in** "cashes in" the link (`POST /api/shares/redeem`) and routes to
+  `/lists/:listId`.
 
-Out of scope for v1: SSO, list creation, members, assignee (the shared API trims emails), and
-tag creation (only existing tags can be toggled). `oidc-client-ts` is present for a future
-member web app but is not wired up.
+## Layout
 
-## Stack
-
-- **Vite** + **React 19** + **react-router-dom v7** — UI and routing (`/s/:token`)
-- **@tanstack/react-query v5** — server-state caching with optimistic updates
-- **@dnd-kit** — accessible drag-and-drop reorder
-- **fractional-indexing** + ported domain logic (`src/domain/*`) — identical tree/sort/due-date
-  behavior to the mobile app
-- **vitest** — unit tests for the pure domain logic
-
-## Getting started
-
-```bash
-npm install
-npm run dev      # dev server on http://localhost:5173
+```
+src/
+  LupiraTasksWeb/          # .NET 10 BFF — Authentik OIDC + cookie session, YARP proxy to LupiraTasksApi
+  LupiraTasksWeb.Client/   # Vite + React 19 SPA (layered domain → data → state → ui; eslint-plugin-boundaries)
+Dockerfile                 # multi-stage: build the SPA → publish the BFF with the SPA in wwwroot
+deploy/                    # compose.yaml + .env.example
 ```
 
-Set `VITE_API_BASE_URL` (see `.env.example`) to point at the API. For local end-to-end testing,
-run the API with `Auth:AllowedOrigins` including `http://localhost:5173`.
+The BFF proxies `/api/{**}` → LupiraTasksApi (member routes carry the forwarded token; `/api/shared/*`
+is anonymous) and owns `/auth/login`, `/auth/logout`, `/auth/user`.
 
-## Scripts
+## Develop
 
-| Script              | Description                                          |
-| ------------------- | ---------------------------------------------------- |
-| `npm run dev`       | Start the Vite dev server                            |
-| `npm run build`     | Type-check (`tsc -b`) and produce a production build |
-| `npm run preview`   | Preview the production build locally                 |
-| `npm test`          | Run the domain unit tests (vitest)                   |
-| `npm run gen:api`   | Regenerate the Orval API client (placeholder spec)   |
+```bash
+# 1) BFF (dev auto-authenticates a local user; proxies to a local API at http://localhost:8080)
+dotnet run --project src/LupiraTasksWeb            # http://localhost:5180
+
+# 2) SPA (proxies /api + /auth to the BFF)
+cd src/LupiraTasksWeb.Client && npm install && npm run dev   # http://localhost:5173
+```
+
+Set the deploy env (`deploy/.env.example`): add this web's redirect URI
+(`https://tasks.lupira.com/signin-oidc`) to the shared public `lupira-tasks` Authentik client, the API
+base URL, and a mounted `/keys` volume for data-protection key persistence. No client secret is needed.
+
+## Scripts (in `src/LupiraTasksWeb.Client`)
+
+| Script            | Description                                          |
+| ----------------- | ---------------------------------------------------- |
+| `npm run dev`     | Vite dev server (proxies to the BFF)                 |
+| `npm run build`   | Type-check + build the SPA into the BFF `wwwroot`    |
+| `npm run lint`    | Lint + enforce the layered import boundaries         |
+| `npm test`        | Domain unit tests (vitest)                           |
 
 ## Docker
 
 ```bash
 docker build -t danbro96/lupira-tasks-web .
-docker run -p 8080:80 danbro96/lupira-tasks-web
+docker run -p 8080:80 -e Auth__Oidc__ClientSecret=… danbro96/lupira-tasks-web
 ```
-
-The production image builds the SPA and serves it with nginx, including an SPA fallback so
-`/s/<token>` deep links resolve to `index.html`.

@@ -1,7 +1,9 @@
-node_modules
-dist
-dist-ssr
+**/node_modules
+**/dist
+**/bin
+**/obj
 .git
 .github
-*.local
+**/*.local
 npm-debug.log*
+src/LupiraTasksWeb/wwwroot

@@ -12,6 +12,13 @@ dist
 dist-ssr
 *.local
 
+# .NET
+bin/
+obj/
+
+# Generated SPA output (client build → BFF wwwroot)
+src/LupiraTasksWeb/wwwroot/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
