@@ -1,0 +1,35 @@
+name: tests
+
+on:
+  workflow_call:
+
+env:
+  SOLUTION: LupiraTasksWeb.slnx
+  CLIENT_DIR: src/LupiraTasksWeb.Client
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet test ${{ env.SOLUTION }} -c Release
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.CLIENT_DIR }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: ${{ env.CLIENT_DIR }}/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc -b
+      - run: npm test
