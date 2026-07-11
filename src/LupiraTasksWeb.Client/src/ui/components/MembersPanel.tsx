@@ -33,11 +33,11 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
     },
   });
   const roleMut = useMutation({
-    mutationFn: (v: { email: string; role: ListRole }) => api.updateMember(listId, v.email, { role: v.role }),
+    mutationFn: (v: { principalId: string; role: ListRole }) => api.updateMember(listId, v.principalId, { role: v.role }),
     onSuccess: invalidateList,
   });
   const removeMut = useMutation({
-    mutationFn: (em: string) => api.removeMember(listId, em),
+    mutationFn: (principalId: string) => api.removeMember(listId, principalId),
     onSuccess: invalidateList,
   });
 
@@ -61,32 +61,35 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
         </div>
         <div className="modal-body">
           <div className="section-label">MEMBERS</div>
-          {members.map(m => (
-            <div className="sub-row" key={m.email}>
-              <span className="list-row-name">{m.email}</span>
-              {isOwner ? (
-                <select
-                  className="role-select"
-                  value={m.role}
-                  aria-label={`Role for ${m.email}`}
-                  onChange={e => roleMut.mutate({ email: m.email, role: e.target.value as ListRole })}
-                >
-                  {ROLES.map(r => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <span className="badge">{m.role}</span>
-              )}
-              {isOwner ? (
-                <button type="button" className="icon-btn" aria-label={`Remove ${m.email}`} onClick={() => removeMut.mutate(m.email)}>
-                  <TrashIcon />
-                </button>
-              ) : null}
-            </div>
-          ))}
+          {members.map(m => {
+            const name = m.displayName ?? m.email;
+            return (
+              <div className="sub-row" key={m.principalId}>
+                <span className="list-row-name">{name}</span>
+                {isOwner ? (
+                  <select
+                    className="role-select"
+                    value={m.role}
+                    aria-label={`Role for ${name}`}
+                    onChange={e => roleMut.mutate({ principalId: m.principalId, role: e.target.value as ListRole })}
+                  >
+                    {ROLES.map(r => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className="badge">{m.role}</span>
+                )}
+                {isOwner ? (
+                  <button type="button" className="icon-btn" aria-label={`Remove ${name}`} onClick={() => removeMut.mutate(m.principalId)}>
+                    <TrashIcon />
+                  </button>
+                ) : null}
+              </div>
+            );
+          })}
 
           <form
             className="add-bar"

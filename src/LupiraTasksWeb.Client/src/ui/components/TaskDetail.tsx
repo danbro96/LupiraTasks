@@ -30,7 +30,7 @@ interface Props {
   canEdit: boolean;
   actions: ListActions;
   /** Member surface only: list members for the assignee picker. Omitted on the share surface. */
-  members?: { email: string }[];
+  members?: { principalId: string; email: string; displayName?: string | null }[];
   onClose: () => void;
   onOpen: (item: ListItem) => void;
 }
@@ -164,19 +164,23 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
               {canEdit ? (
                 <select
                   className="text-input"
-                  value={item.assignedTo ?? ''}
+                  value={item.assignee?.principalId ?? ''}
                   aria-label="Assignee"
-                  onChange={e => actions.setAssignee(item.id, e.target.value || null)}
+                  onChange={e => {
+                    const picked = e.target.value;
+                    // The item carries a PersonRef, but assignee-set is still email-addressed.
+                    actions.setAssignee(item.id, members.find(m => m.principalId === picked)?.email ?? null);
+                  }}
                 >
                   <option value="">Unassigned</option>
                   {members.map(m => (
-                    <option key={m.email} value={m.email}>
-                      {m.email}
+                    <option key={m.principalId} value={m.principalId}>
+                      {m.displayName ?? m.email}
                     </option>
                   ))}
                 </select>
               ) : (
-                <p className="field-value">{item.assignedTo || 'Unassigned'}</p>
+                <p className="field-value">{item.assignee ? (item.assignee.displayName ?? item.assignee.email) : 'Unassigned'}</p>
               )}
             </>
           ) : null}

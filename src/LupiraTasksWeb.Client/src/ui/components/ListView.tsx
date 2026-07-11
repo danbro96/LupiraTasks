@@ -19,7 +19,7 @@ interface Props {
   tagsById: Map<string, SharedTagResponse>;
   actions: ListActions;
   /** Member surface only: list members for the assignee picker. Omitted on the share surface. */
-  members?: { email: string }[];
+  members?: { principalId: string; email: string; displayName?: string | null }[];
   /** Optional control rendered in the header (e.g. a members/share button). */
   headerExtra?: ReactNode;
 }

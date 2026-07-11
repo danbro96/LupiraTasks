@@ -51,7 +51,7 @@ function ListDetail({ listId }: { listId: string }) {
     );
   }
 
-  const myRole = c.members.find(m => m.email.toLowerCase() === me.data?.email?.toLowerCase())?.role;
+  const myRole = c.members.find(m => m.principalId === me.data?.principalId)?.role;
   const isOwner = myRole === 'Owner';
 
   return (

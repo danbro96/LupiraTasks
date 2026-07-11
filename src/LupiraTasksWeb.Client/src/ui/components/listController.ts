@@ -1,11 +1,12 @@
 import type { ListKind, SharedItemResponse, SharedTagResponse } from '../../data/api/shareTypes';
+import type { PersonRef } from '../../data/api/listTypes';
 
 // The surface-agnostic contract the task UI consumes. Both the account-less share hook
 // (useSharedList) and the member hook (useMemberList) produce this shape, so TaskList / TaskRow /
 // TaskDetail / ListView render either surface unchanged.
 
 /** An item as the UI needs it: the shared item shape, plus an optional assignee (member surface). */
-export type ListItem = SharedItemResponse & { assignedTo?: string | null };
+export type ListItem = SharedItemResponse & { assignee?: PersonRef | null };
 
 /** The list metadata the task UI reads — common to SharedListResponse and the member ListResponse. */
 export interface ListViewModel {

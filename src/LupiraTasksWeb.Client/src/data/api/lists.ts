@@ -113,15 +113,15 @@ export function addMember(listId: string, body: AddMemberRequest): Promise<ListR
   return authedRequest<ListResponse>(`/lists/${enc(listId)}/members`, post(body));
 }
 
-export function updateMember(listId: string, email: string, body: UpdateMemberRoleRequest): Promise<ListResponse> {
-  return authedRequest<ListResponse>(`/lists/${enc(listId)}/members/${enc(email)}`, {
+export function updateMember(listId: string, principalId: string, body: UpdateMemberRoleRequest): Promise<ListResponse> {
+  return authedRequest<ListResponse>(`/lists/${enc(listId)}/members/${enc(principalId)}`, {
     method: 'PATCH',
     body: JSON.stringify(body),
   });
 }
 
-export function removeMember(listId: string, email: string): Promise<void> {
-  return authedRequest<void>(`/lists/${enc(listId)}/members/${enc(email)}`, { method: 'DELETE' });
+export function removeMember(listId: string, principalId: string): Promise<void> {
+  return authedRequest<void>(`/lists/${enc(listId)}/members/${enc(principalId)}`, { method: 'DELETE' });
 }
 
 // ---- shares ----

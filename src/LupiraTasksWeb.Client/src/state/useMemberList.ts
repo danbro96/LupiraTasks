@@ -57,8 +57,7 @@ export function useMemberList(listId: string) {
     [list],
   );
 
-  const myEmail = me.data?.email?.toLowerCase();
-  const myRole = members.find(m => m.email.toLowerCase() === myEmail)?.role;
+  const myRole = members.find(m => m.principalId === me.data?.principalId)?.role;
   const canEdit = myRole === 'Owner' || myRole === 'Editor';
 
   // A combined view of the two queries so the screen has one loading/error/refetch surface.
@@ -104,7 +103,7 @@ export function useMemberList(listId: string) {
         quantity: body.quantity ?? null,
         unit: body.unit ?? null,
         priority: body.priority ?? 0,
-        assignedTo: null,
+        assignee: null,
         tags: body.tagIds ?? [],
         sortOrder: body.sortOrder,
       },
@@ -125,7 +124,17 @@ export function useMemberList(listId: string) {
           next.unit = body.unit ?? null;
         }
         if (body.priorityProvided) next.priority = body.priority ?? 0;
-        if (body.assigneeEmailProvided) next.assignedTo = body.assigneeEmail ?? null;
+        if (body.assigneeEmailProvided) {
+          // Set-by-email still, but the item carries a PersonRef — resolve it from the roster so the
+          // picker stays on the right member until the settle-refetch replaces it with the server's.
+          const email = body.assigneeEmail ?? null;
+          const match = email ? members.find(m => m.email.toLowerCase() === email.toLowerCase()) : undefined;
+          next.assignee = match
+            ? { principalId: match.principalId, email: match.email, displayName: match.displayName }
+            : email
+              ? { principalId: '', email, displayName: null }
+              : null;
+        }
         if (body.addTagIds?.length) next.tags = Array.from(new Set([...it.tags, ...body.addTagIds]));
         if (body.removeTagIds?.length) next.tags = it.tags.filter(t => !body.removeTagIds!.includes(t));
         return next;

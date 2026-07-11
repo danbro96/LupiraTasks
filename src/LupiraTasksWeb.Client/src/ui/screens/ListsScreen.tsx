@@ -26,7 +26,7 @@ export function ListsScreen() {
           </button>
         </div>
         <div className="account-row">
-          {me.data?.email ? <span className="meta">{me.data.email}</span> : null}
+          {me.data ? <span className="meta">{me.data.displayName ?? me.data.email}</span> : null}
           <button type="button" className="linklike" onClick={() => logout()}>
             Sign out
           </button>

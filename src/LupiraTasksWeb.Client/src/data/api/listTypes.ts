@@ -9,17 +9,27 @@ export type { CreateItemRequest, MoveItemRequest, UpdateItemRequest } from './sh
 
 export type ListRole = 'Owner' | 'Editor' | 'Viewer';
 
+/** An identity as the API emits it. Identity is keyed on `principalId`; email/displayName are for display. */
+export interface PersonRef {
+  principalId: string;
+  email: string;
+  displayName?: string | null;
+}
+
 export interface MeResponse {
+  principalId: string;
   email: string;
   displayName?: string | null;
   isAdmin: boolean;
 }
 
 export interface ListMember {
+  principalId: string;
   email: string;
+  displayName?: string | null;
   role: ListRole;
   addedAt: string;
-  addedBy?: string | null;
+  addedBy?: PersonRef | null;
 }
 
 /** Full list metadata (GET /lists, GET /lists/{id}). Items are fetched separately. */
@@ -30,7 +40,7 @@ export interface ListResponse {
   kind: ListKind;
   color?: string | null;
   simplePriority: boolean;
-  ownerEmail: string;
+  owner: PersonRef;
   isArchived: boolean;
   createdAt: string;
   updatedAt: string;
@@ -42,8 +52,12 @@ export interface ListCollectionResponse {
   lists: ListResponse[];
 }
 
-/** A member item: the shared item shape plus the read-only assignee (`assignedTo`). */
-export type MemberItemResponse = SharedItemResponse & { assignedTo?: string | null };
+/** A member item: the shared item shape plus read-only identity refs (assignee + attribution). */
+export type MemberItemResponse = SharedItemResponse & {
+  assignee?: PersonRef | null;
+  createdBy?: PersonRef | null;
+  completedBy?: PersonRef | null;
+};
 
 export interface ItemCollectionResponse {
   items: MemberItemResponse[];
@@ -99,6 +113,7 @@ export interface RedeemShareResponse {
 }
 
 export interface DirectoryPerson {
+  principalId: string;
   email: string;
   displayName?: string | null;
 }
