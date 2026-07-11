@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMemberList } from '../../state/useMemberList';
-import { useMe } from '../../state/useMe';
 import { ApiError } from '../../data/api/fetcher';
 import { Centered } from '../components/Centered';
 import { ListView } from '../components/ListView';
@@ -24,7 +23,6 @@ export function ListDetailScreen() {
 
 function ListDetail({ listId }: { listId: string }) {
   const c = useMemberList(listId);
-  const me = useMe();
   const [panelOpen, setPanelOpen] = useState(false);
 
   if (c.query.isLoading) return <Centered title="Loading…" />;
@@ -51,8 +49,7 @@ function ListDetail({ listId }: { listId: string }) {
     );
   }
 
-  const myRole = c.members.find(m => m.principalId === me.data?.principalId)?.role;
-  const isOwner = myRole === 'Owner';
+  const isOwner = c.list.access === 'Owner';
 
   return (
     <>

@@ -5,7 +5,6 @@ import { ApiError } from '../data/api/fetcher';
 import type { CreateItemRequest, MemberItemResponse, SharedTagResponse } from '../data/api/listTypes';
 import { newId } from '../domain/ids';
 import { descendantIds, nextChildSortOrder, topSortOrder } from '../domain/itemTree';
-import { useMe } from './useMe';
 
 // Member-surface controller — the authenticated analogue of useSharedList. Same return shape
 // (`{ query, list, items, canEdit, tagsById, actions, members }`) so the same task UI renders it.
@@ -39,7 +38,6 @@ type Ctx = { previous?: MemberItemResponse[] };
 
 export function useMemberList(listId: string) {
   const qc = useQueryClient();
-  const me = useMe();
   const metaKey = useMemo(() => ['list', listId] as const, [listId]);
   const itemsKey = useMemo(() => ['list', listId, 'items'] as const, [listId]);
 
@@ -57,7 +55,7 @@ export function useMemberList(listId: string) {
     [list],
   );
 
-  const myRole = members.find(m => m.principalId === me.data?.principalId)?.role;
+  const myRole = list?.access;
   const canEdit = myRole === 'Owner' || myRole === 'Editor';
 
   // A combined view of the two queries so the screen has one loading/error/refetch surface.

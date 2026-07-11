@@ -41,6 +41,8 @@ export interface ListResponse {
   color?: string | null;
   simplePriority: boolean;
   owner: PersonRef;
+  /** The caller's own role on this list (server-authoritative) — gate owner/editor UI on this. */
+  access: ListRole;
   isArchived: boolean;
   createdAt: string;
   updatedAt: string;
