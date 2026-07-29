@@ -12,6 +12,8 @@
   --text-subtle: #8a909c;
   --text-disabled: #9aa0ac;
   --danger: #b3261e;
+  /* Backdrop for a row that just changed because someone else edited it. */
+  --remote-change: #dce9f9;
 
   --sp-xs: 4px;
   --sp-sm: 8px;
@@ -41,6 +43,7 @@
     --text-subtle: #7c8492;
     --text-disabled: #5b626e;
     --danger: #f2675e;
+    --remote-change: #25384f;
   }
 }
 
@@ -231,6 +234,37 @@ code {
   padding: 12px var(--sp-lg) 12px 0;
   background: var(--bg);
   border-bottom: 1px solid var(--divider);
+  position: relative; /* anchors .row-highlight */
+}
+
+/* Someone else's edit: tint in fast, hold, fade out slowly — the slow tail is what stops it reading
+   as a UI glitch. Timings track REMOTE_FLASH_MS in ListView.tsx. */
+.row-highlight {
+  position: absolute;
+  inset: 0;
+  background: var(--remote-change);
+  pointer-events: none;
+  animation: remote-flash 4s ease-out forwards;
+}
+@keyframes remote-flash {
+  0% {
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .row-highlight {
+    animation: none;
+    opacity: 1;
+  }
 }
 .row.dragging {
   opacity: 0.85;
@@ -262,9 +296,38 @@ code {
   padding: 0;
   min-width: 0;
 }
+/* Says why the list has stopped refreshing itself. Quiet on purpose — information, not a problem. */
+.poll-paused {
+  padding: 6px var(--sp-lg);
+  background: var(--surface);
+  border-bottom: 1px solid var(--divider);
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+.title-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-sm);
+  min-width: 0;
+}
 .title {
   font-size: 16px;
   color: var(--text);
+  flex: 1;
+  min-width: 0;
+}
+/* The title yields width, not this — capped so a long name can't ellipsise it away. */
+.row-change {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+  flex: none;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .title.done {
   color: var(--text-disabled);

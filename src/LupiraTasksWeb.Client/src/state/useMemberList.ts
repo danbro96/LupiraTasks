@@ -5,6 +5,8 @@ import { ApiError } from '../data/api/fetcher';
 import type { CreateItemRequest, MemberItemResponse, SharedTagResponse } from '../data/api/listTypes';
 import { newId } from '../domain/ids';
 import { descendantIds, nextChildSortOrder, topSortOrder } from '../domain/itemTree';
+import { useRemoteChanges } from './useRemoteChanges';
+import { useListPollInterval } from './usePollInterval';
 
 // Member-surface controller — the authenticated analogue of useSharedList. Same return shape
 // (`{ query, list, items, canEdit, tagsById, actions, members }`) so the same task UI renders it.
@@ -44,8 +46,29 @@ export function useMemberList(listId: string) {
   const retry = (count: number, err: unknown) =>
     !(err instanceof ApiError && TERMINAL.has(err.status)) && count < 2;
 
-  const metaQuery = useQuery({ queryKey: metaKey, queryFn: () => api.getList(listId), retry });
-  const itemsQuery = useQuery({ queryKey: itemsKey, queryFn: () => api.getListItems(listId), retry });
+  const { changes, absorb, emit } = useRemoteChanges<MemberItemResponse>(listId);
+  const refetchInterval = useListPollInterval();
+
+  // Polled so another member's edits appear without a manual refresh. refetchIntervalInBackground is
+  // left at its default (false) so a hidden tab stops polling. Meta is polled too: a remote rename /
+  // recolor / tag / member change matters, and `members` is what puts a name on the notice.
+  const metaQuery = useQuery({
+    queryKey: metaKey,
+    queryFn: () => api.getList(listId),
+    retry,
+    refetchInterval,
+  });
+  const itemsQuery = useQuery({
+    queryKey: itemsKey,
+    // Only a network result can emit — setQueryData never runs queryFn.
+    queryFn: async () => {
+      const rows = await api.getListItems(listId);
+      emit(rows);
+      return rows;
+    },
+    retry,
+    refetchInterval,
+  });
 
   const list = metaQuery.data;
   const items = useMemo(() => itemsQuery.data ?? [], [itemsQuery.data]);
@@ -74,11 +97,18 @@ export function useMemberList(listId: string) {
       onMutate: async (vars: V): Promise<Ctx> => {
         await qc.cancelQueries({ queryKey: itemsKey });
         const previous = qc.getQueryData<MemberItemResponse[]>(itemsKey);
-        if (previous) qc.setQueryData<MemberItemResponse[]>(itemsKey, apply(previous, vars));
+        if (previous) {
+          const patched = apply(previous, vars);
+          qc.setQueryData<MemberItemResponse[]>(itemsKey, patched);
+          absorb(patched); // the user's own edit — never announce it back to them
+        }
         return { previous };
       },
       onError: (_err: unknown, _vars: V, ctx: Ctx | undefined) => {
-        if (ctx?.previous) qc.setQueryData(itemsKey, ctx.previous);
+        if (ctx?.previous) {
+          qc.setQueryData(itemsKey, ctx.previous);
+          absorb(ctx.previous); // rolled back — the snapshot must follow, or the next poll "changes" it back
+        }
       },
       onSettled: () => {
         void qc.invalidateQueries({ queryKey: itemsKey });
@@ -206,5 +236,5 @@ export function useMemberList(listId: string) {
     [items, addMut, updateMut, toggleMut, moveMut, deleteMut],
   );
 
-  return { query, list, items, canEdit, tagsById, members, actions };
+  return { query, list, items, canEdit, tagsById, members, actions, changes };
 }

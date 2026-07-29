@@ -11,6 +11,8 @@ import type {
 } from '../data/api/shareTypes';
 import { newId } from '../domain/ids';
 import { descendantIds, nextChildSortOrder, topSortOrder } from '../domain/itemTree';
+import { useRemoteChanges } from './useRemoteChanges';
+import { useListPollInterval } from './usePollInterval';
 
 // React Query wrapper around the shared-link surface. One cached list per token; every mutation
 // updates the cache optimistically (so the UI feels instant), rolls back on error, and refetches
@@ -25,10 +27,20 @@ export function useSharedList(token: string) {
   const qc = useQueryClient();
   const key = useMemo(() => ['shared', token] as const, [token]);
 
+  const { changes, absorb, emit } = useRemoteChanges<SharedItemResponse>(token);
+  const refetchInterval = useListPollInterval();
+
   const query = useQuery({
     queryKey: key,
-    queryFn: () => api.getSharedList(token),
+    // Only a network result can emit — setQueryData never runs queryFn.
+    queryFn: async () => {
+      const data = await api.getSharedList(token);
+      emit(data.items);
+      return data;
+    },
     retry: (count, err) => !(err instanceof ApiError && TERMINAL.has(err.status)) && count < 2,
+    // A hidden tab stops polling (refetchIntervalInBackground defaults to false).
+    refetchInterval,
   });
 
   const list = query.data;
@@ -46,11 +58,18 @@ export function useSharedList(token: string) {
       onMutate: async (vars: V): Promise<Ctx> => {
         await qc.cancelQueries({ queryKey: key });
         const previous = qc.getQueryData<SharedListResponse>(key);
-        if (previous) qc.setQueryData<SharedListResponse>(key, { ...previous, items: apply(previous.items, vars) });
+        if (previous) {
+          const patched = apply(previous.items, vars);
+          qc.setQueryData<SharedListResponse>(key, { ...previous, items: patched });
+          absorb(patched); // the user's own edit — never announce it back to them
+        }
         return { previous };
       },
       onError: (_err: unknown, _vars: V, ctx: Ctx | undefined) => {
-        if (ctx?.previous) qc.setQueryData(key, ctx.previous);
+        if (ctx?.previous) {
+          qc.setQueryData(key, ctx.previous);
+          absorb(ctx.previous.items); // rolled back — the snapshot must follow
+        }
       },
       onSettled: () => {
         void qc.invalidateQueries({ queryKey: key });
@@ -166,7 +185,7 @@ export function useSharedList(token: string) {
     [items, addMut, updateMut, toggleMut, moveMut, deleteMut],
   );
 
-  return { query, list, items, canEdit, tagsById, actions };
+  return { query, list, items, canEdit, tagsById, actions, changes };
 }
 
 export type SharedListController = ReturnType<typeof useSharedList>;

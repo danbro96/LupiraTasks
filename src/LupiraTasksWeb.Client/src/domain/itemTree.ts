@@ -40,9 +40,16 @@ function byParent<T extends TreeItem>(items: T[]): Map<string | null, T[]> {
 }
 
 /** Flatten the item forest to visible rows (depth-first), descending only into expanded ids.
- *  When hideCompleted is true, completed items are skipped (their incomplete children surface as roots). */
-export function buildVisibleRows<T extends TreeItem>(items: T[], expanded: Set<string>, hideCompleted: boolean): VisibleRow<T>[] {
-  const src = hideCompleted ? items.filter(i => !i.completed) : items;
+ *  When hideCompleted is true, completed items are skipped (their incomplete children surface as
+ *  roots) — except ids in `keep`, so a task someone else just ticked off can be seen being ticked
+ *  off instead of vanishing. */
+export function buildVisibleRows<T extends TreeItem>(
+  items: T[],
+  expanded: Set<string>,
+  hideCompleted: boolean,
+  keep: ReadonlySet<string> = new Set(),
+): VisibleRow<T>[] {
+  const src = hideCompleted ? items.filter(i => !i.completed || keep.has(i.id)) : items;
   const children = byParent(src);
   const rows: VisibleRow<T>[] = [];
   const walk = (parentId: string | null, depth: number) => {
@@ -58,12 +65,17 @@ export function buildVisibleRows<T extends TreeItem>(items: T[], expanded: Set<s
 
 /** Rendered rows for a completed-display mode. `below` keeps the open-task tree, then gathers the
  *  completed items flat underneath (newest first). Mirrors ListDetailScreen's `rows` memo. */
-export function rowsForMode<T extends TreeItem>(items: T[], expanded: Set<string>, mode: CompletedMode): VisibleRow<T>[] {
-  if (mode !== 'below') return buildVisibleRows(items, expanded, mode === 'hidden');
-  const open = buildVisibleRows(items, expanded, true);
+export function rowsForMode<T extends TreeItem>(
+  items: T[],
+  expanded: Set<string>,
+  mode: CompletedMode,
+  keep: ReadonlySet<string> = new Set(),
+): VisibleRow<T>[] {
+  if (mode !== 'below') return buildVisibleRows(items, expanded, mode === 'hidden', keep);
+  const open = buildVisibleRows(items, expanded, true, keep);
   const doneKey = (i: T) => i.completedAt ?? '';
   const done = items
-    .filter(i => i.completed)
+    .filter(i => i.completed && !keep.has(i.id))
     .sort((a, b) => (doneKey(b) < doneKey(a) ? -1 : doneKey(b) > doneKey(a) ? 1 : 0))
     .map(item => ({ item, depth: 0, hasChildren: false }));
   return [...open, ...done];

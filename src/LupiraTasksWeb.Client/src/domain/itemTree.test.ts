@@ -88,6 +88,17 @@ describe('rowsForMode', () => {
     const rows = rowsForMode(items, new Set(), 'below');
     expect(rows.map(r => r.item.id)).toEqual(['b', 'c', 'a']);
   });
+
+  it('a held completed item stays visible in hidden mode', () => {
+    const rows = rowsForMode(items, new Set(), 'hidden', new Set(['a']));
+    expect(rows.map(r => r.item.id)).toContain('a');
+  });
+
+  it('a held completed item keeps its tree position in below mode, not the COMPLETED block', () => {
+    const rows = rowsForMode(items, new Set(), 'below', new Set(['a']));
+    // 'a' sorts first among the roots — held, it stays there instead of moving to the end.
+    expect(rows.map(r => r.item.id)).toEqual(['a', 'b', 'c']);
+  });
 });
 
 describe('collapseDescendants / descendantIds', () => {

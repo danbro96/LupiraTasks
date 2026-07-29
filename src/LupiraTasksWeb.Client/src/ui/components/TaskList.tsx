@@ -11,6 +11,7 @@ import {
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import type { SharedItemResponse, SharedTagResponse } from '../../data/api/shareTypes';
 import { rowsForMode, siblingReorder, type CompletedMode } from '../../domain/itemTree';
+import type { ItemChange } from '../../domain/itemChange';
 import { TaskRow } from './TaskRow';
 
 interface Props {
@@ -21,6 +22,10 @@ interface Props {
   completedMode: CompletedMode;
   expanded: Set<string>;
   tagsById: Map<string, SharedTagResponse>;
+  /** Rows currently announcing someone else's edit. */
+  flashes: Map<string, ItemChange>;
+  /** Completed rows to leave where they are while their flash runs. */
+  held: ReadonlySet<string>;
   onToggle: (item: SharedItemResponse) => void;
   onOpen: (item: SharedItemResponse) => void;
   onToggleExpand: (id: string) => void;
@@ -37,6 +42,8 @@ export function TaskList({
   completedMode,
   expanded,
   tagsById,
+  flashes,
+  held,
   onToggle,
   onOpen,
   onToggleExpand,
@@ -44,8 +51,9 @@ export function TaskList({
   onDelete,
   onMove,
 }: Props) {
-  const rows = useMemo(() => rowsForMode(items, expanded, completedMode), [items, expanded, completedMode]);
-  const firstCompleted = completedMode === 'below' ? rows.findIndex(r => r.item.completed) : -1;
+  const rows = useMemo(() => rowsForMode(items, expanded, completedMode, held), [items, expanded, completedMode, held]);
+  // A held row still sits in the open section, so it must not be taken for the section start.
+  const firstCompleted = completedMode === 'below' ? rows.findIndex(r => r.item.completed && !held.has(r.item.id)) : -1;
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -59,7 +67,7 @@ export function TaskList({
     const newIndex = rows.findIndex(r => r.item.id === over.id);
     if (oldIndex < 0 || newIndex < 0) return;
     // 'below' mode: keep reordering inside the open section (completed rows are pinned below).
-    const boundary = completedMode === 'below' ? rows.findIndex(r => r.item.completed) : -1;
+    const boundary = completedMode === 'below' ? rows.findIndex(r => r.item.completed && !held.has(r.item.id)) : -1;
     if (boundary >= 0 && (oldIndex >= boundary || newIndex >= boundary)) return;
     const reordered = arrayMove(rows, oldIndex, newIndex);
     const scope = boundary >= 0 ? reordered.slice(0, boundary) : reordered;
@@ -86,6 +94,8 @@ export function TaskList({
                 sortable={!(completedMode === 'below' && row.item.completed)}
                 expanded={expanded.has(row.item.id)}
                 tagsById={tagsById}
+                changeKind={flashes.get(row.item.id)?.kind}
+                changeActor={flashes.get(row.item.id)?.actor ?? null}
                 onToggle={onToggle}
                 onOpen={onOpen}
                 onToggleExpand={onToggleExpand}

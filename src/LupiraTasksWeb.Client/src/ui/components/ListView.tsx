@@ -1,6 +1,9 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { SharedTagResponse } from '../../data/api/shareTypes';
 import { collapseDescendants, type CompletedMode } from '../../domain/itemTree';
+import type { ItemChange } from '../../domain/itemChange';
+import type { RemoteChanges } from '../../state/useRemoteChanges';
+import { useListPollPaused } from '../../state/usePollInterval';
 import type { ListActions, ListItem, ListViewModel } from './listController';
 import { AddTaskBar } from './AddTaskBar';
 import { TaskList } from './TaskList';
@@ -12,6 +15,10 @@ const MODES: { value: CompletedMode; label: string }[] = [
   { value: 'hidden', label: 'Hidden' },
 ];
 
+/** How long a remotely-changed row stays highlighted and held in place. Keep in step with the
+ *  `remote-flash` keyframes in index.css. */
+const REMOTE_FLASH_MS = 4000;
+
 interface Props {
   list: ListViewModel;
   items: ListItem[];
@@ -22,15 +29,49 @@ interface Props {
   members?: { principalId: string; email: string; displayName?: string | null }[];
   /** Optional control rendered in the header (e.g. a members/share button). */
   headerExtra?: ReactNode;
+  /** Edits that arrived from someone else, to announce on the affected rows. */
+  changes: RemoteChanges;
 }
 
 /** Presentational list + tasks, shared by the share and member surfaces. Owns view-only UI state
  *  (expanded set, completed-display mode, open task) — none persisted. Fetching lives in the hooks. */
-export function ListView({ list, items, canEdit, tagsById, actions, members, headerExtra }: Props) {
+export function ListView({ list, items, canEdit, tagsById, actions, members, headerExtra, changes }: Props) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [mode, setMode] = useState<CompletedMode>('inline');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  // Each batch owns its expiry timer — a change arriving mid-flash must not cancel the previous
+  // batch's cleanup and leave those rows highlighted for good.
+  const [flashes, setFlashes] = useState<Map<string, ItemChange>>(new Map());
+  const flashTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  useEffect(() => () => flashTimers.current.forEach(clearTimeout), []);
+  useEffect(() => {
+    if (changes.list.length === 0) return;
+    const batch = changes.list;
+    setFlashes(prev => {
+      const next = new Map(prev);
+      for (const c of batch) next.set(c.itemId, c);
+      return next;
+    });
+    flashTimers.current.push(
+      setTimeout(() => {
+        setFlashes(prev => {
+          const next = new Map(prev);
+          for (const c of batch) next.delete(c.itemId);
+          return next;
+        });
+      }, REMOTE_FLASH_MS),
+    );
+  }, [changes]);
+
+  // Held in place until the flash ends: otherwise a remote completion hides the row, or flings it to
+  // the COMPLETED section, at the instant it changes.
+  const heldCompleted = useMemo(
+    () => new Set([...flashes.values()].filter(c => c.kind === 'completed').map(c => c.itemId)),
+    [flashes],
+  );
+
+  const pollPaused = useListPollPaused();
   const isShopping = list.kind === 'Shopping';
   const simplePriority = list.simplePriority !== false; // default (undefined) = simple star mode
   const selected = selectedId ? (items.find(i => i.id === selectedId) ?? null) : null;
@@ -62,6 +103,12 @@ export function ListView({ list, items, canEdit, tagsById, actions, members, hea
         </div>
       </header>
 
+      {pollPaused ? (
+        <p className="poll-paused" role="status">
+          Auto-refresh paused while idle — any activity resumes it.
+        </p>
+      ) : null}
+
       {canEdit ? <AddTaskBar onAdd={t => actions.addTask(t)} /> : null}
 
       <TaskList
@@ -72,6 +119,8 @@ export function ListView({ list, items, canEdit, tagsById, actions, members, hea
         completedMode={mode}
         expanded={expanded}
         tagsById={tagsById}
+        flashes={flashes}
+        held={heldCompleted}
         onToggle={actions.toggleComplete}
         onOpen={it => setSelectedId(it.id)}
         onToggleExpand={toggleExpand}

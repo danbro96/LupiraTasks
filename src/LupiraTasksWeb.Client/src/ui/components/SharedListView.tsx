@@ -6,7 +6,7 @@ import { ListView } from './ListView';
 /** Account-less share surface: resolve the token to a list, then render the shared task UI. Owns
  *  only the share-specific loading / invalid-link / error copy; the list UI lives in ListView. */
 export function SharedListView({ token }: { token: string }) {
-  const { query, list, items, canEdit, tagsById, actions } = useSharedList(token);
+  const { query, list, items, canEdit, tagsById, actions, changes } = useSharedList(token);
 
   if (query.isLoading) return <Centered title="Loading…" />;
 
@@ -29,5 +29,7 @@ export function SharedListView({ token }: { token: string }) {
     );
   }
 
-  return <ListView list={list} items={items} canEdit={canEdit} tagsById={tagsById} actions={actions} />;
+  return (
+    <ListView list={list} items={items} canEdit={canEdit} tagsById={tagsById} actions={actions} changes={changes} />
+  );
 }

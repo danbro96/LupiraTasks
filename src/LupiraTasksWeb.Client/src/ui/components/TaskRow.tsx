@@ -2,6 +2,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { SharedItemResponse, SharedTagResponse } from '../../data/api/shareTypes';
 import type { VisibleRow } from '../../domain/itemTree';
+import { changeLabel, type ActorRef, type ItemChangeKind } from '../../domain/itemChange';
 import { formatDue } from '../../domain/dueDate';
 import { Checkbox } from './Checkbox';
 import { PriorityControl } from './PriorityControl';
@@ -25,6 +26,9 @@ interface Props {
   sortable: boolean;
   expanded: boolean;
   tagsById: Map<string, SharedTagResponse>;
+  /** Set while someone else's edit to this row is being announced. */
+  changeKind?: ItemChangeKind;
+  changeActor?: ActorRef | null;
   onToggle: (item: SharedItemResponse) => void;
   onOpen: (item: SharedItemResponse) => void;
   onToggleExpand: (id: string) => void;
@@ -40,6 +44,8 @@ export function TaskRow({
   sortable,
   expanded,
   tagsById,
+  changeKind,
+  changeActor,
   onToggle,
   onOpen,
   onToggleExpand,
@@ -63,6 +69,9 @@ export function TaskRow({
       className={`row${isDragging ? ' dragging' : ''}`}
       style={{ transform: CSS.Transform.toString(transform), transition, paddingLeft: 16 + depth * INDENT }}
     >
+      {/* A child, not a background on .row: dnd-kit writes `transition` inline on that element. */}
+      {changeKind ? <span className="row-highlight" aria-hidden="true" /> : null}
+
       {draggable ? (
         <button type="button" className="row-grip" aria-label="Drag to reorder" {...attributes} {...listeners}>
           <GripIcon />
@@ -74,9 +83,15 @@ export function TaskRow({
       <Checkbox checked={item.completed} disabled={!canEdit} onChange={() => onToggle(item)} />
 
       <button type="button" className="row-body" onClick={() => onOpen(item)}>
-        <span className={`title${item.completed ? ' done' : ''}`}>
-          {qty ? <span className="qty">{qty} </span> : null}
-          {item.title}
+        {/* Notice shares the title's line: its own line would grow rows that have no meta line. */}
+        <span className="title-line">
+          <span className={`title${item.completed ? ' done' : ''}`}>
+            {qty ? <span className="qty">{qty} </span> : null}
+            {item.title}
+          </span>
+          {changeKind ? (
+            <span className="row-change">{changeLabel(changeKind, changeActor ?? null)}</span>
+          ) : null}
         </span>
         {(due || tags.length > 0) && !item.completed ? (
           <span className="meta-row">

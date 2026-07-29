@@ -5,8 +5,14 @@ import type { PersonRef } from '../../data/api/listTypes';
 // (useSharedList) and the member hook (useMemberList) produce this shape, so TaskList / TaskRow /
 // TaskDetail / ListView render either surface unchanged.
 
-/** An item as the UI needs it: the shared item shape, plus an optional assignee (member surface). */
-export type ListItem = SharedItemResponse & { assignee?: PersonRef | null };
+/** An item as the UI needs it: the shared item shape, plus the member surface's identity fields.
+ *  The share surface omits them by design (the API strips emails), so a change there can be shown
+ *  but not attributed. */
+export type ListItem = SharedItemResponse & {
+  assignee?: PersonRef | null;
+  completedBy?: PersonRef | null;
+  createdBy?: PersonRef | null;
+};
 
 /** The list metadata the task UI reads — common to SharedListResponse and the member ListResponse. */
 export interface ListViewModel {

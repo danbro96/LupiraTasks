@@ -65,6 +65,7 @@ function ListDetail({ listId }: { listId: string }) {
         tagsById={c.tagsById}
         actions={c.actions}
         members={c.members}
+        changes={c.changes}
         headerExtra={
           <button type="button" className="linklike" onClick={() => setPanelOpen(true)}>
             Members &amp; sharing
