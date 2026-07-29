@@ -43,7 +43,12 @@ export interface ListResponse {
   owner: PersonRef;
   /** The caller's own role on this list (server-authoritative) — gate owner/editor UI on this. */
   access: ListRole;
+  /** The caller's own drag position (fractional-index key); null until they first reorder it.
+   *  Nobody else's ordering is exposed. */
+  sortOrder?: string | null;
   isArchived: boolean;
+  /** When it was archived; null while active. The archived view sorts on this, not `updatedAt`. */
+  archivedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   tags: SharedTagResponse[];
@@ -70,6 +75,11 @@ export interface CreateListRequest {
   name: string;
   kind: ListKind;
   color?: string | null;
+}
+
+/** Set the caller's own position for a list. `sortOrder` is a fractional-index key. */
+export interface SetListOrderRequest {
+  sortOrder: string;
 }
 
 export interface UpdateListRequest {

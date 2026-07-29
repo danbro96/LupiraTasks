@@ -13,6 +13,7 @@ import type {
   MeResponse,
   MoveItemRequest,
   RedeemShareResponse,
+  SetListOrderRequest,
   ShareCollectionResponse,
   ShareResponse,
   UpdateItemRequest,
@@ -67,6 +68,11 @@ export function archiveList(listId: string): Promise<ListResponse> {
 
 export function restoreList(listId: string): Promise<ListResponse> {
   return authedRequest<ListResponse>(`/lists/${enc(listId)}/restore`, post());
+}
+
+/** Per-user: sets the caller's own position for the list, not the list's own order. */
+export function setListOrder(listId: string, body: SetListOrderRequest): Promise<ListResponse> {
+  return authedRequest<ListResponse>(`/lists/${enc(listId)}/order`, post(body));
 }
 
 export function deleteList(listId: string): Promise<void> {

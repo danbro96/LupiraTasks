@@ -1,20 +1,74 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useLists } from '../../state/useLists';
 import { useMe } from '../../state/useMe';
 import { logout } from '../../data/api/session';
 import { ApiError } from '../../data/api/fetcher';
-import type { ListKind } from '../../data/api/listTypes';
+import type { ListKind, ListResponse } from '../../data/api/listTypes';
 import { listColorOptions } from '../theme/colors';
 import { Centered } from '../components/Centered';
-import { ChevronRightIcon, CloseIcon } from '../components/icons';
+import { ChevronRightIcon, CloseIcon, GripIcon } from '../components/icons';
 
-/** The SSO landing: the caller's lists (mirrors the mobile ListsScreen). Each row links to its tasks. */
+/** One list row: a drag grip plus a link into the list. The grip owns the drag listeners so the
+ *  link stays clickable (same split as TaskRow). */
+function ListRow({ list }: { list: ListResponse }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: list.id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      role="listitem"
+      className={`list-row${isDragging ? ' dragging' : ''}`}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+    >
+      <button type="button" className="row-grip" aria-label={`Reorder ${list.name}`} {...attributes} {...listeners}>
+        <GripIcon />
+      </button>
+      <Link to={`/lists/${list.id}`} className="list-row-link">
+        <span
+          className="color-dot"
+          style={{ background: list.color ?? 'transparent', borderColor: list.color ?? 'var(--border)' }}
+        />
+        <span className="list-row-name">{list.name}</span>
+        {list.kind === 'Shopping' ? <span className="badge">Shopping</span> : null}
+        <ChevronRightIcon className="row-chevron" />
+      </Link>
+    </div>
+  );
+}
+
+/** The SSO landing: the caller's lists (mirrors the mobile ListsScreen). Each row links to its tasks,
+ *  and the grip reorders them — per-user, so a shared list can sit elsewhere for other members. */
 export function ListsScreen() {
-  const { query, lists, create } = useLists();
+  const { query, lists, create, reorder } = useLists();
   const me = useMe();
   const navigate = useNavigate();
   const [creating, setCreating] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  function onDragEnd(e: DragEndEvent) {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const from = lists.findIndex(l => l.id === active.id);
+    const to = lists.findIndex(l => l.id === over.id);
+    if (from < 0 || to < 0) return;
+    reorder.mutate({ from, to });
+  }
 
   return (
     <div>
@@ -49,19 +103,13 @@ export function ListsScreen() {
       ) : lists.length === 0 ? (
         <p className="empty">No lists yet — create your first one.</p>
       ) : (
-        <div className="list-rows" role="list">
-          {lists.map(l => (
-            <Link key={l.id} to={`/lists/${l.id}`} className="list-row" role="listitem">
-              <span
-                className="color-dot"
-                style={{ background: l.color ?? 'transparent', borderColor: l.color ?? 'var(--border)' }}
-              />
-              <span className="list-row-name">{l.name}</span>
-              {l.kind === 'Shopping' ? <span className="badge">Shopping</span> : null}
-              <ChevronRightIcon className="row-chevron" />
-            </Link>
-          ))}
-        </div>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+          <SortableContext items={lists.map(l => l.id)} strategy={verticalListSortingStrategy}>
+            <div className="list-rows" role="list">
+              {lists.map(l => <ListRow key={l.id} list={l} />)}
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
 
       {creating ? (

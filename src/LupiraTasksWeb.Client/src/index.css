@@ -678,11 +678,24 @@ span.priority-star {
   gap: var(--sp-md);
   padding: 14px var(--sp-lg);
   border-bottom: 1px solid var(--divider);
-  text-decoration: none;
   color: var(--text);
 }
 .list-row:hover {
   background: var(--surface);
+}
+.list-row.dragging {
+  opacity: 0.85;
+  background: var(--surface);
+}
+/* The link fills the row; the grip beside it keeps its own click target. */
+.list-row-link {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
 }
 .list-row-name {
   flex: 1;
