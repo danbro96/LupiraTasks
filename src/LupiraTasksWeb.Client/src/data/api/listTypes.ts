@@ -35,7 +35,6 @@ export interface ListMember {
 /** Full list metadata (GET /lists, GET /lists/{id}). Items are fetched separately. */
 export interface ListResponse {
   id: string;
-  version: number;
   name: string;
   kind: ListKind;
   color?: string | null;
