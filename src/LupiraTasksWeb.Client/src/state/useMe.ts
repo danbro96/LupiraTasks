@@ -1,7 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { getMe } from '../data/api/lists';
+import { useGetMe } from '../data/api/member/me/me';
 
 /** The signed-in user's provisioned profile (GET /me). Cached for the session; rarely changes. */
 export function useMe() {
-  return useQuery({ queryKey: ['me'], queryFn: getMe, staleTime: Infinity });
+  return useGetMe({ query: { staleTime: Infinity } });
 }

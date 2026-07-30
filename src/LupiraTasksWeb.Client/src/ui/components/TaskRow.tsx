@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import type { SharedItemResponse, SharedTagResponse } from '../../data/api/shareTypes';
+import type { SharedItemResponse, SharedTagResponse } from '../../data/api/shared/models';
 import type { VisibleRow } from '../../domain/itemTree';
 import { changeLabel, type ActorRef, type ItemChangeKind } from '../../domain/itemChange';
 import { formatDue } from '../../domain/dueDate';

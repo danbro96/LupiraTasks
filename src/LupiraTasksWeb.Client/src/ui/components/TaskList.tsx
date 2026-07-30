@@ -9,7 +9,7 @@ import {
   type DragEndEvent,
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import type { SharedItemResponse, SharedTagResponse } from '../../data/api/shareTypes';
+import type { SharedItemResponse, SharedTagResponse } from '../../data/api/shared/models';
 import { rowsForMode, siblingReorder, type CompletedMode } from '../../domain/itemTree';
 import type { ItemChange } from '../../domain/itemChange';
 import { TaskRow } from './TaskRow';

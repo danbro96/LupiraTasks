@@ -15,7 +15,7 @@ import { useLists } from '../../state/useLists';
 import { useMe } from '../../state/useMe';
 import { logout } from '../../data/api/session';
 import { ApiError } from '../../data/api/fetcher';
-import type { ListKind, ListResponse } from '../../data/api/listTypes';
+import type { ListKind, ListResponse } from '../../data/api/member/models';
 import { listColorOptions } from '../theme/colors';
 import { Centered } from '../components/Centered';
 import { ChevronRightIcon, CloseIcon, GripIcon } from '../components/icons';

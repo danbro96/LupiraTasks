@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { redeemShare } from '../../data/api/lists';
+import { postSharesRedeem } from '../../data/api/member/shares/shares';
 import { login } from '../../data/api/session';
 import { ApiError } from '../../data/api/fetcher';
 import { useSession } from '../../state/useSession';
@@ -20,9 +20,9 @@ export function ShareEntry() {
   const loggedIn = !!session.data;
 
   const redeem = useMutation({
-    mutationFn: (t: string) => redeemShare(t),
+    mutationFn: (t: string) => postSharesRedeem({ token: t }),
     onSuccess: res => {
-      void qc.invalidateQueries({ queryKey: ['lists'] });
+      void qc.invalidateQueries({ queryKey: ['/lists'] });
       navigate(`/lists/${res.listId}`, { replace: true });
     },
   });

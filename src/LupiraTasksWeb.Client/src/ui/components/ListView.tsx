@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { SharedTagResponse } from '../../data/api/shareTypes';
+import type { SharedTagResponse } from '../../data/api/shared/models';
 import { collapseDescendants, type CompletedMode } from '../../domain/itemTree';
 import type { ItemChange } from '../../domain/itemChange';
 import type { RemoteChanges } from '../../state/useRemoteChanges';

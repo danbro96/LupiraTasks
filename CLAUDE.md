@@ -17,8 +17,11 @@ adding or changing UI. **Online-only** (React Query, server is source of truth) 
 
 ## SPA layering (downward-only, `eslint-plugin-boundaries`)
 `domain → data → state → ui`
-- `domain/` pure logic · `data/` HTTP clients + session helpers (`api/`) · `state/` React Query hooks ·
-  `ui/` `components/`, `screens/`, `navigation/`, `theme/`.
+- `domain/` pure logic · `data/` generated API client + mutators + session helpers (`api/`) · `state/`
+  React Query hooks · `ui/` `components/`, `screens/`, `navigation/`, `theme/`.
+- `data/api/{member,shared}/` are **orval-generated** (`clean: true` — never hand-edit). Refresh with
+  `npm run fetch:openapi && npm run gen:api` after an API change. Two targets because the two auth models
+  need different 401 handling: member → redirect to sign-in, share-link → surface the error.
 
 ## Surfaces
 - **Member (SSO):** `/` list of lists, `/lists/:listId` its tasks. Calls same-origin `/api/*`.

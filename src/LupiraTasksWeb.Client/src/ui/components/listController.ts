@@ -1,5 +1,5 @@
-import type { ListKind, SharedItemResponse, SharedTagResponse } from '../../data/api/shareTypes';
-import type { PersonRef } from '../../data/api/listTypes';
+import type { ListKind, SharedItemResponse, SharedTagResponse } from '../../data/api/shared/models';
+import type { PersonRef } from '../../data/api/member/models';
 
 // The surface-agnostic contract the task UI consumes. Both the account-less share hook
 // (useSharedList) and the member hook (useMemberList) produce this shape, so TaskList / TaskRow /

@@ -1,7 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '../data/api/fetcher';
-import { createList, getLists, setListOrder } from '../data/api/lists';
-import type { CreateListRequest, ListResponse } from '../data/api/listTypes';
+import {
+  getGetListsQueryKey,
+  postLists,
+  postListsListIdOrder,
+  useGetLists,
+} from '../data/api/member/lists/lists';
+import type { CreateListRequest, ListCollectionResponse, ListResponse } from '../data/api/member/models';
 import { newId } from '../domain/ids';
 import { planListReorder, sortActiveLists, sortArchivedLists } from '../domain/listOrder';
 
@@ -12,17 +17,20 @@ const TERMINAL = new Set([400, 401, 403, 404]); // not worth retrying
  *  (archived: most recently archived first). */
 export function useLists(archived = false) {
   const qc = useQueryClient();
-  const key = ['lists', { archived }] as const;
+  const params = { archived };
+  const key = getGetListsQueryKey(params);
 
-  const query = useQuery({
-    queryKey: key,
-    queryFn: () => getLists(archived),
-    retry: (count, err) => !(err instanceof ApiError && TERMINAL.has(err.status)) && count < 2,
+  const query = useGetLists<ListResponse[], ApiError>(params, {
+    query: {
+      select: (r: ListCollectionResponse) => r.lists,
+      retry: (count, err) => !(err instanceof ApiError && TERMINAL.has(err.status)) && count < 2,
+    },
   });
 
+  // Wraps the generated call to mint the client-side id (the API's idempotency key).
   const create = useMutation({
-    mutationFn: (body: Omit<CreateListRequest, 'id'>) => createList({ id: newId(), ...body }),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ['lists'] }),
+    mutationFn: (body: Omit<CreateListRequest, 'id'>) => postLists({ id: newId(), ...body }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['/lists'] }),
   });
 
   const lists = query.data ?? [];
@@ -33,7 +41,7 @@ export function useLists(archived = false) {
     // records one event per call — no reason to open N connections for a handful of writes.
     mutationFn: async ({ from, to }: { from: number; to: number }) => {
       for (const t of planListReorder(sorted, from, to)) {
-        await setListOrder(t.listId, { sortOrder: t.sortOrder });
+        await postListsListIdOrder(t.listId, { sortOrder: t.sortOrder });
       }
     },
     // Apply the new keys to the cache up front so the row stays where it was dropped instead of
@@ -41,10 +49,13 @@ export function useLists(archived = false) {
     onMutate: ({ from, to }: { from: number; to: number }) => {
       const keys = new Map(planListReorder(sorted, from, to).map(t => [t.listId, t.sortOrder]));
       if (keys.size === 0) return;
-      qc.setQueryData<ListResponse[]>(key, prev =>
-        prev?.map(l => (keys.has(l.id) ? { ...l, sortOrder: keys.get(l.id)! } : l)));
+      qc.setQueryData<ListCollectionResponse>(key, prev =>
+        prev && {
+          ...prev,
+          lists: prev.lists.map(l => (keys.has(l.id) ? { ...l, sortOrder: keys.get(l.id)! } : l)),
+        });
     },
-    onSettled: () => void qc.invalidateQueries({ queryKey: ['lists'] }),
+    onSettled: () => void qc.invalidateQueries({ queryKey: ['/lists'] }),
   });
 
   return { query, lists: sorted, create, reorder };

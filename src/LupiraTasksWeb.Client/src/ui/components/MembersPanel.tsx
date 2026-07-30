@@ -1,14 +1,25 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import * as api from '../../data/api/lists';
-import type { ListMember, ListRole, ShareAccess } from '../../data/api/listTypes';
+import {
+  deleteListsListIdMembersPrincipalId,
+  getGetListsListIdQueryKey,
+  patchListsListIdMembersPrincipalId,
+  postListsListIdMembers,
+} from '../../data/api/member/lists/lists';
+import {
+  deleteListsListIdSharesShareId,
+  getGetListsListIdSharesQueryKey,
+  getListsListIdShares,
+  postListsListIdShares,
+} from '../../data/api/member/shares/shares';
+import type { ListRole, MemberResponse, ShareAccess } from '../../data/api/member/models';
 import { CloseIcon, TrashIcon } from './icons';
 
 const ROLES: ListRole[] = ['Owner', 'Editor', 'Viewer'];
 
 interface Props {
   listId: string;
-  members: ListMember[];
+  members: MemberResponse[];
   /** Owner-only controls: change roles, remove members, mint/revoke share links. */
   isOwner: boolean;
   onClose: () => void;
@@ -18,36 +29,37 @@ interface Props {
  *  role changes, removals, and share links are owner-only. */
 export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
   const qc = useQueryClient();
-  const invalidateList = () => void qc.invalidateQueries({ queryKey: ['list', listId] });
-  const invalidateShares = () => void qc.invalidateQueries({ queryKey: ['shares', listId] });
+  const sharesKey = getGetListsListIdSharesQueryKey(listId);
+  const invalidateList = () => void qc.invalidateQueries({ queryKey: getGetListsListIdQueryKey(listId) });
+  const invalidateShares = () => void qc.invalidateQueries({ queryKey: sharesKey });
 
   const [email, setEmail] = useState('');
   const [addRole, setAddRole] = useState<ListRole>('Editor');
   const [shareAccess, setShareAccess] = useState<ShareAccess>('ReadWrite');
 
   const addMut = useMutation({
-    mutationFn: () => api.addMember(listId, { email: email.trim(), role: addRole }),
+    mutationFn: () => postListsListIdMembers(listId, { email: email.trim(), role: addRole }),
     onSuccess: () => {
       setEmail('');
       invalidateList();
     },
   });
   const roleMut = useMutation({
-    mutationFn: (v: { principalId: string; role: ListRole }) => api.updateMember(listId, v.principalId, { role: v.role }),
+    mutationFn: (v: { principalId: string; role: ListRole }) => patchListsListIdMembersPrincipalId(listId, v.principalId, { role: v.role }),
     onSuccess: invalidateList,
   });
   const removeMut = useMutation({
-    mutationFn: (principalId: string) => api.removeMember(listId, principalId),
+    mutationFn: (principalId: string) => deleteListsListIdMembersPrincipalId(listId, principalId),
     onSuccess: invalidateList,
   });
 
-  const shares = useQuery({ queryKey: ['shares', listId], queryFn: () => api.getShares(listId), enabled: isOwner });
+  const shares = useQuery({ queryKey: sharesKey, queryFn: () => getListsListIdShares(listId), select: r => r.shares, enabled: isOwner });
   const createShareMut = useMutation({
-    mutationFn: () => api.createShare(listId, { access: shareAccess }),
+    mutationFn: () => postListsListIdShares(listId, { access: shareAccess }),
     onSuccess: invalidateShares,
   });
   const revokeShareMut = useMutation({
-    mutationFn: (shareId: string) => api.revokeShare(listId, shareId),
+    mutationFn: (shareId: string) => deleteListsListIdSharesShareId(listId, shareId),
     onSuccess: invalidateShares,
   });
 

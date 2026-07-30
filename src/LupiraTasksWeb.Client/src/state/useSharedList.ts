@@ -1,14 +1,23 @@
 import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import * as api from '../data/api/shared';
 import { ApiError } from '../data/api/fetcher';
+import {
+  deleteSharedTokenItemsItemId,
+  getGetSharedTokenQueryKey,
+  getSharedToken,
+  patchSharedTokenItemsItemId,
+  postSharedTokenItems,
+  postSharedTokenItemsItemIdComplete,
+  postSharedTokenItemsItemIdMove,
+  postSharedTokenItemsItemIdReopen,
+} from '../data/api/shared/shared/shared';
 import type {
   CreateItemRequest,
   SharedItemResponse,
   SharedListResponse,
   SharedTagResponse,
   UpdateItemRequest,
-} from '../data/api/shareTypes';
+} from '../data/api/shared/models';
 import { newId } from '../domain/ids';
 import { descendantIds, nextChildSortOrder, topSortOrder } from '../domain/itemTree';
 import { useRemoteChanges } from './useRemoteChanges';
@@ -16,7 +25,8 @@ import { useListPollInterval } from './usePollInterval';
 
 // React Query wrapper around the shared-link surface. One cached list per token; every mutation
 // updates the cache optimistically (so the UI feels instant), rolls back on error, and refetches
-// on settle (server is the source of truth — no offline/persistence here).
+// on settle (server is the source of truth — no offline/persistence here). Every mutation stamps
+// `occurredAt` (client wall-clock) so concurrent edits converge via last-writer-wins.
 
 const TERMINAL = new Set([400, 401, 403, 404]); // not worth retrying
 const nowIso = () => new Date().toISOString();
@@ -25,16 +35,17 @@ type Ctx = { previous?: SharedListResponse };
 
 export function useSharedList(token: string) {
   const qc = useQueryClient();
-  const key = useMemo(() => ['shared', token] as const, [token]);
+  const key = useMemo(() => getGetSharedTokenQueryKey(token), [token]);
 
   const { changes, absorb, emit } = useRemoteChanges<SharedItemResponse>(token);
   const refetchInterval = useListPollInterval();
 
+  // Hand-rolled rather than the generated hook so `emit` can sit in queryFn: only a network result
+  // may announce a change, and setQueryData never runs queryFn.
   const query = useQuery({
     queryKey: key,
-    // Only a network result can emit — setQueryData never runs queryFn.
     queryFn: async () => {
-      const data = await api.getSharedList(token);
+      const data = await getSharedToken(token);
       emit(data.items);
       return data;
     },
@@ -78,7 +89,7 @@ export function useSharedList(token: string) {
   }
 
   const addMut = useMutation<SharedItemResponse, unknown, CreateItemRequest, Ctx>({
-    mutationFn: body => api.addItem(token, body),
+    mutationFn: body => postSharedTokenItems(token, { occurredAt: nowIso(), ...body }),
     ...optimistic<CreateItemRequest>((curr, body) => [
       ...curr,
       {
@@ -99,12 +110,12 @@ export function useSharedList(token: string) {
   });
 
   const updateMut = useMutation<SharedItemResponse, unknown, { itemId: string; body: UpdateItemRequest }, Ctx>({
-    mutationFn: ({ itemId, body }) => api.updateItem(token, itemId, body),
+    mutationFn: ({ itemId, body }) => patchSharedTokenItemsItemId(token, itemId, { occurredAt: nowIso(), ...body }),
     ...optimistic<{ itemId: string; body: UpdateItemRequest }>((curr, { itemId, body }) =>
       curr.map(it => {
         if (it.id !== itemId) return it;
         const next = { ...it };
-        if (body.titleProvided && body.title !== undefined) next.title = body.title;
+        if (body.titleProvided && body.title != null) next.title = body.title;
         if (body.notesProvided) next.notes = body.notes ?? null;
         if (body.dueAtProvided) next.dueAt = body.dueAt ?? null;
         if (body.quantityProvided) {
@@ -120,7 +131,10 @@ export function useSharedList(token: string) {
   });
 
   const toggleMut = useMutation<SharedItemResponse, unknown, SharedItemResponse, Ctx>({
-    mutationFn: item => (item.completed ? api.reopenItem(token, item.id) : api.completeItem(token, item.id)),
+    mutationFn: item =>
+      item.completed
+        ? postSharedTokenItemsItemIdReopen(token, item.id, { occurredAt: nowIso() })
+        : postSharedTokenItemsItemIdComplete(token, item.id, { occurredAt: nowIso() }),
     ...optimistic<SharedItemResponse>((curr, item) =>
       curr.map(it =>
         it.id === item.id ? { ...it, completed: !item.completed, completedAt: item.completed ? null : nowIso() } : it,
@@ -134,14 +148,16 @@ export function useSharedList(token: string) {
     { itemId: string; sortOrder: string; parentItemId: string | null },
     Ctx
   >({
-    mutationFn: ({ itemId, sortOrder, parentItemId }) => api.moveItem(token, itemId, { sortOrder, parentItemId }),
+    mutationFn: ({ itemId, sortOrder, parentItemId }) =>
+      postSharedTokenItemsItemIdMove(token, itemId, { sortOrder, parentItemId, occurredAt: nowIso() }),
     ...optimistic<{ itemId: string; sortOrder: string; parentItemId: string | null }>((curr, { itemId, sortOrder, parentItemId }) =>
       curr.map(it => (it.id === itemId ? { ...it, sortOrder, parentItemId } : it)),
     ),
   });
 
   const deleteMut = useMutation<void, unknown, { ids: string[] }, Ctx>({
-    mutationFn: ({ ids }) => Promise.all(ids.map(id => api.deleteItem(token, id))).then(() => undefined),
+    mutationFn: ({ ids }) =>
+      Promise.all(ids.map(id => deleteSharedTokenItemsItemId(token, id, { occurredAt: nowIso() }))).then(() => undefined),
     ...optimistic<{ ids: string[] }>((curr, { ids }) => curr.filter(it => !ids.includes(it.id))),
   });
 
