@@ -88,6 +88,7 @@ internal static class AuthExtensions
                         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                         context.HandleResponse();
                     }
+
                     return Task.CompletedTask;
                 };
             });
