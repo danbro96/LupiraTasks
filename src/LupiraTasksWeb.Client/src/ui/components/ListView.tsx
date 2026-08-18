@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import Chip from '@mui/material/Chip';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import type { SharedTagResponse } from '../../data/api/shared/models';
 import { collapseDescendants, type CompletedMode } from '../../domain/itemTree';
 import type { ItemChange } from '../../domain/itemChange';
@@ -85,22 +88,23 @@ export function ListView({ list, items, canEdit, tagsById, actions, members, hea
       <header className="list-head">
         <div className="list-head-top">
           <h1 className="list-title">{list.name}</h1>
-          {canEdit ? null : <span className="badge">View only</span>}
+          {canEdit ? null : <Chip size="small" variant="outlined" label="View only" />}
           {headerExtra}
         </div>
-        <div className="seg" role="group" aria-label="Completed tasks display">
+        <ToggleButtonGroup
+          exclusive
+          size="small"
+          value={mode}
+          onChange={(_, next: CompletedMode | null) => next != null && setMode(next)}
+          aria-label="Completed tasks display"
+          sx={{ mt: 1.5 }}
+        >
           {MODES.map(m => (
-            <button
-              key={m.value}
-              type="button"
-              className={`seg-btn${mode === m.value ? ' active' : ''}`}
-              aria-pressed={mode === m.value}
-              onClick={() => setMode(m.value)}
-            >
+            <ToggleButton key={m.value} value={m.value}>
               {m.label}
-            </button>
+            </ToggleButton>
           ))}
-        </div>
+        </ToggleButtonGroup>
       </header>
 
       {pollPaused ? (

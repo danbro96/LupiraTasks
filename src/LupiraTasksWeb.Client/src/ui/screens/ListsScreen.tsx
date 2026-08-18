@@ -11,6 +11,18 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import IconButton from '@mui/material/IconButton';
+import MuiLink from '@mui/material/Link';
+import TextField from '@mui/material/TextField';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import CloseIcon from '@mui/icons-material/Close';
 import { useLists } from '../../state/useLists';
 import { useMe } from '../../state/useMe';
 import { logout } from '../../data/api/session';
@@ -18,7 +30,7 @@ import { ApiError } from '../../data/api/fetcher';
 import type { ListKind, ListResponse } from '../../data/api/member/models';
 import { listColorOptions } from '../theme/colors';
 import { Centered } from '../components/Centered';
-import { ChevronRightIcon, CloseIcon, GripIcon } from '../components/icons';
+import { GripIcon } from '../components/icons';
 
 /** One list row: a drag grip plus a link into the list. The grip owns the drag listeners so the
  *  link stays clickable (same split as TaskRow). */
@@ -42,7 +54,7 @@ function ListRow({ list }: { list: ListResponse }) {
         />
         <span className="list-row-name">{list.name}</span>
         {list.kind === 'Shopping' ? <span className="badge">Shopping</span> : null}
-        <ChevronRightIcon className="row-chevron" />
+        <ChevronRightIcon fontSize="small" sx={{ color: 'text.disabled', flex: 'none' }} />
       </Link>
     </div>
   );
@@ -75,15 +87,15 @@ export function ListsScreen() {
       <header className="list-head">
         <div className="list-head-top">
           <h1 className="list-title">Lupira Tasks</h1>
-          <button type="button" className="btn primary" onClick={() => setCreating(true)}>
+          <Button variant="contained" size="small" onClick={() => setCreating(true)}>
             New list
-          </button>
+          </Button>
         </div>
         <div className="account-row">
           {me.data ? <span className="meta">{me.data.displayName ?? me.data.email}</span> : null}
-          <button type="button" className="linklike" onClick={() => logout()}>
+          <MuiLink component="button" type="button" underline="hover" onClick={() => logout()}>
             Sign out
-          </button>
+          </MuiLink>
         </div>
       </header>
 
@@ -96,9 +108,9 @@ export function ListsScreen() {
               ? 'Your session expired — try signing in again.'
               : 'Something went wrong reaching the server.'}
           </p>
-          <button type="button" className="btn" onClick={() => void query.refetch()}>
+          <Button variant="outlined" size="small" onClick={() => void query.refetch()}>
             Retry
-          </button>
+          </Button>
         </Centered>
       ) : lists.length === 0 ? (
         <p className="empty">No lists yet — create your first one.</p>
@@ -143,44 +155,46 @@ function CreateListModal({
   const trimmed = name.trim();
 
   return (
-    <div className="modal-backdrop" onClick={onCancel}>
-      <div className="modal" role="dialog" aria-modal="true" aria-label="New list" onClick={e => e.stopPropagation()}>
-        <div className="modal-head">
-          <button type="button" className="icon-btn" aria-label="Close" onClick={onCancel}>
-            <CloseIcon />
-          </button>
-        </div>
-        <form
-          className="modal-body"
-          onSubmit={e => {
-            e.preventDefault();
-            if (trimmed) onCreate(trimmed, kind, color);
-          }}
-        >
-          <div className="section-label">NAME</div>
-          <input
-            className="text-input"
+    <Dialog open fullWidth maxWidth="sm" onClose={onCancel} aria-labelledby="create-list-title">
+      <DialogTitle id="create-list-title" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+        New list
+        <IconButton size="small" aria-label="Close" onClick={onCancel}>
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <form
+        onSubmit={e => {
+          e.preventDefault();
+          if (trimmed) onCreate(trimmed, kind, color);
+        }}
+      >
+        <DialogContent>
+          <TextField
+            fullWidth
+            size="small"
+            label="List name"
             value={name}
             placeholder="List name"
-            aria-label="List name"
             autoFocus
             onChange={e => setName(e.target.value)}
           />
 
           <div className="section-label">TYPE</div>
-          <div className="seg" role="group" aria-label="List type">
+          <ToggleButtonGroup
+            exclusive
+            size="small"
+            value={kind}
+            aria-label="List type"
+            onChange={(_, next: ListKind | null) => {
+              if (next != null) setKind(next);
+            }}
+          >
             {(['Todo', 'Shopping'] as ListKind[]).map(k => (
-              <button
-                key={k}
-                type="button"
-                className={`seg-btn${kind === k ? ' active' : ''}`}
-                aria-pressed={kind === k}
-                onClick={() => setKind(k)}
-              >
+              <ToggleButton key={k} value={k}>
                 {k}
-              </button>
+              </ToggleButton>
             ))}
-          </div>
+          </ToggleButtonGroup>
 
           <div className="section-label">COLOR</div>
           <div className="color-row">
@@ -197,11 +211,13 @@ function CreateListModal({
           </div>
 
           {failed ? <p className="field-value overdue">Couldn't create the list. Try again.</p> : null}
-          <button type="submit" className="btn primary delete-btn" disabled={!trimmed || pending}>
+        </DialogContent>
+        <DialogActions>
+          <Button type="submit" variant="contained" size="small" disabled={!trimmed || pending}>
             {pending ? 'Creating…' : 'Create list'}
-          </button>
-        </form>
-      </div>
-    </div>
+          </Button>
+        </DialogActions>
+      </form>
+    </Dialog>
   );
 }

@@ -1,4 +1,4 @@
-import { CheckIcon } from './icons';
+import MuiCheckbox from '@mui/material/Checkbox';
 
 interface Props {
   checked: boolean;
@@ -10,19 +10,14 @@ interface Props {
 /** A square checkbox matching the mobile app's tick affordance. */
 export function Checkbox({ checked, disabled, onChange, label }: Props) {
   return (
-    <button
-      type="button"
-      className={`checkbox${checked ? ' checked' : ''}`}
-      role="checkbox"
-      aria-checked={checked}
-      aria-label={label ?? (checked ? 'Mark incomplete' : 'Mark complete')}
+    <MuiCheckbox
+      size="small"
+      checked={checked}
       disabled={disabled}
-      onClick={e => {
-        e.stopPropagation();
-        onChange();
-      }}
-    >
-      {checked ? <CheckIcon size={15} /> : null}
-    </button>
+      onClick={e => e.stopPropagation()}
+      onChange={onChange}
+      slotProps={{ input: { 'aria-label': label ?? (checked ? 'Mark incomplete' : 'Mark complete') } }}
+      sx={{ flex: 'none' }}
+    />
   );
 }

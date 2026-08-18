@@ -1,5 +1,16 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import IconButton from '@mui/material/IconButton';
+import MuiLink from '@mui/material/Link';
+import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
+import CloseIcon from '@mui/icons-material/Close';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import {
   deleteListsListIdMembersPrincipalId,
   getGetListsListIdQueryKey,
@@ -13,7 +24,6 @@ import {
   postListsListIdShares,
 } from '../../data/api/member/shares/shares';
 import type { ListRole, MemberResponse, ShareAccess } from '../../data/api/member/models';
-import { CloseIcon, TrashIcon } from './icons';
 
 const ROLES: ListRole[] = ['Owner', 'Editor', 'Viewer'];
 
@@ -64,105 +74,121 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
   });
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" role="dialog" aria-modal="true" aria-label="Members and sharing" onClick={e => e.stopPropagation()}>
-        <div className="modal-head">
-          <button type="button" className="icon-btn" aria-label="Close" onClick={onClose}>
-            <CloseIcon />
-          </button>
-        </div>
-        <div className="modal-body">
-          <div className="section-label">MEMBERS</div>
-          {members.map(m => {
-            const name = m.displayName ?? m.email;
-            return (
-              <div className="sub-row" key={m.principalId}>
-                <span className="list-row-name">{name}</span>
-                {isOwner ? (
-                  <select
-                    className="role-select"
-                    value={m.role}
-                    aria-label={`Role for ${name}`}
-                    onChange={e => roleMut.mutate({ principalId: m.principalId, role: e.target.value as ListRole })}
-                  >
-                    {ROLES.map(r => (
-                      <option key={r} value={r}>
-                        {r}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <span className="badge">{m.role}</span>
-                )}
-                {isOwner ? (
-                  <button type="button" className="icon-btn" aria-label={`Remove ${name}`} onClick={() => removeMut.mutate(m.principalId)}>
-                    <TrashIcon />
-                  </button>
-                ) : null}
-              </div>
-            );
-          })}
-
-          <form
-            className="add-bar"
-            onSubmit={e => {
-              e.preventDefault();
-              if (email.trim()) addMut.mutate();
-            }}
-          >
-            <input
-              className="text-input"
-              type="email"
-              value={email}
-              placeholder="Add member by email"
-              aria-label="Member email"
-              onChange={e => setEmail(e.target.value)}
-            />
-            <select className="role-select" value={addRole} aria-label="Role for new member" onChange={e => setAddRole(e.target.value as ListRole)}>
-              {ROLES.map(r => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-            <button type="submit" className="btn primary" disabled={!email.trim() || addMut.isPending}>
-              Add
-            </button>
-          </form>
-          {addMut.isError ? <p className="field-value overdue">Couldn't add that member.</p> : null}
-
-          {isOwner ? (
-            <>
-              <div className="section-label">SHARE LINKS</div>
-              {shares.data && shares.data.length > 0 ? (
-                shares.data.map(s => (
-                  <div className="sub-row" key={s.shareId}>
-                    <span className="list-row-name share-url">{s.url}</span>
-                    <span className="badge">{s.access === 'ReadWrite' ? 'Edit' : 'Read'}</span>
-                    <button type="button" className="linklike" onClick={() => void navigator.clipboard?.writeText(s.url)}>
-                      Copy
-                    </button>
-                    <button type="button" className="icon-btn" aria-label="Revoke link" onClick={() => revokeShareMut.mutate(s.shareId)}>
-                      <TrashIcon />
-                    </button>
-                  </div>
-                ))
+    <Dialog open fullWidth maxWidth="sm" onClose={onClose} aria-labelledby="members-panel-title">
+      <DialogTitle id="members-panel-title" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+        Members and sharing
+        <IconButton size="small" aria-label="Close" onClick={onClose}>
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent>
+        <div className="section-label">MEMBERS</div>
+        {members.map(m => {
+          const name = m.displayName ?? m.email;
+          return (
+            <div className="sub-row" key={m.principalId}>
+              <span className="list-row-name">{name}</span>
+              {isOwner ? (
+                <TextField
+                  select
+                  size="small"
+                  label={`Role for ${name}`}
+                  value={m.role}
+                  sx={{ minWidth: 140 }}
+                  onChange={e => roleMut.mutate({ principalId: m.principalId, role: e.target.value as ListRole })}
+                >
+                  {ROLES.map(r => (
+                    <MenuItem key={r} value={r}>
+                      {r}
+                    </MenuItem>
+                  ))}
+                </TextField>
               ) : (
-                <p className="field-value">No active links.</p>
+                <Chip size="small" variant="outlined" label={m.role} />
               )}
-              <div className="add-bar">
-                <select className="role-select" value={shareAccess} aria-label="Share access" onChange={e => setShareAccess(e.target.value as ShareAccess)}>
-                  <option value="ReadWrite">Can edit</option>
-                  <option value="Read">Read only</option>
-                </select>
-                <button type="button" className="btn primary" disabled={createShareMut.isPending} onClick={() => createShareMut.mutate()}>
-                  Create link
-                </button>
-              </div>
-            </>
-          ) : null}
-        </div>
-      </div>
-    </div>
+              {isOwner ? (
+                <IconButton size="small" aria-label={`Remove ${name}`} onClick={() => removeMut.mutate(m.principalId)}>
+                  <DeleteOutlineIcon />
+                </IconButton>
+              ) : null}
+            </div>
+          );
+        })}
+
+        <form
+          className="add-bar"
+          onSubmit={e => {
+            e.preventDefault();
+            if (email.trim()) addMut.mutate();
+          }}
+        >
+          <TextField
+            size="small"
+            type="email"
+            label="Member email"
+            value={email}
+            placeholder="Add member by email"
+            sx={{ flex: 1 }}
+            onChange={e => setEmail(e.target.value)}
+          />
+          <TextField
+            select
+            size="small"
+            label="Role for new member"
+            value={addRole}
+            sx={{ minWidth: 140 }}
+            onChange={e => setAddRole(e.target.value as ListRole)}
+          >
+            {ROLES.map(r => (
+              <MenuItem key={r} value={r}>
+                {r}
+              </MenuItem>
+            ))}
+          </TextField>
+          <Button type="submit" variant="contained" size="small" disabled={!email.trim() || addMut.isPending}>
+            Add
+          </Button>
+        </form>
+        {addMut.isError ? <p className="field-value overdue">Couldn't add that member.</p> : null}
+
+        {isOwner ? (
+          <>
+            <div className="section-label">SHARE LINKS</div>
+            {shares.data && shares.data.length > 0 ? (
+              shares.data.map(s => (
+                <div className="sub-row" key={s.shareId}>
+                  <span className="list-row-name share-url">{s.url}</span>
+                  <Chip size="small" variant="outlined" label={s.access === 'ReadWrite' ? 'Edit' : 'Read'} />
+                  <MuiLink component="button" type="button" underline="hover" onClick={() => void navigator.clipboard?.writeText(s.url)}>
+                    Copy
+                  </MuiLink>
+                  <IconButton size="small" aria-label="Revoke link" onClick={() => revokeShareMut.mutate(s.shareId)}>
+                    <DeleteOutlineIcon />
+                  </IconButton>
+                </div>
+              ))
+            ) : (
+              <p className="field-value">No active links.</p>
+            )}
+            <div className="add-bar">
+              <TextField
+                select
+                size="small"
+                label="Share access"
+                value={shareAccess}
+                sx={{ minWidth: 140 }}
+                onChange={e => setShareAccess(e.target.value as ShareAccess)}
+              >
+                <MenuItem value="ReadWrite">Can edit</MenuItem>
+                <MenuItem value="Read">Read only</MenuItem>
+              </TextField>
+              <Button variant="contained" size="small" disabled={createShareMut.isPending} onClick={() => createShareMut.mutate()}>
+                Create link
+              </Button>
+            </div>
+          </>
+        ) : null}
+      </DialogContent>
+    </Dialog>
   );
 }

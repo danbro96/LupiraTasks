@@ -1,12 +1,17 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import Chip from '@mui/material/Chip';
+import IconButton from '@mui/material/IconButton';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import type { SharedItemResponse, SharedTagResponse } from '../../data/api/shared/models';
 import type { VisibleRow } from '../../domain/itemTree';
 import { changeLabel, type ActorRef, type ItemChangeKind } from '../../domain/itemChange';
 import { formatDue } from '../../domain/dueDate';
 import { Checkbox } from './Checkbox';
 import { PriorityControl } from './PriorityControl';
-import { ChevronDownIcon, ChevronRightIcon, GripIcon, TrashIcon } from './icons';
+import { GripIcon } from './icons';
 
 const INDENT = 18; // px per nesting level
 
@@ -97,9 +102,7 @@ export function TaskRow({
           <span className="meta-row">
             {due ? <span className={`meta${due.overdue ? ' overdue' : ''}`}>{due.label}</span> : null}
             {tags.map(t => (
-              <span key={t.id} className="tag-chip" style={{ backgroundColor: t.color }}>
-                {t.label}
-              </span>
+              <Chip key={t.id} component="span" size="small" label={t.label} sx={{ bgcolor: t.color, color: '#fff' }} />
             ))}
           </span>
         ) : null}
@@ -113,20 +116,26 @@ export function TaskRow({
       />
 
       {hasChildren ? (
-        <button
-          type="button"
-          className="icon-btn"
+        <IconButton
+          size="small"
           aria-label={expanded ? 'Collapse subtasks' : 'Expand subtasks'}
           onClick={() => onToggleExpand(item.id)}
+          sx={{ flex: 'none' }}
         >
-          {expanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
-        </button>
+          {expanded ? <ExpandMoreIcon fontSize="small" /> : <ChevronRightIcon fontSize="small" />}
+        </IconButton>
       ) : null}
 
       {canEdit ? (
-        <button type="button" className="icon-btn row-delete" aria-label="Delete task" onClick={() => onDelete(item)}>
-          <TrashIcon />
-        </button>
+        <IconButton
+          size="small"
+          className="row-delete"
+          aria-label="Delete task"
+          onClick={() => onDelete(item)}
+          sx={{ flex: 'none' }}
+        >
+          <DeleteOutlineIcon fontSize="small" />
+        </IconButton>
       ) : null}
     </div>
   );

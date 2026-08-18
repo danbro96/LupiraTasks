@@ -1,5 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
-import { StarIcon } from './icons';
+import { useState } from 'react';
+import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 
 const SCALE = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -14,41 +18,25 @@ interface Props {
 /** Per-task priority control. Read-only (no controls) when not editable: a star for >0 in simple
  *  mode, the value badge in scale mode. */
 export function PriorityControl({ simple, value, editable, onChange }: Props) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onDoc = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('mousedown', onDoc);
-    window.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onDoc);
-      window.removeEventListener('keydown', onKey);
-    };
-  }, [open]);
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
 
   if (simple) {
     const on = value > 0;
-    if (!editable) return on ? <span className="priority-star on"><StarIcon filled /></span> : null;
+    if (!editable) return on ? <span className="priority-star on"><StarIcon fontSize="small" /></span> : null;
     return (
-      <button
-        type="button"
-        className={`icon-btn priority-star${on ? ' on' : ''}`}
+      <IconButton
+        size="small"
+        color={on ? 'primary' : 'default'}
         aria-label={on ? 'Clear priority' : 'Set priority'}
         aria-pressed={on}
         onClick={e => {
           e.stopPropagation();
           onChange(on ? 0 : 1);
         }}
+        sx={{ flex: 'none' }}
       >
-        <StarIcon filled={on} />
-      </button>
+        {on ? <StarIcon fontSize="small" /> : <StarBorderIcon fontSize="small" />}
+      </IconButton>
     );
   }
 
@@ -56,40 +44,51 @@ export function PriorityControl({ simple, value, editable, onChange }: Props) {
   if (!editable) return badge;
 
   return (
-    <div className="priority-wrap" ref={ref}>
-      <button
-        type="button"
-        className="priority-badge-btn"
+    <>
+      <IconButton
+        size="small"
         aria-label={`Priority ${value}. Change.`}
         aria-haspopup="listbox"
-        aria-expanded={open}
+        aria-expanded={anchor != null}
         onClick={e => {
           e.stopPropagation();
-          setOpen(o => !o);
+          setAnchor(e.currentTarget);
         }}
+        sx={{ flex: 'none' }}
       >
         {badge}
-      </button>
-      {open ? (
-        <div className="priority-pop" role="listbox" aria-label="Priority">
-          {SCALE.map(n => (
-            <button
-              key={n}
-              type="button"
-              role="option"
-              aria-selected={n === value}
-              className={`priority-pop-cell${n === value ? ' on' : ''}`}
-              onClick={e => {
-                e.stopPropagation();
-                onChange(n);
-                setOpen(false);
-              }}
-            >
-              {n}
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
+      </IconButton>
+      <Menu
+        anchorEl={anchor}
+        open={anchor != null}
+        onClose={() => setAnchor(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        slotProps={{
+          list: {
+            role: 'listbox',
+            'aria-label': 'Priority',
+            sx: { display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0.5, p: 1 },
+          },
+        }}
+      >
+        {SCALE.map(n => (
+          <MenuItem
+            key={n}
+            role="option"
+            selected={n === value}
+            aria-selected={n === value}
+            onClick={e => {
+              e.stopPropagation();
+              onChange(n);
+              setAnchor(null);
+            }}
+            sx={{ justifyContent: 'center', minWidth: 34, minHeight: 34, borderRadius: 1 }}
+          >
+            {n}
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
   );
 }

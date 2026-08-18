@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import Button from '@mui/material/Button';
+import MuiLink from '@mui/material/Link';
 import { useMemberList } from '../../state/useMemberList';
 import { ApiError } from '../../data/api/fetcher';
 import { Centered } from '../components/Centered';
@@ -12,9 +14,9 @@ export function ListDetailScreen() {
   if (!listId) {
     return (
       <Centered title="List not found">
-        <Link className="btn" to="/">
+        <Button component={Link} to="/" variant="outlined" size="small">
           Back to lists
-        </Link>
+        </Button>
       </Centered>
     );
   }
@@ -33,18 +35,18 @@ function ListDetail({ listId }: { listId: string }) {
       return (
         <Centered title="You don't have access to this list">
           <p>It may have been deleted, or you were removed.</p>
-          <Link className="btn" to="/">
+          <Button component={Link} to="/" variant="outlined" size="small">
             Back to lists
-          </Link>
+          </Button>
         </Centered>
       );
     }
     return (
       <Centered title="Couldn't load this list">
         <p>Something went wrong reaching the server.</p>
-        <button type="button" className="btn" onClick={() => c.query.refetch()}>
+        <Button variant="outlined" size="small" onClick={() => c.query.refetch()}>
           Retry
-        </button>
+        </Button>
       </Centered>
     );
   }
@@ -54,9 +56,9 @@ function ListDetail({ listId }: { listId: string }) {
   return (
     <>
       <div className="topbar">
-        <Link to="/" className="linklike">
+        <MuiLink component={Link} to="/" underline="hover">
           ← All lists
-        </Link>
+        </MuiLink>
       </div>
       <ListView
         list={c.list}
@@ -67,9 +69,9 @@ function ListDetail({ listId }: { listId: string }) {
         members={c.members}
         changes={c.changes}
         headerExtra={
-          <button type="button" className="linklike" onClick={() => setPanelOpen(true)}>
+          <MuiLink component="button" type="button" underline="hover" onClick={() => setPanelOpen(true)}>
             Members &amp; sharing
-          </button>
+          </MuiLink>
         }
       />
       {panelOpen ? (

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import Button from '@mui/material/Button';
+import MuiLink from '@mui/material/Link';
 import { postSharesRedeem } from '../../data/api/member/shares/shares';
 import { login } from '../../data/api/session';
 import { ApiError } from '../../data/api/fetcher';
@@ -54,9 +56,9 @@ export function ShareEntry() {
       <>
         {!loggedIn ? (
           <div className="topbar">
-            <button type="button" className="linklike" onClick={() => login(`/s/${token}`)}>
+            <MuiLink component="button" type="button" underline="hover" onClick={() => login(`/s/${token}`)}>
               Sign in to join this list
-            </button>
+            </MuiLink>
           </div>
         ) : null}
         <SharedListView token={token} />
@@ -71,22 +73,22 @@ export function ShareEntry() {
     return (
       <Centered title="Couldn't add this list">
         <p>Something went wrong. Retry, view it without adding, or go to your lists.</p>
-        <button
-          type="button"
-          className="btn primary"
+        <Button
+          variant="contained"
+          size="small"
           onClick={() => {
             fired.current = true;
             runRedeem(token);
           }}
         >
           Retry
-        </button>
-        <button type="button" className="btn" onClick={() => setViewOnly(true)}>
+        </Button>
+        <Button variant="outlined" size="small" onClick={() => setViewOnly(true)}>
           View without adding
-        </button>
-        <button type="button" className="btn" onClick={() => navigate('/', { replace: true })}>
+        </Button>
+        <Button variant="outlined" size="small" onClick={() => navigate('/', { replace: true })}>
           Go to my lists
-        </button>
+        </Button>
       </Centered>
     );
   }

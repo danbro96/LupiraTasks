@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
 import { oneLine } from '../../domain/text';
 
 interface Props {
@@ -25,16 +27,16 @@ export function AddTaskBar({ placeholder = 'Add task…', onAdd }: Props) {
         commit();
       }}
     >
-      <input
-        className="text-input"
+      <TextField
+        size="small"
+        label={placeholder}
         value={title}
-        placeholder={placeholder}
-        aria-label={placeholder}
         onChange={e => setTitle(oneLine(e.target.value))}
+        sx={{ flex: 1 }}
       />
-      <button type="submit" className="btn primary" disabled={!title.trim()}>
+      <Button type="submit" variant="contained" size="small" disabled={!title.trim()}>
         Add
-      </button>
+      </Button>
     </form>
   );
 }

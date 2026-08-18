@@ -1,3 +1,4 @@
+import Button from '@mui/material/Button';
 import { ApiError } from '../../data/api/fetcher';
 import { useSharedList } from '../../state/useSharedList';
 import { Centered } from './Centered';
@@ -22,9 +23,9 @@ export function SharedListView({ token }: { token: string }) {
     return (
       <Centered title={status === 429 ? 'Too many requests' : "Couldn't load this list"}>
         <p>{status === 429 ? 'Please wait a moment, then try again.' : 'Something went wrong reaching the server.'}</p>
-        <button type="button" className="btn" onClick={() => void query.refetch()}>
+        <Button variant="outlined" size="small" onClick={() => void query.refetch()}>
           Retry
-        </button>
+        </Button>
       </Centered>
     );
   }
