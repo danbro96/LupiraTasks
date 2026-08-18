@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Controller, useForm } from 'react-hook-form';
 import {
   DndContext,
   KeyboardSensor,
@@ -149,10 +150,11 @@ function CreateListModal({
   onCancel: () => void;
   onCreate: (name: string, kind: ListKind, color: string | null) => void;
 }) {
-  const [name, setName] = useState('');
-  const [kind, setKind] = useState<ListKind>('Todo');
-  const [color, setColor] = useState<string | null>(null);
-  const trimmed = name.trim();
+  const { control, handleSubmit, setValue, watch } = useForm<{ name: string; kind: ListKind; color: string | null }>({
+    defaultValues: { name: '', kind: 'Todo', color: null },
+  });
+  const trimmed = watch('name').trim();
+  const color = watch('color');
 
   return (
     <Dialog open fullWidth maxWidth="sm" onClose={onCancel} aria-labelledby="create-list-title">
@@ -163,38 +165,52 @@ function CreateListModal({
         </IconButton>
       </DialogTitle>
       <form
-        onSubmit={e => {
-          e.preventDefault();
-          if (trimmed) onCreate(trimmed, kind, color);
-        }}
+        onSubmit={handleSubmit(v => {
+          const name = v.name.trim();
+          if (name) onCreate(name, v.kind, v.color);
+        })}
       >
         <DialogContent>
-          <TextField
-            fullWidth
-            size="small"
-            label="List name"
-            value={name}
-            placeholder="List name"
-            autoFocus
-            onChange={e => setName(e.target.value)}
+          <Controller
+            name="name"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                fullWidth
+                size="small"
+                label="List name"
+                value={field.value}
+                placeholder="List name"
+                autoFocus
+                inputRef={field.ref}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
           />
 
           <div className="section-label">TYPE</div>
-          <ToggleButtonGroup
-            exclusive
-            size="small"
-            value={kind}
-            aria-label="List type"
-            onChange={(_, next: ListKind | null) => {
-              if (next != null) setKind(next);
-            }}
-          >
-            {(['Todo', 'Shopping'] as ListKind[]).map(k => (
-              <ToggleButton key={k} value={k}>
-                {k}
-              </ToggleButton>
-            ))}
-          </ToggleButtonGroup>
+          <Controller
+            name="kind"
+            control={control}
+            render={({ field }) => (
+              <ToggleButtonGroup
+                exclusive
+                size="small"
+                value={field.value}
+                aria-label="List type"
+                onChange={(_, next: ListKind | null) => {
+                  if (next != null) field.onChange(next);
+                }}
+              >
+                {(['Todo', 'Shopping'] as ListKind[]).map(k => (
+                  <ToggleButton key={k} value={k}>
+                    {k}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+            )}
+          />
 
           <div className="section-label">COLOR</div>
           <div className="color-row">
@@ -205,7 +221,7 @@ function CreateListModal({
                 aria-label={c ?? 'No color'}
                 className={`color-swatch${color === c ? ' on' : ''}`}
                 style={{ background: c ?? 'transparent', borderColor: c ?? 'var(--border)' }}
-                onClick={() => setColor(c)}
+                onClick={() => setValue('color', c)}
               />
             ))}
           </div>

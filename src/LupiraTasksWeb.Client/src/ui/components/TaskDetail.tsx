@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Dialog from '@mui/material/Dialog';
@@ -32,6 +33,22 @@ function fromDateInput(v: string): string | null {
   return dueOnDate(new Date(y, m - 1, d));
 }
 
+interface TaskFields {
+  title: string;
+  notes: string;
+  quantity: string;
+  unit: string;
+}
+
+function editableValues(item: ListItem): TaskFields {
+  return {
+    title: item.title,
+    notes: item.notes ?? '',
+    quantity: item.quantity != null ? String(item.quantity) : '',
+    unit: item.unit ?? '',
+  };
+}
+
 interface Props {
   item: ListItem;
   list: ListViewModel;
@@ -47,20 +64,14 @@ interface Props {
 export function TaskDetail({ item, list, items, canEdit, actions, members, onClose, onOpen }: Props) {
   const isShopping = list.kind === 'Shopping';
   const simplePriority = list.simplePriority !== false;
-  const [title, setTitle] = useState(item.title);
-  const [notes, setNotes] = useState(item.notes ?? '');
-  const [qty, setQty] = useState(item.quantity != null ? String(item.quantity) : '');
-  const [unit, setUnit] = useState(item.unit ?? '');
+  const { control, getValues, reset } = useForm<TaskFields>({ defaultValues: editableValues(item) });
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   // Reseed editable fields when a different task is opened (e.g. tapping into a subtask).
   useEffect(() => {
-    setTitle(item.title);
-    setNotes(item.notes ?? '');
-    setQty(item.quantity != null ? String(item.quantity) : '');
-    setUnit(item.unit ?? '');
+    reset(editableValues(item));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item.id]);
+  }, [item.id, reset]);
 
   const subtasks = useMemo(() => childrenOf(items, item.id), [items, item.id]);
   const subtasksDone = subtasks.filter(s => s.completed).length;
@@ -68,16 +79,17 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
   const itemTagIds = new Set(item.tags);
 
   function commitTitle() {
-    const t = oneLine(title).trim();
+    const t = oneLine(getValues('title')).trim();
     if (!t || t === item.title) return;
     actions.rename(item.id, t);
   }
   function commitNotes() {
-    const n = notes.trim() || null;
+    const n = getValues('notes').trim() || null;
     if ((n ?? null) === (item.notes ?? null)) return;
     actions.setNotes(item.id, n);
   }
   function commitQuantity() {
+    const [qty, unit] = getValues(['quantity', 'unit']);
     const parsed = qty.trim() === '' ? null : Number(qty.trim());
     const qVal = parsed != null && Number.isFinite(parsed) ? parsed : null;
     const u = unit.trim() || null;
@@ -96,27 +108,37 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
         </DialogTitle>
 
         <DialogContent>
-          <TextField
-            fullWidth
-            label="Task title"
-            value={title}
-            disabled={!canEdit}
-            placeholder="Task title"
-            sx={{
-              '& .MuiInputBase-input': {
-                fontSize: 22,
-                fontWeight: 700,
-                ...(item.completed && { color: 'text.disabled', textDecoration: 'line-through' }),
-              },
-            }}
-            onChange={e => setTitle(oneLine(e.target.value))}
-            onBlur={commitTitle}
-            onKeyDown={e => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                (e.target as HTMLInputElement).blur();
-              }
-            }}
+          <Controller
+            name="title"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                fullWidth
+                label="Task title"
+                value={field.value}
+                disabled={!canEdit}
+                placeholder="Task title"
+                sx={{
+                  '& .MuiInputBase-input': {
+                    fontSize: 22,
+                    fontWeight: 700,
+                    ...(item.completed && { color: 'text.disabled', textDecoration: 'line-through' }),
+                  },
+                }}
+                inputRef={field.ref}
+                onChange={e => field.onChange(oneLine(e.target.value))}
+                onBlur={() => {
+                  field.onBlur();
+                  commitTitle();
+                }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    (e.target as HTMLInputElement).blur();
+                  }
+                }}
+              />
+            )}
           />
 
           <div className="complete-row">
@@ -207,24 +229,44 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
               <div className="section-label">QUANTITY</div>
               {canEdit ? (
                 <div className="qty-row">
-                  <TextField
-                    size="small"
-                    label="Quantity"
-                    value={qty}
-                    placeholder="Qty"
-                    sx={{ flex: 1 }}
-                    slotProps={{ htmlInput: { inputMode: 'decimal' } }}
-                    onChange={e => setQty(e.target.value)}
-                    onBlur={commitQuantity}
+                  <Controller
+                    name="quantity"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        size="small"
+                        label="Quantity"
+                        value={field.value}
+                        placeholder="Qty"
+                        sx={{ flex: 1 }}
+                        slotProps={{ htmlInput: { inputMode: 'decimal' } }}
+                        inputRef={field.ref}
+                        onChange={field.onChange}
+                        onBlur={() => {
+                          field.onBlur();
+                          commitQuantity();
+                        }}
+                      />
+                    )}
                   />
-                  <TextField
-                    size="small"
-                    label="Unit"
-                    value={unit}
-                    placeholder="Unit (e.g. kg)"
-                    sx={{ flex: 2 }}
-                    onChange={e => setUnit(e.target.value)}
-                    onBlur={commitQuantity}
+                  <Controller
+                    name="unit"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        size="small"
+                        label="Unit"
+                        value={field.value}
+                        placeholder="Unit (e.g. kg)"
+                        sx={{ flex: 2 }}
+                        inputRef={field.ref}
+                        onChange={field.onChange}
+                        onBlur={() => {
+                          field.onBlur();
+                          commitQuantity();
+                        }}
+                      />
+                    )}
                   />
                 </div>
               ) : (
@@ -260,15 +302,25 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
 
           <div className="section-label">NOTES</div>
           {canEdit ? (
-            <TextField
-              fullWidth
-              multiline
-              minRows={3}
-              label="Task notes"
-              value={notes}
-              placeholder="Add notes…"
-              onChange={e => setNotes(e.target.value)}
-              onBlur={commitNotes}
+            <Controller
+              name="notes"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  fullWidth
+                  multiline
+                  minRows={3}
+                  label="Task notes"
+                  value={field.value}
+                  placeholder="Add notes…"
+                  inputRef={field.ref}
+                  onChange={field.onChange}
+                  onBlur={() => {
+                    field.onBlur();
+                    commitNotes();
+                  }}
+                />
+              )}
             />
           ) : (
             <p className="field-value">{item.notes || 'None'}</p>

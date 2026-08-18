@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { oneLine } from '../../domain/text';
@@ -10,29 +10,33 @@ interface Props {
 
 /** Quick-add input. Enter (or the Add button) commits a single-line, trimmed title. */
 export function AddTaskBar({ placeholder = 'Add task…', onAdd }: Props) {
-  const [title, setTitle] = useState('');
-
-  function commit() {
-    const t = oneLine(title).trim();
-    if (!t) return;
-    setTitle('');
-    onAdd(t);
-  }
+  const { control, handleSubmit, reset, watch } = useForm<{ title: string }>({ defaultValues: { title: '' } });
+  const title = watch('title');
 
   return (
     <form
       className="add-bar"
-      onSubmit={e => {
-        e.preventDefault();
-        commit();
-      }}
+      onSubmit={handleSubmit(v => {
+        const t = oneLine(v.title).trim();
+        if (!t) return;
+        reset();
+        onAdd(t);
+      })}
     >
-      <TextField
-        size="small"
-        label={placeholder}
-        value={title}
-        onChange={e => setTitle(oneLine(e.target.value))}
-        sx={{ flex: 1 }}
+      <Controller
+        name="title"
+        control={control}
+        render={({ field }) => (
+          <TextField
+            size="small"
+            label={placeholder}
+            value={field.value}
+            inputRef={field.ref}
+            sx={{ flex: 1 }}
+            onChange={e => field.onChange(oneLine(e.target.value))}
+            onBlur={field.onBlur}
+          />
+        )}
       />
       <Button type="submit" variant="contained" size="small" disabled={!title.trim()}>
         Add

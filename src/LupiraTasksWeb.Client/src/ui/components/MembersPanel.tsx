@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -43,14 +43,16 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
   const invalidateList = () => void qc.invalidateQueries({ queryKey: getGetListsListIdQueryKey(listId) });
   const invalidateShares = () => void qc.invalidateQueries({ queryKey: sharesKey });
 
-  const [email, setEmail] = useState('');
-  const [addRole, setAddRole] = useState<ListRole>('Editor');
-  const [shareAccess, setShareAccess] = useState<ShareAccess>('ReadWrite');
+  const addForm = useForm<{ email: string; role: ListRole }>({ defaultValues: { email: '', role: 'Editor' } });
+  const shareForm = useForm<{ access: ShareAccess }>({ defaultValues: { access: 'ReadWrite' } });
+  const email = addForm.watch('email');
+  const addRole = addForm.watch('role');
+  const shareAccess = shareForm.watch('access');
 
   const addMut = useMutation({
     mutationFn: () => postListsListIdMembers(listId, { email: email.trim(), role: addRole }),
     onSuccess: () => {
-      setEmail('');
+      addForm.resetField('email');
       invalidateList();
     },
   });
@@ -117,34 +119,49 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
 
         <form
           className="add-bar"
-          onSubmit={e => {
-            e.preventDefault();
-            if (email.trim()) addMut.mutate();
-          }}
+          onSubmit={addForm.handleSubmit(v => {
+            if (v.email.trim()) addMut.mutate();
+          })}
         >
-          <TextField
-            size="small"
-            type="email"
-            label="Member email"
-            value={email}
-            placeholder="Add member by email"
-            sx={{ flex: 1 }}
-            onChange={e => setEmail(e.target.value)}
+          <Controller
+            name="email"
+            control={addForm.control}
+            render={({ field }) => (
+              <TextField
+                size="small"
+                type="email"
+                label="Member email"
+                value={field.value}
+                placeholder="Add member by email"
+                sx={{ flex: 1 }}
+                inputRef={field.ref}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
           />
-          <TextField
-            select
-            size="small"
-            label="Role for new member"
-            value={addRole}
-            sx={{ minWidth: 140 }}
-            onChange={e => setAddRole(e.target.value as ListRole)}
-          >
-            {ROLES.map(r => (
-              <MenuItem key={r} value={r}>
-                {r}
-              </MenuItem>
-            ))}
-          </TextField>
+          <Controller
+            name="role"
+            control={addForm.control}
+            render={({ field }) => (
+              <TextField
+                select
+                size="small"
+                label="Role for new member"
+                value={field.value}
+                sx={{ minWidth: 140 }}
+                inputRef={field.ref}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              >
+                {ROLES.map(r => (
+                  <MenuItem key={r} value={r}>
+                    {r}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+          />
           <Button type="submit" variant="contained" size="small" disabled={!email.trim() || addMut.isPending}>
             Add
           </Button>
@@ -171,17 +188,25 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
               <p className="field-value">No active links.</p>
             )}
             <div className="add-bar">
-              <TextField
-                select
-                size="small"
-                label="Share access"
-                value={shareAccess}
-                sx={{ minWidth: 140 }}
-                onChange={e => setShareAccess(e.target.value as ShareAccess)}
-              >
-                <MenuItem value="ReadWrite">Can edit</MenuItem>
-                <MenuItem value="Read">Read only</MenuItem>
-              </TextField>
+              <Controller
+                name="access"
+                control={shareForm.control}
+                render={({ field }) => (
+                  <TextField
+                    select
+                    size="small"
+                    label="Share access"
+                    value={field.value}
+                    sx={{ minWidth: 140 }}
+                    inputRef={field.ref}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                  >
+                    <MenuItem value="ReadWrite">Can edit</MenuItem>
+                    <MenuItem value="Read">Read only</MenuItem>
+                  </TextField>
+                )}
+              />
               <Button variant="contained" size="small" disabled={createShareMut.isPending} onClick={() => createShareMut.mutate()}>
                 Create link
               </Button>
