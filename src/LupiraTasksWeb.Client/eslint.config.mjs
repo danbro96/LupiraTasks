@@ -2,8 +2,8 @@ import boundaries from 'eslint-plugin-boundaries';
 import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
 
-/** v6 object-selector helper: `to('domain','data')` → [{ to: { type: 'domain' } }, …]. */
-const to = (...types) => types.map((t) => ({ to: { type: t } }));
+/** v7 entity-selector helper: `to('domain','data')` → [{ to: { element: { type: 'domain' } } }, …]. */
+const to = (...types) => types.map((t) => ({ to: { element: { type: t } } }));
 
 // Mirrors the mobile app's eslint.config.mjs: a structural gate, not a style overhaul. The only
 // real rule is the layered import boundary. Downward-only: domain → nothing; data → domain/config;
@@ -34,19 +34,19 @@ export default [
         { type: 'data', pattern: 'src/data/**' },
         { type: 'state', pattern: 'src/state/**' },
         { type: 'ui', pattern: 'src/ui/**' },
-        { type: 'config', pattern: 'src/config.ts', mode: 'file' },
+        { type: 'config', pattern: 'src/config' },
       ],
       'import/resolver': { typescript: { alwaysTryTypes: true } },
     },
     rules: {
       'boundaries/dependencies': ['error', {
         default: 'disallow',
-        rules: [
-          { from: { type: 'domain' }, allow: to('domain') },
-          { from: { type: 'data' }, allow: to('data', 'domain', 'config') },
-          { from: { type: 'state' }, allow: to('state', 'data', 'domain', 'config') },
-          { from: { type: 'ui' }, allow: to('ui', 'state', 'data', 'domain', 'config') },
-          { from: { type: 'config' }, allow: [] },
+        policies: [
+          { from: { element: { type: 'domain' } }, allow: to('domain') },
+          { from: { element: { type: 'data' } }, allow: to('data', 'domain', 'config') },
+          { from: { element: { type: 'state' } }, allow: to('state', 'data', 'domain', 'config') },
+          { from: { element: { type: 'ui' } }, allow: to('ui', 'state', 'data', 'domain', 'config') },
+          { from: { element: { type: 'config' } }, allow: [] },
         ],
       }],
       'react-hooks/rules-of-hooks': 'error',
