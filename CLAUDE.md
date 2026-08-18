@@ -1,9 +1,19 @@
 # LupiraTasksWeb — agent notes
 
 **Mobile-app-first product.** `../LupiraTasksMobile` (Expo/RN) is the primary product. This web client
-mirrors it — match the app's design tokens, screen flow, and structure rather than inventing a new
-design language. Check `../LupiraTasksMobile/src/ui/theme`, `src/ui/screens`, `src/ui/components` before
-adding or changing UI. **Online-only** (React Query, server is source of truth) — no offline mirror.
+mirrors it — match the app's screen flow and structure rather than inventing a new design language.
+Check `../LupiraTasksMobile/src/ui/screens`, `src/ui/components` before adding or changing UI.
+**Online-only** (React Query, server is source of truth) — no offline mirror.
+
+## UI stack
+MUI v9 (Emotion; per-component default imports; v9 API only — `slots`/`slotProps`, `sx`, `*Outlined`
+icons). `ui/theme/tokens/` mirrors the mobile app's `src/ui/theme` (shared neutrals; estate teal
+primary) and feeds `ui/theme/muiTheme.ts`, which emits every token: `--mui-palette-*` (incl. custom
+`border`, `remoteChange`, `text.subtle`) plus `--sp-*`/`--r-*` via `MuiCssBaseline`. `index.css` is
+bespoke-only — rows, drag chrome, the remote-flash keyframes — and defines no tokens. Never put a
+bespoke styling class and an MUI component on the same element (Emotion wins injection-order ties).
+Forms use react-hook-form; TaskDetail keeps blur-to-save with per-field dirty checks. **dnd-kit rows,
+grips and the flash overlay stay plain DOM** — dnd-kit writes inline transforms on them.
 
 ## Shape: BFF + SPA (one image)
 - `src/LupiraTasksWeb/` — .NET 10 **BFF**. Drives Authentik OIDC (code + PKCE) reusing the **shared
