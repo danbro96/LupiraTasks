@@ -78,7 +78,7 @@ export function TaskRow({
       {changeKind ? <span className="row-highlight" aria-hidden="true" /> : null}
 
       {draggable ? (
-        <button type="button" className="row-grip" aria-label="Drag to reorder" {...attributes} {...listeners}>
+        <button type="button" className="row-grip" aria-label={`Drag to reorder ${item.title}`} {...attributes} {...listeners}>
           <GripIcon />
         </button>
       ) : (
@@ -102,7 +102,7 @@ export function TaskRow({
           <span className="meta-row">
             {due ? <span className={`meta${due.overdue ? ' overdue' : ''}`}>{due.label}</span> : null}
             {tags.map(t => (
-              <Chip key={t.id} component="span" size="small" label={t.label} sx={{ bgcolor: t.color, color: '#fff' }} />
+              <Chip key={t.id} component="span" label={t.label} sx={{ bgcolor: t.color, color: '#fff' }} />
             ))}
           </span>
         ) : null}
@@ -117,7 +117,6 @@ export function TaskRow({
 
       {hasChildren ? (
         <IconButton
-          size="small"
           aria-label={expanded ? 'Collapse subtasks' : 'Expand subtasks'}
           onClick={() => onToggleExpand(item.id)}
           sx={{ flex: 'none' }}
@@ -128,11 +127,15 @@ export function TaskRow({
 
       {canEdit ? (
         <IconButton
-          size="small"
-          className="row-delete"
           aria-label="Delete task"
           onClick={() => onDelete(item)}
-          sx={{ flex: 'none' }}
+          sx={{
+            flex: 'none',
+            color: 'text.disabled',
+            opacity: 0,
+            '.row:hover &, .row:focus-within &': { opacity: 1 },
+            '@media (hover: none)': { opacity: 1 },
+          }}
         >
           <DeleteOutlineIcon fontSize="small" />
         </IconButton>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -6,6 +6,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
@@ -64,14 +65,8 @@ interface Props {
 export function TaskDetail({ item, list, items, canEdit, actions, members, onClose, onOpen }: Props) {
   const isShopping = list.kind === 'Shopping';
   const simplePriority = list.simplePriority !== false;
-  const { control, getValues, reset } = useForm<TaskFields>({ defaultValues: editableValues(item) });
+  const { control, getValues } = useForm<TaskFields>({ defaultValues: editableValues(item) });
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-
-  // Reseed editable fields when a different task is opened (e.g. tapping into a subtask).
-  useEffect(() => {
-    reset(editableValues(item));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item.id, reset]);
 
   const subtasks = useMemo(() => childrenOf(items, item.id), [items, item.id]);
   const subtasksDone = subtasks.filter(s => s.completed).length;
@@ -100,9 +95,9 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
   return (
     <>
       <Dialog open fullWidth maxWidth="sm" onClose={onClose} aria-labelledby="task-detail-title">
-        <DialogTitle id="task-detail-title" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+        <DialogTitle id="task-detail-title">
           Task details
-          <IconButton size="small" aria-label="Close" onClick={onClose}>
+          <IconButton aria-label="Close" onClick={onClose}>
             <CloseIcon />
           </IconButton>
         </DialogTitle>
@@ -114,6 +109,7 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
             render={({ field }) => (
               <TextField
                 fullWidth
+                size="medium"
                 label="Task title"
                 value={field.value}
                 disabled={!canEdit}
@@ -141,10 +137,17 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
             )}
           />
 
-          <div className="complete-row">
-            <Checkbox checked={item.completed} disabled={!canEdit} onChange={() => actions.toggleComplete(item)} />
-            <span>{item.completed ? 'Completed' : 'Mark complete'}</span>
-          </div>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={item.completed}
+                disabled={!canEdit}
+                label={null}
+                onChange={() => actions.toggleComplete(item)}
+              />
+            }
+            label={item.completed ? 'Completed' : 'Mark complete'}
+          />
 
           <div className="section-label">DUE</div>
           {canEdit ? (
@@ -153,19 +156,17 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
                 {DUE_QUICK.map(q => (
                   <Chip
                     key={q.label}
-                    size="small"
                     variant="outlined"
                     label={q.label}
                     onClick={() => actions.setDue(item.id, q.iso())}
                   />
                 ))}
                 {item.dueAt ? (
-                  <Chip size="small" variant="outlined" color="error" label="Clear" onClick={() => actions.setDue(item.id, null)} />
+                  <Chip variant="outlined" color="error" label="Clear" onClick={() => actions.setDue(item.id, null)} />
                 ) : null}
               </div>
               <TextField
                 fullWidth
-                size="small"
                 type="date"
                 label="Pick a due date"
                 value={toDateInputValue(item.dueAt)}
@@ -174,7 +175,7 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
               />
             </div>
           ) : (
-            <p className={`field-value${due?.overdue ? ' overdue' : ''}`}>
+            <p className="field-value" style={due?.overdue ? { color: 'var(--mui-palette-error-main)' } : undefined}>
               {due ? (due.overdue ? `Overdue · ${due.label}` : due.label) : 'None'}
             </p>
           )}
@@ -201,7 +202,6 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
                 <TextField
                   select
                   fullWidth
-                  size="small"
                   label="Assignee"
                   value={item.assignee?.principalId ?? ''}
                   slotProps={{ select: { displayEmpty: true }, inputLabel: { shrink: true } }}
@@ -234,7 +234,6 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
                     control={control}
                     render={({ field }) => (
                       <TextField
-                        size="small"
                         label="Quantity"
                         value={field.value}
                         placeholder="Qty"
@@ -254,7 +253,6 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
                     control={control}
                     render={({ field }) => (
                       <TextField
-                        size="small"
                         label="Unit"
                         value={field.value}
                         placeholder="Unit (e.g. kg)"
@@ -286,7 +284,6 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
                   return (
                     <Chip
                       key={t.id}
-                      size="small"
                       label={t.label}
                       variant={on ? 'filled' : 'outlined'}
                       sx={on ? { bgcolor: t.color, color: '#fff' } : undefined}
@@ -309,6 +306,7 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
                 <TextField
                   fullWidth
                   multiline
+                  size="medium"
                   minRows={3}
                   label="Task notes"
                   value={field.value}
@@ -343,7 +341,7 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
 
         {canEdit ? (
           <DialogActions>
-            <Button variant="outlined" color="error" size="small" onClick={() => setConfirmingDelete(true)}>
+            <Button variant="outlined" color="error" onClick={() => setConfirmingDelete(true)}>
               Delete task
             </Button>
           </DialogActions>
@@ -353,13 +351,12 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
       <Dialog open={confirmingDelete} onClose={() => setConfirmingDelete(false)} aria-labelledby="task-delete-title">
         <DialogTitle id="task-delete-title">Delete this task and its subtasks?</DialogTitle>
         <DialogActions>
-          <Button variant="outlined" size="small" onClick={() => setConfirmingDelete(false)}>
+          <Button variant="outlined" onClick={() => setConfirmingDelete(false)}>
             Cancel
           </Button>
           <Button
             variant="contained"
             color="error"
-            size="small"
             onClick={() => {
               actions.remove(item);
               onClose();

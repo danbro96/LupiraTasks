@@ -1,7 +1,4 @@
 /* Bespoke styling only — tokens are emitted by the MUI theme (ui/theme/muiTheme.ts). */
-* {
-  box-sizing: border-box;
-}
 
 /* The app column sits on the surface tone, not CssBaseline's base background. */
 body {
@@ -73,17 +70,6 @@ code {
   margin: 0;
   flex: 1;
   overflow-wrap: anywhere;
-}
-.badge {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--mui-palette-text-subtle);
-  border: 1px solid var(--mui-palette-border);
-  border-radius: var(--r-pill);
-  padding: 3px 10px;
-  white-space: nowrap;
 }
 
 /* Add-task bar + inputs. */
@@ -223,20 +209,6 @@ code {
   font-weight: 600;
 }
 
-.row-delete {
-  color: var(--mui-palette-text-disabled);
-  opacity: 0;
-}
-.row:hover .row-delete,
-.row:focus-within .row-delete {
-  opacity: 1;
-}
-@media (hover: none) {
-  .row-delete {
-    opacity: 1;
-  }
-}
-
 .section-label {
   font-size: 12px;
   font-weight: 700;
@@ -249,23 +221,10 @@ code {
   color: var(--mui-palette-text-subtle);
   margin-top: 48px;
 }
-.complete-row {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-md);
-  border: 0;
-  background: transparent;
-  color: var(--mui-palette-text-primary);
-  padding: var(--sp-md) 0;
-  font-size: 16px;
-}
 .field-value {
   margin: 0;
   color: var(--mui-palette-text-secondary);
   padding: 0 0 var(--sp-sm);
-}
-.field-value.overdue {
-  color: var(--mui-palette-error-main);
 }
 .due-controls {
   display: flex;
@@ -303,9 +262,6 @@ code {
 }
 
 /* Priority: a star (simple mode) or a numeric badge → 0–9 popover (scale mode). */
-.priority-star {
-  color: var(--mui-palette-text-subtle);
-}
 .priority-star.on {
   color: var(--mui-palette-primary-main);
 }
@@ -394,22 +350,6 @@ span.priority-star {
   flex: none;
 }
 
-/* Color picker (new-list modal). */
-.color-row {
-  display: flex;
-  gap: var(--sp-sm);
-  flex-wrap: wrap;
-}
-.color-swatch {
-  width: 30px;
-  height: 30px;
-  border-radius: var(--r-pill);
-  border: 2px solid var(--mui-palette-border);
-}
-.color-swatch.on {
-  outline: 2px solid var(--mui-palette-primary-main);
-  outline-offset: 2px;
-}
 .share-url {
   font-size: 12px;
   color: var(--mui-palette-text-secondary);

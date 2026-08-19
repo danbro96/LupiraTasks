@@ -14,7 +14,7 @@ export function ListDetailScreen() {
   if (!listId) {
     return (
       <Centered title="List not found">
-        <Button component={Link} to="/" variant="outlined" size="small">
+        <Button component={Link} to="/" variant="outlined">
           Back to lists
         </Button>
       </Centered>
@@ -35,7 +35,7 @@ function ListDetail({ listId }: { listId: string }) {
       return (
         <Centered title="You don't have access to this list">
           <p>It may have been deleted, or you were removed.</p>
-          <Button component={Link} to="/" variant="outlined" size="small">
+          <Button component={Link} to="/" variant="outlined">
             Back to lists
           </Button>
         </Centered>
@@ -44,7 +44,7 @@ function ListDetail({ listId }: { listId: string }) {
     return (
       <Centered title="Couldn't load this list">
         <p>Something went wrong reaching the server.</p>
-        <Button variant="outlined" size="small" onClick={() => c.query.refetch()}>
+        <Button variant="outlined" onClick={() => c.query.refetch()}>
           Retry
         </Button>
       </Centered>
@@ -56,7 +56,7 @@ function ListDetail({ listId }: { listId: string }) {
   return (
     <>
       <div className="topbar">
-        <MuiLink component={Link} to="/" underline="hover">
+        <MuiLink component={Link} to="/">
           ← All lists
         </MuiLink>
       </div>
@@ -69,7 +69,7 @@ function ListDetail({ listId }: { listId: string }) {
         members={c.members}
         changes={c.changes}
         headerExtra={
-          <MuiLink component="button" type="button" underline="hover" onClick={() => setPanelOpen(true)}>
+          <MuiLink component="button" type="button" onClick={() => setPanelOpen(true)}>
             Members &amp; sharing
           </MuiLink>
         }

@@ -1,5 +1,6 @@
 import { Controller, useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Dialog from '@mui/material/Dialog';
@@ -77,9 +78,9 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
 
   return (
     <Dialog open fullWidth maxWidth="sm" onClose={onClose} aria-labelledby="members-panel-title">
-      <DialogTitle id="members-panel-title" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+      <DialogTitle id="members-panel-title">
         Members and sharing
-        <IconButton size="small" aria-label="Close" onClick={onClose}>
+        <IconButton aria-label="Close" onClick={onClose}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -93,7 +94,6 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
               {isOwner ? (
                 <TextField
                   select
-                  size="small"
                   label={`Role for ${name}`}
                   value={m.role}
                   sx={{ minWidth: 140 }}
@@ -106,10 +106,10 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
                   ))}
                 </TextField>
               ) : (
-                <Chip size="small" variant="outlined" label={m.role} />
+                <Chip variant="outlined" label={m.role} />
               )}
               {isOwner ? (
-                <IconButton size="small" aria-label={`Remove ${name}`} onClick={() => removeMut.mutate(m.principalId)}>
+                <IconButton aria-label={`Remove ${name}`} onClick={() => removeMut.mutate(m.principalId)}>
                   <DeleteOutlineIcon />
                 </IconButton>
               ) : null}
@@ -128,7 +128,6 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
             control={addForm.control}
             render={({ field }) => (
               <TextField
-                size="small"
                 type="email"
                 label="Member email"
                 value={field.value}
@@ -146,7 +145,6 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
             render={({ field }) => (
               <TextField
                 select
-                size="small"
                 label="Role for new member"
                 value={field.value}
                 sx={{ minWidth: 140 }}
@@ -162,11 +160,15 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
               </TextField>
             )}
           />
-          <Button type="submit" variant="contained" size="small" disabled={!email.trim() || addMut.isPending}>
+          <Button type="submit" variant="contained" disabled={!email.trim() || addMut.isPending}>
             Add
           </Button>
         </form>
-        {addMut.isError ? <p className="field-value overdue">Couldn't add that member.</p> : null}
+        {addMut.isError ? (
+          <Alert severity="error" variant="outlined">
+            Couldn't add that member.
+          </Alert>
+        ) : null}
 
         {isOwner ? (
           <>
@@ -175,11 +177,11 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
               shares.data.map(s => (
                 <div className="sub-row" key={s.shareId}>
                   <span className="list-row-name share-url">{s.url}</span>
-                  <Chip size="small" variant="outlined" label={s.access === 'ReadWrite' ? 'Edit' : 'Read'} />
-                  <MuiLink component="button" type="button" underline="hover" onClick={() => void navigator.clipboard?.writeText(s.url)}>
+                  <Chip variant="outlined" label={s.access === 'ReadWrite' ? 'Edit' : 'Read'} />
+                  <MuiLink component="button" type="button" onClick={() => void navigator.clipboard?.writeText(s.url)}>
                     Copy
                   </MuiLink>
-                  <IconButton size="small" aria-label="Revoke link" onClick={() => revokeShareMut.mutate(s.shareId)}>
+                  <IconButton aria-label="Revoke link" onClick={() => revokeShareMut.mutate(s.shareId)}>
                     <DeleteOutlineIcon />
                   </IconButton>
                 </div>
@@ -194,7 +196,6 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
                 render={({ field }) => (
                   <TextField
                     select
-                    size="small"
                     label="Share access"
                     value={field.value}
                     sx={{ minWidth: 140 }}
@@ -207,7 +208,7 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
                   </TextField>
                 )}
               />
-              <Button variant="contained" size="small" disabled={createShareMut.isPending} onClick={() => createShareMut.mutate()}>
+              <Button variant="contained" disabled={createShareMut.isPending} onClick={() => createShareMut.mutate()}>
                 Create link
               </Button>
             </div>

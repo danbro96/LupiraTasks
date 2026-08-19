@@ -28,7 +28,6 @@ export function AddTaskBar({ placeholder = 'Add task…', onAdd }: Props) {
         control={control}
         render={({ field }) => (
           <TextField
-            size="small"
             label={placeholder}
             value={field.value}
             inputRef={field.ref}
@@ -38,7 +37,7 @@ export function AddTaskBar({ placeholder = 'Add task…', onAdd }: Props) {
           />
         )}
       />
-      <Button type="submit" variant="contained" size="small" disabled={!title.trim()}>
+      <Button type="submit" variant="contained" disabled={!title.trim()}>
         Add
       </Button>
     </form>

@@ -83,17 +83,16 @@ export function ListView({ list, items, canEdit, tagsById, actions, members, hea
     setExpanded(prev => (prev.has(id) ? collapseDescendants(prev, id, items) : new Set(prev).add(id)));
 
   return (
-    <div className="share-view">
+    <div>
       <div className="color-stripe" style={{ background: list.color ?? 'transparent' }} />
       <header className="list-head">
         <div className="list-head-top">
           <h1 className="list-title">{list.name}</h1>
-          {canEdit ? null : <Chip size="small" variant="outlined" label="View only" />}
+          {canEdit ? null : <Chip variant="outlined" label="View only" />}
           {headerExtra}
         </div>
         <ToggleButtonGroup
           exclusive
-          size="small"
           value={mode}
           onChange={(_, next: CompletedMode | null) => next != null && setMode(next)}
           aria-label="Completed tasks display"
@@ -135,6 +134,7 @@ export function ListView({ list, items, canEdit, tagsById, actions, members, hea
 
       {selected ? (
         <TaskDetail
+          key={selected.id}
           item={selected}
           list={list}
           items={items}

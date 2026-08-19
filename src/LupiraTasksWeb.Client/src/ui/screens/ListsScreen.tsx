@@ -12,7 +12,9 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -51,10 +53,10 @@ function ListRow({ list }: { list: ListResponse }) {
       <Link to={`/lists/${list.id}`} className="list-row-link">
         <span
           className="color-dot"
-          style={{ background: list.color ?? 'transparent', borderColor: list.color ?? 'var(--border)' }}
+          style={{ background: list.color ?? 'transparent', borderColor: list.color ?? 'var(--mui-palette-border)' }}
         />
         <span className="list-row-name">{list.name}</span>
-        {list.kind === 'Shopping' ? <span className="badge">Shopping</span> : null}
+        {list.kind === 'Shopping' ? <Chip variant="outlined" label="Shopping" /> : null}
         <ChevronRightIcon fontSize="small" sx={{ color: 'text.disabled', flex: 'none' }} />
       </Link>
     </div>
@@ -88,13 +90,13 @@ export function ListsScreen() {
       <header className="list-head">
         <div className="list-head-top">
           <h1 className="list-title">Lupira Tasks</h1>
-          <Button variant="contained" size="small" onClick={() => setCreating(true)}>
+          <Button variant="contained" onClick={() => setCreating(true)}>
             New list
           </Button>
         </div>
         <div className="account-row">
           {me.data ? <span className="meta">{me.data.displayName ?? me.data.email}</span> : null}
-          <MuiLink component="button" type="button" underline="hover" onClick={() => logout()}>
+          <MuiLink component="button" type="button" onClick={() => logout()}>
             Sign out
           </MuiLink>
         </div>
@@ -109,7 +111,7 @@ export function ListsScreen() {
               ? 'Your session expired — try signing in again.'
               : 'Something went wrong reaching the server.'}
           </p>
-          <Button variant="outlined" size="small" onClick={() => void query.refetch()}>
+          <Button variant="outlined" onClick={() => void query.refetch()}>
             Retry
           </Button>
         </Centered>
@@ -150,17 +152,16 @@ function CreateListModal({
   onCancel: () => void;
   onCreate: (name: string, kind: ListKind, color: string | null) => void;
 }) {
-  const { control, handleSubmit, setValue, watch } = useForm<{ name: string; kind: ListKind; color: string | null }>({
+  const { control, handleSubmit, watch } = useForm<{ name: string; kind: ListKind; color: string | null }>({
     defaultValues: { name: '', kind: 'Todo', color: null },
   });
   const trimmed = watch('name').trim();
-  const color = watch('color');
 
   return (
     <Dialog open fullWidth maxWidth="sm" onClose={onCancel} aria-labelledby="create-list-title">
-      <DialogTitle id="create-list-title" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+      <DialogTitle id="create-list-title">
         New list
-        <IconButton size="small" aria-label="Close" onClick={onCancel}>
+        <IconButton aria-label="Close" onClick={onCancel}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -177,7 +178,6 @@ function CreateListModal({
             render={({ field }) => (
               <TextField
                 fullWidth
-                size="small"
                 label="List name"
                 value={field.value}
                 placeholder="List name"
@@ -196,7 +196,6 @@ function CreateListModal({
             render={({ field }) => (
               <ToggleButtonGroup
                 exclusive
-                size="small"
                 value={field.value}
                 aria-label="List type"
                 onChange={(_, next: ListKind | null) => {
@@ -213,23 +212,49 @@ function CreateListModal({
           />
 
           <div className="section-label">COLOR</div>
-          <div className="color-row">
-            {listColorOptions.map((c, i) => (
-              <button
-                key={i}
-                type="button"
-                aria-label={c ?? 'No color'}
-                className={`color-swatch${color === c ? ' on' : ''}`}
-                style={{ background: c ?? 'transparent', borderColor: c ?? 'var(--border)' }}
-                onClick={() => setValue('color', c)}
-              />
-            ))}
-          </div>
+          <Controller
+            name="color"
+            control={control}
+            render={({ field }) => (
+              <ToggleButtonGroup
+                exclusive
+                value={field.value ?? ''}
+                aria-label="List color"
+                onChange={(_, next: string | null) => field.onChange(next || null)}
+                sx={{
+                  flexWrap: 'wrap',
+                  gap: 1,
+                  '& .MuiToggleButtonGroup-grouped': {
+                    width: 30,
+                    height: 30,
+                    minWidth: 0,
+                    ml: 0,
+                    border: '2px solid',
+                    borderRadius: 'var(--r-pill)',
+                    '&.Mui-selected': { outline: '2px solid var(--mui-palette-primary-main)', outlineOffset: '2px' },
+                  },
+                }}
+              >
+                {listColorOptions.map((c, i) => (
+                  <ToggleButton
+                    key={i}
+                    value={c ?? ''}
+                    aria-label={c ?? 'No color'}
+                    style={{ background: c ?? 'transparent', borderColor: c ?? 'var(--mui-palette-border)' }}
+                  />
+                ))}
+              </ToggleButtonGroup>
+            )}
+          />
 
-          {failed ? <p className="field-value overdue">Couldn't create the list. Try again.</p> : null}
+          {failed ? (
+            <Alert severity="error" variant="outlined">
+              Couldn't create the list. Try again.
+            </Alert>
+          ) : null}
         </DialogContent>
         <DialogActions>
-          <Button type="submit" variant="contained" size="small" disabled={!trimmed || pending}>
+          <Button type="submit" variant="contained" disabled={!trimmed || pending}>
             {pending ? 'Creating…' : 'Create list'}
           </Button>
         </DialogActions>

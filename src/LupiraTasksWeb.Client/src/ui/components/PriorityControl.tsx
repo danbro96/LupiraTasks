@@ -25,7 +25,6 @@ export function PriorityControl({ simple, value, editable, onChange }: Props) {
     if (!editable) return on ? <span className="priority-star on"><StarIcon fontSize="small" /></span> : null;
     return (
       <IconButton
-        size="small"
         color={on ? 'primary' : 'default'}
         aria-label={on ? 'Clear priority' : 'Set priority'}
         aria-pressed={on}
@@ -46,7 +45,6 @@ export function PriorityControl({ simple, value, editable, onChange }: Props) {
   return (
     <>
       <IconButton
-        size="small"
         aria-label={`Priority ${value}. Change.`}
         aria-haspopup="listbox"
         aria-expanded={anchor != null}

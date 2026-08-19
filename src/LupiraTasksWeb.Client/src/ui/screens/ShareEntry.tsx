@@ -56,7 +56,7 @@ export function ShareEntry() {
       <>
         {!loggedIn ? (
           <div className="topbar">
-            <MuiLink component="button" type="button" underline="hover" onClick={() => login(`/s/${token}`)}>
+            <MuiLink component="button" type="button" onClick={() => login(`/s/${token}`)}>
               Sign in to join this list
             </MuiLink>
           </div>
@@ -75,7 +75,6 @@ export function ShareEntry() {
         <p>Something went wrong. Retry, view it without adding, or go to your lists.</p>
         <Button
           variant="contained"
-          size="small"
           onClick={() => {
             fired.current = true;
             runRedeem(token);
@@ -83,10 +82,10 @@ export function ShareEntry() {
         >
           Retry
         </Button>
-        <Button variant="outlined" size="small" onClick={() => setViewOnly(true)}>
+        <Button variant="outlined" onClick={() => setViewOnly(true)}>
           View without adding
         </Button>
-        <Button variant="outlined" size="small" onClick={() => navigate('/', { replace: true })}>
+        <Button variant="outlined" onClick={() => navigate('/', { replace: true })}>
           Go to my lists
         </Button>
       </Centered>

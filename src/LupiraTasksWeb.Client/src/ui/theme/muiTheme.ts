@@ -47,5 +47,15 @@ export const theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: { ':root': { ...px(SPACING, 'sp'), ...px(RADII, 'r') } },
     },
+    // The app is uniformly compact; opt out per-instance rather than repeating size="small".
+    MuiButton: { defaultProps: { size: 'small' } },
+    MuiIconButton: { defaultProps: { size: 'small' } },
+    MuiTextField: { defaultProps: { size: 'small' } },
+    MuiChip: { defaultProps: { size: 'small' } },
+    MuiToggleButtonGroup: { defaultProps: { size: 'small' } },
+    MuiLink: { defaultProps: { underline: 'hover' } },
+    MuiDialogTitle: {
+      styleOverrides: { root: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 } },
+    },
   },
 });

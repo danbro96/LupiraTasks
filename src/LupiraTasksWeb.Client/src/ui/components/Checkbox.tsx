@@ -4,11 +4,13 @@ interface Props {
   checked: boolean;
   disabled?: boolean;
   onChange: () => void;
-  label?: string;
+  label?: string | null;
 }
 
 /** A square checkbox matching the mobile app's tick affordance. */
 export function Checkbox({ checked, disabled, onChange, label }: Props) {
+  const ariaLabel = label === null ? undefined : (label ?? (checked ? 'Mark incomplete' : 'Mark complete'));
+
   return (
     <MuiCheckbox
       size="small"
@@ -16,7 +18,7 @@ export function Checkbox({ checked, disabled, onChange, label }: Props) {
       disabled={disabled}
       onClick={e => e.stopPropagation()}
       onChange={onChange}
-      slotProps={{ input: { 'aria-label': label ?? (checked ? 'Mark incomplete' : 'Mark complete') } }}
+      slotProps={{ input: { 'aria-label': ariaLabel } }}
       sx={{ flex: 'none' }}
     />
   );
