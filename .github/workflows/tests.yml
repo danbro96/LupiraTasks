@@ -29,6 +29,7 @@ jobs:
           node-version-file: ${{ env.CLIENT_DIR }}/.node-version
           cache: npm
           cache-dependency-path: ${{ env.CLIENT_DIR }}/package-lock.json
+      - run: npm i -g npm@12
       - run: npm ci
       - run: npm run lint
       - run: npx tsc -b

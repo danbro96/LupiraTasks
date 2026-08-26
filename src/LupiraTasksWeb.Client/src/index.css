@@ -1,5 +1,31 @@
 /* Bespoke styling only — tokens are emitted by the MUI theme (ui/theme/muiTheme.ts). */
 
+/* No preflight: CssBaseline is the reset. Layer order lives in muiTheme.ts. */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/* Someone else's edit: tint in fast, hold, fade out slowly — the slow tail is what stops it reading
+   as a UI glitch. Timings track REMOTE_FLASH_MS in ListView.tsx. */
+@theme {
+  --animate-remote-flash: remote-flash 4s ease-out forwards;
+  @keyframes remote-flash {
+    0% {
+      opacity: 0;
+    }
+    5% {
+      opacity: 1;
+    }
+    70% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+}
+
+/* Migrating away; left unindented so the diffs stay readable. */
+@layer bespoke {
 /* The app column sits on the surface tone, not CssBaseline's base background. */
 body {
   min-height: 100vh;
@@ -91,36 +117,6 @@ code {
   background: var(--mui-palette-background-default);
   border-bottom: 1px solid var(--mui-palette-divider);
   position: relative; /* anchors .row-highlight */
-}
-
-/* Someone else's edit: tint in fast, hold, fade out slowly — the slow tail is what stops it reading
-   as a UI glitch. Timings track REMOTE_FLASH_MS in ListView.tsx. */
-.row-highlight {
-  position: absolute;
-  inset: 0;
-  background: var(--mui-palette-remoteChange);
-  pointer-events: none;
-  animation: remote-flash 4s ease-out forwards;
-}
-@keyframes remote-flash {
-  0% {
-    opacity: 0;
-  }
-  5% {
-    opacity: 1;
-  }
-  70% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .row-highlight {
-    animation: none;
-    opacity: 1;
-  }
 }
 
 .row.dragging {
@@ -355,4 +351,5 @@ span.priority-star {
   color: var(--mui-palette-text-secondary);
   overflow-wrap: anywhere;
   word-break: break-all;
+}
 }

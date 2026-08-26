@@ -75,7 +75,12 @@ export function TaskRow({
       style={{ transform: CSS.Transform.toString(transform), transition, paddingLeft: 16 + depth * INDENT }}
     >
       {/* A child, not a background on .row: dnd-kit writes `transition` inline on that element. */}
-      {changeKind ? <span className="row-highlight" aria-hidden="true" /> : null}
+      {changeKind ? (
+        <span
+          className="pointer-events-none absolute inset-0 bg-[var(--mui-palette-remoteChange)] animate-remote-flash motion-reduce:animate-none motion-reduce:opacity-100"
+          aria-hidden="true"
+        />
+      ) : null}
 
       {draggable ? (
         <button type="button" className="row-grip" aria-label={`Drag to reorder ${item.title}`} {...attributes} {...listeners}>

@@ -5,6 +5,7 @@
 FROM node:24-alpine AS client
 WORKDIR /client
 COPY src/LupiraTasksWeb.Client/package.json src/LupiraTasksWeb.Client/package-lock.json src/LupiraTasksWeb.Client/.npmrc ./
+RUN npm i -g npm@12
 RUN npm ci
 COPY src/LupiraTasksWeb.Client/ ./
 RUN npm run build -- --outDir dist --emptyOutDir
