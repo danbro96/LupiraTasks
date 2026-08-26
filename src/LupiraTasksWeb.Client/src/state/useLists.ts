@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '../data/api/fetcher';
 import {
-  getGetListsQueryKey,
-  postLists,
-  postListsListIdOrder,
-  useGetLists,
+  getListListsQueryKey,
+  createList,
+  reorderListItems,
+  useListLists,
 } from '../data/api/member/lists/lists';
 import type { CreateListRequest, ListCollectionResponse, ListResponse } from '../data/api/member/models';
 import { newId } from '../domain/ids';
@@ -18,9 +18,9 @@ const TERMINAL = new Set([400, 401, 403, 404]); // not worth retrying
 export function useLists(archived = false) {
   const qc = useQueryClient();
   const params = { archived };
-  const key = getGetListsQueryKey(params);
+  const key = getListListsQueryKey(params);
 
-  const query = useGetLists<ListResponse[], ApiError>(params, {
+  const query = useListLists<ListResponse[], ApiError>(params, {
     query: {
       select: (r: ListCollectionResponse) => r.lists,
       retry: (count, err) => !(err instanceof ApiError && TERMINAL.has(err.status)) && count < 2,
@@ -29,7 +29,7 @@ export function useLists(archived = false) {
 
   // Wraps the generated call to mint the client-side id (the API's idempotency key).
   const create = useMutation({
-    mutationFn: (body: Omit<CreateListRequest, 'id'>) => postLists({ id: newId(), ...body }),
+    mutationFn: (body: Omit<CreateListRequest, 'id'>) => createList({ id: newId(), ...body }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['/lists'] }),
   });
 
@@ -41,7 +41,7 @@ export function useLists(archived = false) {
     // records one event per call — no reason to open N connections for a handful of writes.
     mutationFn: async ({ from, to }: { from: number; to: number }) => {
       for (const t of planListReorder(sorted, from, to)) {
-        await postListsListIdOrder(t.listId, { sortOrder: t.sortOrder });
+        await reorderListItems(t.listId, { sortOrder: t.sortOrder });
       }
     },
     // Apply the new keys to the cache up front so the row stays where it was dropped instead of

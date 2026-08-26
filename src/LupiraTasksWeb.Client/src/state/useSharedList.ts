@@ -2,14 +2,14 @@ import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '../data/api/fetcher';
 import {
-  deleteSharedTokenItemsItemId,
-  getGetSharedTokenQueryKey,
-  getSharedToken,
-  patchSharedTokenItemsItemId,
-  postSharedTokenItems,
-  postSharedTokenItemsItemIdComplete,
-  postSharedTokenItemsItemIdMove,
-  postSharedTokenItemsItemIdReopen,
+  deleteSharedItem,
+  getGetSharedListQueryKey,
+  getSharedList,
+  updateSharedItem,
+  createSharedItem,
+  completeSharedItem,
+  moveSharedItem,
+  reopenSharedItem,
 } from '../data/api/shared/shared/shared';
 import type {
   CreateItemRequest,
@@ -35,7 +35,7 @@ type Ctx = { previous?: SharedListResponse };
 
 export function useSharedList(token: string) {
   const qc = useQueryClient();
-  const key = useMemo(() => getGetSharedTokenQueryKey(token), [token]);
+  const key = useMemo(() => getGetSharedListQueryKey(token), [token]);
 
   const { changes, absorb, emit } = useRemoteChanges<SharedItemResponse>(token);
   const refetchInterval = useListPollInterval();
@@ -45,7 +45,7 @@ export function useSharedList(token: string) {
   const query = useQuery({
     queryKey: key,
     queryFn: async () => {
-      const data = await getSharedToken(token);
+      const data = await getSharedList(token);
       emit(data.items);
       return data;
     },
@@ -89,7 +89,7 @@ export function useSharedList(token: string) {
   }
 
   const addMut = useMutation<SharedItemResponse, unknown, CreateItemRequest, Ctx>({
-    mutationFn: body => postSharedTokenItems(token, { occurredAt: nowIso(), ...body }),
+    mutationFn: body => createSharedItem(token, { occurredAt: nowIso(), ...body }),
     ...optimistic<CreateItemRequest>((curr, body) => [
       ...curr,
       {
@@ -110,7 +110,7 @@ export function useSharedList(token: string) {
   });
 
   const updateMut = useMutation<SharedItemResponse, unknown, { itemId: string; body: UpdateItemRequest }, Ctx>({
-    mutationFn: ({ itemId, body }) => patchSharedTokenItemsItemId(token, itemId, { occurredAt: nowIso(), ...body }),
+    mutationFn: ({ itemId, body }) => updateSharedItem(token, itemId, { occurredAt: nowIso(), ...body }),
     ...optimistic<{ itemId: string; body: UpdateItemRequest }>((curr, { itemId, body }) =>
       curr.map(it => {
         if (it.id !== itemId) return it;
@@ -133,8 +133,8 @@ export function useSharedList(token: string) {
   const toggleMut = useMutation<SharedItemResponse, unknown, SharedItemResponse, Ctx>({
     mutationFn: item =>
       item.completed
-        ? postSharedTokenItemsItemIdReopen(token, item.id, { occurredAt: nowIso() })
-        : postSharedTokenItemsItemIdComplete(token, item.id, { occurredAt: nowIso() }),
+        ? reopenSharedItem(token, item.id, { occurredAt: nowIso() })
+        : completeSharedItem(token, item.id, { occurredAt: nowIso() }),
     ...optimistic<SharedItemResponse>((curr, item) =>
       curr.map(it =>
         it.id === item.id ? { ...it, completed: !item.completed, completedAt: item.completed ? null : nowIso() } : it,
@@ -149,7 +149,7 @@ export function useSharedList(token: string) {
     Ctx
   >({
     mutationFn: ({ itemId, sortOrder, parentItemId }) =>
-      postSharedTokenItemsItemIdMove(token, itemId, { sortOrder, parentItemId, occurredAt: nowIso() }),
+      moveSharedItem(token, itemId, { sortOrder, parentItemId, occurredAt: nowIso() }),
     ...optimistic<{ itemId: string; sortOrder: string; parentItemId: string | null }>((curr, { itemId, sortOrder, parentItemId }) =>
       curr.map(it => (it.id === itemId ? { ...it, sortOrder, parentItemId } : it)),
     ),
@@ -157,7 +157,7 @@ export function useSharedList(token: string) {
 
   const deleteMut = useMutation<void, unknown, { ids: string[] }, Ctx>({
     mutationFn: ({ ids }) =>
-      Promise.all(ids.map(id => deleteSharedTokenItemsItemId(token, id, { occurredAt: nowIso() }))).then(() => undefined),
+      Promise.all(ids.map(id => deleteSharedItem(token, id, { occurredAt: nowIso() }))).then(() => undefined),
     ...optimistic<{ ids: string[] }>((curr, { ids }) => curr.filter(it => !ids.includes(it.id))),
   });
 

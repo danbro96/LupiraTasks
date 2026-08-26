@@ -2,16 +2,16 @@ import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '../data/api/fetcher';
 import {
-  deleteListsListIdItemsItemId,
-  getGetListsListIdItemsQueryKey,
-  getListsListIdItems,
-  patchListsListIdItemsItemId,
-  postListsListIdItems,
-  postListsListIdItemsItemIdComplete,
-  postListsListIdItemsItemIdMove,
-  postListsListIdItemsItemIdReopen,
+  deleteListItem,
+  getListListItemsQueryKey,
+  listListItems,
+  updateListItem,
+  createListItem,
+  completeItem,
+  moveItem,
+  reopenItem,
 } from '../data/api/member/items/items';
-import { getGetListsListIdQueryKey, useGetListsListId } from '../data/api/member/lists/lists';
+import { getGetListQueryKey, useGetList } from '../data/api/member/lists/lists';
 import { ItemStatus } from '../data/api/member/models';
 import type { CreateItemRequest, ItemResponse, ListResponse, TagResponse, UpdateItemRequest } from '../data/api/member/models';
 import { newId } from '../domain/ids';
@@ -32,7 +32,7 @@ type Ctx = { previous?: ItemResponse[] };
 
 export function useMemberList(listId: string) {
   const qc = useQueryClient();
-  const itemsKey = useMemo(() => getGetListsListIdItemsQueryKey(listId), [listId]);
+  const itemsKey = useMemo(() => getListListItemsQueryKey(listId), [listId]);
 
   const retry = (count: number, err: unknown) =>
     !(err instanceof ApiError && TERMINAL.has(err.status)) && count < 2;
@@ -43,13 +43,13 @@ export function useMemberList(listId: string) {
   // Polled so another member's edits appear without a manual refresh. refetchIntervalInBackground is
   // left at its default (false) so a hidden tab stops polling. Meta is polled too: a remote rename /
   // recolor / tag / member change matters, and `members` is what puts a name on the notice.
-  const metaQuery = useGetListsListId<ListResponse, ApiError>(listId, { query: { retry, refetchInterval } });
+  const metaQuery = useGetList<ListResponse, ApiError>(listId, { query: { retry, refetchInterval } });
   // Hand-rolled rather than the generated hook so `emit` can sit in queryFn: only a network result may
   // announce a change, and setQueryData never runs queryFn.
   const itemsQuery = useQuery({
     queryKey: itemsKey,
     queryFn: async () => {
-      const { items: rows } = await getListsListIdItems(listId);
+      const { items: rows } = await listListItems(listId);
       emit(rows);
       return rows;
     },
@@ -99,13 +99,13 @@ export function useMemberList(listId: string) {
       },
       onSettled: () => {
         void qc.invalidateQueries({ queryKey: itemsKey });
-        void qc.invalidateQueries({ queryKey: getGetListsListIdQueryKey(listId) });
+        void qc.invalidateQueries({ queryKey: getGetListQueryKey(listId) });
       },
     };
   }
 
   const addMut = useMutation<ItemResponse, unknown, CreateItemRequest, Ctx>({
-    mutationFn: body => postListsListIdItems(listId, { occurredAt: nowIso(), ...body }),
+    mutationFn: body => createListItem(listId, { occurredAt: nowIso(), ...body }),
     ...optimistic<CreateItemRequest>((curr, body) => [
       ...curr,
       {
@@ -131,7 +131,7 @@ export function useMemberList(listId: string) {
   });
 
   const updateMut = useMutation<ItemResponse, unknown, { itemId: string; body: UpdateItemRequest }, Ctx>({
-    mutationFn: ({ itemId, body }) => patchListsListIdItemsItemId(listId, itemId, { occurredAt: nowIso(), ...body }),
+    mutationFn: ({ itemId, body }) => updateListItem(listId, itemId, { occurredAt: nowIso(), ...body }),
     ...optimistic<{ itemId: string; body: UpdateItemRequest }>((curr, { itemId, body }) =>
       curr.map(it => {
         if (it.id !== itemId) return it;
@@ -166,8 +166,8 @@ export function useMemberList(listId: string) {
   const toggleMut = useMutation<ItemResponse, unknown, { id: string; completed: boolean }, Ctx>({
     mutationFn: item =>
       item.completed
-        ? postListsListIdItemsItemIdReopen(listId, item.id, { occurredAt: nowIso() })
-        : postListsListIdItemsItemIdComplete(listId, item.id, { occurredAt: nowIso() }),
+        ? reopenItem(listId, item.id, { occurredAt: nowIso() })
+        : completeItem(listId, item.id, { occurredAt: nowIso() }),
     ...optimistic<{ id: string; completed: boolean }>((curr, item) =>
       curr.map(it =>
         it.id === item.id ? { ...it, completed: !item.completed, completedAt: item.completed ? null : nowIso() } : it,
@@ -182,7 +182,7 @@ export function useMemberList(listId: string) {
     Ctx
   >({
     mutationFn: ({ itemId, sortOrder, parentItemId }) =>
-      postListsListIdItemsItemIdMove(listId, itemId, { sortOrder, parentItemId, occurredAt: nowIso() }),
+      moveItem(listId, itemId, { sortOrder, parentItemId, occurredAt: nowIso() }),
     ...optimistic<{ itemId: string; sortOrder: string; parentItemId: string | null }>((curr, { itemId, sortOrder, parentItemId }) =>
       curr.map(it => (it.id === itemId ? { ...it, sortOrder, parentItemId } : it)),
     ),
@@ -190,7 +190,7 @@ export function useMemberList(listId: string) {
 
   const deleteMut = useMutation<void, unknown, { ids: string[] }, Ctx>({
     mutationFn: ({ ids }) =>
-      Promise.all(ids.map(id => deleteListsListIdItemsItemId(listId, id, { occurredAt: nowIso() }))).then(() => undefined),
+      Promise.all(ids.map(id => deleteListItem(listId, id, { occurredAt: nowIso() }))).then(() => undefined),
     ...optimistic<{ ids: string[] }>((curr, { ids }) => curr.filter(it => !ids.includes(it.id))),
   });
 

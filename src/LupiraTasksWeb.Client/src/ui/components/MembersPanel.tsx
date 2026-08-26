@@ -15,16 +15,16 @@ import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import {
-  deleteListsListIdMembersPrincipalId,
-  getGetListsListIdQueryKey,
-  patchListsListIdMembersPrincipalId,
-  postListsListIdMembers,
+  removeListMember,
+  getGetListQueryKey,
+  updateListMember,
+  addListMember,
 } from '../../data/api/member/lists/lists';
 import {
-  deleteListsListIdSharesShareId,
-  getGetListsListIdSharesQueryKey,
-  getListsListIdShares,
-  postListsListIdShares,
+  deleteShare,
+  getListSharesQueryKey,
+  listShares,
+  createShare,
 } from '../../data/api/member/shares/shares';
 import type { ListRole, MemberResponse, ShareAccess } from '../../data/api/member/models';
 
@@ -42,8 +42,8 @@ interface Props {
  *  role changes, removals, and share links are owner-only. */
 export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
   const qc = useQueryClient();
-  const sharesKey = getGetListsListIdSharesQueryKey(listId);
-  const invalidateList = () => void qc.invalidateQueries({ queryKey: getGetListsListIdQueryKey(listId) });
+  const sharesKey = getListSharesQueryKey(listId);
+  const invalidateList = () => void qc.invalidateQueries({ queryKey: getGetListQueryKey(listId) });
   const invalidateShares = () => void qc.invalidateQueries({ queryKey: sharesKey });
 
   const addForm = useForm<{ email: string; role: ListRole }>({ defaultValues: { email: '', role: 'Editor' } });
@@ -53,28 +53,28 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
   const shareAccess = shareForm.watch('access');
 
   const addMut = useMutation({
-    mutationFn: () => postListsListIdMembers(listId, { email: email.trim(), role: addRole }),
+    mutationFn: () => addListMember(listId, { email: email.trim(), role: addRole }),
     onSuccess: () => {
       addForm.resetField('email');
       invalidateList();
     },
   });
   const roleMut = useMutation({
-    mutationFn: (v: { principalId: string; role: ListRole }) => patchListsListIdMembersPrincipalId(listId, v.principalId, { role: v.role }),
+    mutationFn: (v: { principalId: string; role: ListRole }) => updateListMember(listId, v.principalId, { role: v.role }),
     onSuccess: invalidateList,
   });
   const removeMut = useMutation({
-    mutationFn: (principalId: string) => deleteListsListIdMembersPrincipalId(listId, principalId),
+    mutationFn: (principalId: string) => removeListMember(listId, principalId),
     onSuccess: invalidateList,
   });
 
-  const shares = useQuery({ queryKey: sharesKey, queryFn: () => getListsListIdShares(listId), select: r => r.shares, enabled: isOwner });
+  const shares = useQuery({ queryKey: sharesKey, queryFn: () => listShares(listId), select: r => r.shares, enabled: isOwner });
   const createShareMut = useMutation({
-    mutationFn: () => postListsListIdShares(listId, { access: shareAccess }),
+    mutationFn: () => createShare(listId, { access: shareAccess }),
     onSuccess: invalidateShares,
   });
   const revokeShareMut = useMutation({
-    mutationFn: (shareId: string) => deleteListsListIdSharesShareId(listId, shareId),
+    mutationFn: (shareId: string) => deleteShare(listId, shareId),
     onSuccess: invalidateShares,
   });
 
