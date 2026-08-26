@@ -1,5 +1,3 @@
-/* Bespoke styling only — tokens are emitted by the MUI theme (ui/theme/muiTheme.ts). */
-
 /* No preflight: CssBaseline is the reset. MUI injects unlayered, so it outranks these rules —
    nothing here may target an element that also carries an MUI component. */
 @import 'tailwindcss/theme.css' layer(theme);
@@ -25,7 +23,8 @@
   }
 }
 
-/* Migrating away; left unindented so the diffs stay readable. */
+/* What no MUI component can own: global element defaults, and the dnd-kit rows — dnd-kit writes
+   `transform`/`transition` inline on those nodes, and the grip needs `touch-action: none`. */
 @layer bespoke {
 body {
   min-height: 100vh;
@@ -52,86 +51,24 @@ code {
   padding: 12px var(--sp-lg) 12px 0;
   background: var(--mui-palette-background-default);
   border-bottom: 1px solid var(--mui-palette-divider);
-  position: relative; /* anchors .row-highlight */
+  position: relative; /* anchors the remote-change overlay */
 }
 
 .row.dragging {
   opacity: 0.85;
   background: var(--mui-palette-background-paper);
 }
-.row-grip,
-.row-grip-spacer {
+.row-grip {
   width: 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: none;
-}
-.row-grip {
   border: 0;
   background: transparent;
   color: var(--mui-palette-text-disabled);
   touch-action: none;
 }
-.row-body {
-  flex: 1;
-  text-align: left;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 0;
-  min-width: 0;
-}
-
-.title-line {
-  display: flex;
-  align-items: baseline;
-  gap: var(--sp-sm);
-  min-width: 0;
-}
-.title {
-  font-size: 16px;
-  color: var(--mui-palette-text-primary);
-  flex: 1;
-  min-width: 0;
-}
-/* The title yields width, not this — capped so a long name can't ellipsise it away. */
-.row-change {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--mui-palette-primary-main);
-  flex: none;
-  max-width: 45%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.title.done {
-  color: var(--mui-palette-text-disabled);
-  text-decoration: line-through;
-}
-.qty {
-  color: var(--mui-palette-text-secondary);
-  font-weight: 700;
-}
-.meta-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-sm);
-  align-items: center;
-}
-.meta {
-  font-size: 11px;
-  color: var(--mui-palette-text-secondary);
-}
-.meta.overdue {
-  color: var(--mui-palette-error-main);
-  font-weight: 600;
-}
-
 /* List-of-lists rows. */
 .list-row {
   display: flex;

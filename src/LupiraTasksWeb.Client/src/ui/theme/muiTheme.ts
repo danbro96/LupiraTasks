@@ -48,9 +48,9 @@ export const theme = createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: {
-        ':root': { ...px(SPACING, 'sp'), ...px(RADII, 'r') },
-        // The page behind the column takes the surface tone. Must live here — CssBaseline's own
-        // body rule is in the mui layer, which outranks bespoke.
+        // The dnd-kit rows in index.css are plain DOM and can't read theme.spacing().
+        ':root': px(SPACING, 'sp'),
+        // Must live here: MUI is unlayered, so CssBaseline's own body rule outranks the bespoke layer.
         body: { backgroundColor: 'var(--mui-palette-background-paper)' },
       },
     },

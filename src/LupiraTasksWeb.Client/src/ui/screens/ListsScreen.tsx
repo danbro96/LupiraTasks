@@ -237,8 +237,8 @@ function CreateListModal({
                     minWidth: 0,
                     ml: 0,
                     border: '2px solid',
-                    borderRadius: 'var(--r-pill)',
-                    '&.Mui-selected': { outline: '2px solid var(--mui-palette-primary-main)', outlineOffset: '2px' },
+                    borderRadius: '50%',
+                    '&.Mui-selected': { outline: 2, outlineStyle: 'solid', outlineColor: 'primary.main', outlineOffset: '2px' },
                   },
                 }}
               >

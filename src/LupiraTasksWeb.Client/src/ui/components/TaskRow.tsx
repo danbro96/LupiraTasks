@@ -1,7 +1,10 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import Box from '@mui/material/Box';
+import ButtonBase from '@mui/material/ButtonBase';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -87,31 +90,69 @@ export function TaskRow({
           <GripIcon />
         </button>
       ) : (
-        <span className="row-grip-spacer" />
+        <Box component="span" sx={{ width: 22, flex: 'none' }} />
       )}
 
       <Checkbox checked={item.completed} disabled={!canEdit} onChange={() => onToggle(item)} />
 
-      <button type="button" className="row-body" onClick={() => onOpen(item)}>
+      <ButtonBase
+        onClick={() => onOpen(item)}
+        sx={{ flex: 1, minWidth: 0, flexDirection: 'column', alignItems: 'stretch', gap: '2px', textAlign: 'left', color: 'inherit' }}
+      >
         {/* Notice shares the title's line: its own line would grow rows that have no meta line. */}
-        <span className="title-line">
-          <span className={`title${item.completed ? ' done' : ''}`}>
-            {qty ? <span className="qty">{qty} </span> : null}
+        <Box component="span" sx={{ display: 'flex', alignItems: 'baseline', gap: 1, minWidth: 0 }}>
+          <Typography
+            component="span"
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              fontSize: 16,
+              ...(item.completed
+                ? { color: 'text.disabled', textDecoration: 'line-through' }
+                : { color: 'text.primary' }),
+            }}
+          >
+            {qty ? (
+              <Box component="span" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+                {qty}{' '}
+              </Box>
+            ) : null}
             {item.title}
-          </span>
+          </Typography>
           {changeKind ? (
-            <span className="row-change">{changeLabel(changeKind, changeActor ?? null)}</span>
+            <Typography
+              component="span"
+              sx={{
+                flex: 'none',
+                maxWidth: '45%',
+                fontSize: 11,
+                fontWeight: 600,
+                color: 'primary.main',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {changeLabel(changeKind, changeActor ?? null)}
+            </Typography>
           ) : null}
-        </span>
+        </Box>
         {(due || tags.length > 0) && !item.completed ? (
-          <span className="meta-row">
-            {due ? <span className={`meta${due.overdue ? ' overdue' : ''}`}>{due.label}</span> : null}
+          <Box component="span" sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1 }}>
+            {due ? (
+              <Typography
+                component="span"
+                sx={{ fontSize: 11, ...(due.overdue ? { color: 'error.main', fontWeight: 600 } : { color: 'text.secondary' }) }}
+              >
+                {due.label}
+              </Typography>
+            ) : null}
             {tags.map(t => (
               <Chip key={t.id} component="span" label={t.label} sx={{ bgcolor: t.color, color: '#fff' }} />
             ))}
-          </span>
+          </Box>
         ) : null}
-      </button>
+      </ButtonBase>
 
       <PriorityControl
         simple={simplePriority}
