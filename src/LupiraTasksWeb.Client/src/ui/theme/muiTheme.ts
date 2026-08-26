@@ -37,7 +37,6 @@ export const theme = createTheme({
   cssVariables: { colorSchemeSelector: 'media' },
   // Emotion injects unlayered, which outranks every layer — utilities would silently lose.
   // Order matches CalWeb; 'bespoke' is index.css.
-  modularCssLayers: '@layer theme, base, bespoke, mui, utilities;',
   colorSchemes: {
     light: { palette: palette(LIGHT, REMOTE_CHANGE.light) },
     dark: { palette: palette(DARK, REMOTE_CHANGE.dark) },

@@ -1,6 +1,7 @@
 /* Bespoke styling only — tokens are emitted by the MUI theme (ui/theme/muiTheme.ts). */
 
-/* No preflight: CssBaseline is the reset. Layer order lives in muiTheme.ts. */
+/* No preflight: CssBaseline is the reset. MUI injects unlayered, so it outranks these rules —
+   nothing here may target an element that also carries an MUI component. */
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
 
