@@ -6,6 +6,6 @@
  * OpenAPI spec version: v1
  */
 
-export type DeleteListsListIdItemsItemIdParams = {
-occurredAt?: string;
+export type ListListsParams = {
+archived?: boolean;
 };

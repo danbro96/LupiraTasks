@@ -6,6 +6,9 @@
  * OpenAPI spec version: v1
  */
 
+/**
+ * A person the caller has seen across their shared lists (for adding members).
+ */
 export interface DirectoryPerson {
   principalId: string;
   email: string;

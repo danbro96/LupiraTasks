@@ -55,7 +55,7 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export const getPostSharesRedeemUrl = () => {
+export const getRedeemShareUrl = () => {
 
 
 
@@ -67,9 +67,9 @@ export const getPostSharesRedeemUrl = () => {
  * Body `{ token }`. Adds the caller to the linked list — `ReadWrite` → Editor, `Read` → Viewer — and returns `{ listId, role }`. Idempotent: an existing member keeps their current role. Used by the web client to cash in a share link after SSO.
  * @summary Redeem a share link as the authenticated caller (join the list).
  */
-export const postSharesRedeem = async (redeemShareRequest: RedeemShareRequest, options?: RequestInit): Promise<RedeemShareResponse> => {
+export const redeemShare = async (redeemShareRequest: RedeemShareRequest, options?: RequestInit): Promise<RedeemShareResponse> => {
 
-  return customFetch<RedeemShareResponse>(getPostSharesRedeemUrl(),
+  return customFetch<RedeemShareResponse>(getRedeemShareUrl(),
   {
     ...options,
     method: 'POST',
@@ -81,11 +81,11 @@ export const postSharesRedeem = async (redeemShareRequest: RedeemShareRequest, o
 
 
 
-export const getPostSharesRedeemMutationOptions = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postSharesRedeem>>, TError,{data: RedeemShareRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof postSharesRedeem>>, TError,{data: RedeemShareRequest}, TContext> => {
+export const getRedeemShareMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof redeemShare>>, TError,{data: RedeemShareRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof redeemShare>>, TError,{data: RedeemShareRequest}, TContext> => {
 
-const mutationKey = ['postSharesRedeem'];
+const mutationKey = ['redeemShare'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -95,10 +95,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postSharesRedeem>>, {data: RedeemShareRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof redeemShare>>, {data: RedeemShareRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  postSharesRedeem(data,requestOptions)
+          return  redeemShare(data,requestOptions)
         }
 
 
@@ -108,24 +108,24 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PostSharesRedeemMutationResult = NonNullable<Awaited<ReturnType<typeof postSharesRedeem>>>
-    export type PostSharesRedeemMutationBody = RedeemShareRequest
-    export type PostSharesRedeemMutationError = ProblemDetails | void
+    export type RedeemShareMutationResult = NonNullable<Awaited<ReturnType<typeof redeemShare>>>
+    export type RedeemShareMutationBody = RedeemShareRequest
+    export type RedeemShareMutationError = ProblemDetails
 
     /**
  * @summary Redeem a share link as the authenticated caller (join the list).
  */
-export const usePostSharesRedeem = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postSharesRedeem>>, TError,{data: RedeemShareRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useRedeemShare = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof redeemShare>>, TError,{data: RedeemShareRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postSharesRedeem>>,
+        Awaited<ReturnType<typeof redeemShare>>,
         TError,
         {data: RedeemShareRequest},
         TContext
       > => {
-      return useMutation(getPostSharesRedeemMutationOptions(options), queryClient);
+      return useMutation(getRedeemShareMutationOptions(options), queryClient);
     }
-    export const getPostListsListIdSharesUrl = (listId: string,) => {
+    export const getCreateShareUrl = (listId: string,) => {
 
 
 
@@ -137,10 +137,10 @@ export const usePostSharesRedeem = <TError = ProblemDetails | void,
  * Body `{ access: 'Read' | 'ReadWrite', label?, expiresAt? }`. Returns the opaque token + a ready-to-copy URL. The link grants account-less access at `/shared/{token}` until revoked or expired.
  * @summary Mint a public share link for a list (Owner).
  */
-export const postListsListIdShares = async (listId: string,
+export const createShare = async (listId: string,
     createShareRequest: CreateShareRequest, options?: RequestInit): Promise<ShareResponse> => {
 
-  return customFetch<ShareResponse>(getPostListsListIdSharesUrl(listId),
+  return customFetch<ShareResponse>(getCreateShareUrl(listId),
   {
     ...options,
     method: 'POST',
@@ -152,11 +152,11 @@ export const postListsListIdShares = async (listId: string,
 
 
 
-export const getPostListsListIdSharesMutationOptions = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postListsListIdShares>>, TError,{listId: string;data: CreateShareRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof postListsListIdShares>>, TError,{listId: string;data: CreateShareRequest}, TContext> => {
+export const getCreateShareMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createShare>>, TError,{listId: string;data: CreateShareRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createShare>>, TError,{listId: string;data: CreateShareRequest}, TContext> => {
 
-const mutationKey = ['postListsListIdShares'];
+const mutationKey = ['createShare'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -166,10 +166,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postListsListIdShares>>, {listId: string;data: CreateShareRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createShare>>, {listId: string;data: CreateShareRequest}> = (props) => {
           const {listId,data} = props ?? {};
 
-          return  postListsListIdShares(listId,data,requestOptions)
+          return  createShare(listId,data,requestOptions)
         }
 
 
@@ -179,24 +179,24 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PostListsListIdSharesMutationResult = NonNullable<Awaited<ReturnType<typeof postListsListIdShares>>>
-    export type PostListsListIdSharesMutationBody = CreateShareRequest
-    export type PostListsListIdSharesMutationError = ProblemDetails | void
+    export type CreateShareMutationResult = NonNullable<Awaited<ReturnType<typeof createShare>>>
+    export type CreateShareMutationBody = CreateShareRequest
+    export type CreateShareMutationError = ProblemDetails
 
     /**
  * @summary Mint a public share link for a list (Owner).
  */
-export const usePostListsListIdShares = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postListsListIdShares>>, TError,{listId: string;data: CreateShareRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useCreateShare = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createShare>>, TError,{listId: string;data: CreateShareRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postListsListIdShares>>,
+        Awaited<ReturnType<typeof createShare>>,
         TError,
         {listId: string;data: CreateShareRequest},
         TContext
       > => {
-      return useMutation(getPostListsListIdSharesMutationOptions(options), queryClient);
+      return useMutation(getCreateShareMutationOptions(options), queryClient);
     }
-    export const getGetListsListIdSharesUrl = (listId: string,) => {
+    export const getListSharesUrl = (listId: string,) => {
 
 
 
@@ -207,9 +207,9 @@ export const usePostListsListIdShares = <TError = ProblemDetails | void,
 /**
  * @summary List a list's active share links (Owner).
  */
-export const getListsListIdShares = async (listId: string, options?: RequestInit): Promise<ShareCollectionResponse> => {
+export const listShares = async (listId: string, options?: RequestInit): Promise<ShareCollectionResponse> => {
 
-  return customFetch<ShareCollectionResponse>(getGetListsListIdSharesUrl(listId),
+  return customFetch<ShareCollectionResponse>(getListSharesUrl(listId),
   {
     ...options,
     method: 'GET'
@@ -222,69 +222,69 @@ export const getListsListIdShares = async (listId: string, options?: RequestInit
 
 
 
-export const getGetListsListIdSharesQueryKey = (listId: string,) => {
+export const getListSharesQueryKey = (listId: string,) => {
     return [
     `/lists/${listId}/shares`
     ] as const;
     }
 
 
-export const getGetListsListIdSharesQueryOptions = <TData = Awaited<ReturnType<typeof getListsListIdShares>>, TError = void>(listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListIdShares>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getListSharesQueryOptions = <TData = Awaited<ReturnType<typeof listShares>>, TError = ProblemDetails>(listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShares>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetListsListIdSharesQueryKey(listId);
+  const queryKey =  queryOptions?.queryKey ?? getListSharesQueryKey(listId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getListsListIdShares>>> = ({ signal }) => getListsListIdShares(listId, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listShares>>> = ({ signal }) => listShares(listId, { signal, ...requestOptions });
 
 
 
 
 
-   return  { queryKey, queryFn, enabled: listId !== null && listId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getListsListIdShares>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, enabled: listId !== null && listId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listShares>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetListsListIdSharesQueryResult = NonNullable<Awaited<ReturnType<typeof getListsListIdShares>>>
-export type GetListsListIdSharesQueryError = void
+export type ListSharesQueryResult = NonNullable<Awaited<ReturnType<typeof listShares>>>
+export type ListSharesQueryError = ProblemDetails
 
 
-export function useGetListsListIdShares<TData = Awaited<ReturnType<typeof getListsListIdShares>>, TError = void>(
- listId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListIdShares>>, TError, TData>> & Pick<
+export function useListShares<TData = Awaited<ReturnType<typeof listShares>>, TError = ProblemDetails>(
+ listId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShares>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getListsListIdShares>>,
+          Awaited<ReturnType<typeof listShares>>,
           TError,
-          Awaited<ReturnType<typeof getListsListIdShares>>
+          Awaited<ReturnType<typeof listShares>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetListsListIdShares<TData = Awaited<ReturnType<typeof getListsListIdShares>>, TError = void>(
- listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListIdShares>>, TError, TData>> & Pick<
+export function useListShares<TData = Awaited<ReturnType<typeof listShares>>, TError = ProblemDetails>(
+ listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShares>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getListsListIdShares>>,
+          Awaited<ReturnType<typeof listShares>>,
           TError,
-          Awaited<ReturnType<typeof getListsListIdShares>>
+          Awaited<ReturnType<typeof listShares>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetListsListIdShares<TData = Awaited<ReturnType<typeof getListsListIdShares>>, TError = void>(
- listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListIdShares>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export function useListShares<TData = Awaited<ReturnType<typeof listShares>>, TError = ProblemDetails>(
+ listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShares>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary List a list's active share links (Owner).
  */
 
-export function useGetListsListIdShares<TData = Awaited<ReturnType<typeof getListsListIdShares>>, TError = void>(
- listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListIdShares>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export function useListShares<TData = Awaited<ReturnType<typeof listShares>>, TError = ProblemDetails>(
+ listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShares>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetListsListIdSharesQueryOptions(listId,options)
+  const queryOptions = getListSharesQueryOptions(listId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -296,7 +296,7 @@ export function useGetListsListIdShares<TData = Awaited<ReturnType<typeof getLis
 
 
 
-export const getDeleteListsListIdSharesShareIdUrl = (listId: string,
+export const getDeleteShareUrl = (listId: string,
     shareId: string,) => {
 
 
@@ -308,10 +308,10 @@ export const getDeleteListsListIdSharesShareIdUrl = (listId: string,
 /**
  * @summary Revoke a share link (Owner). The token is rejected on its next use.
  */
-export const deleteListsListIdSharesShareId = async (listId: string,
+export const deleteShare = async (listId: string,
     shareId: string, options?: RequestInit): Promise<void> => {
 
-  return customFetch<void>(getDeleteListsListIdSharesShareIdUrl(listId,shareId),
+  return customFetch<void>(getDeleteShareUrl(listId,shareId),
   {
     ...options,
     method: 'DELETE'
@@ -323,11 +323,11 @@ export const deleteListsListIdSharesShareId = async (listId: string,
 
 
 
-export const getDeleteListsListIdSharesShareIdMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteListsListIdSharesShareId>>, TError,{listId: string;shareId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof deleteListsListIdSharesShareId>>, TError,{listId: string;shareId: string}, TContext> => {
+export const getDeleteShareMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteShare>>, TError,{listId: string;shareId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteShare>>, TError,{listId: string;shareId: string}, TContext> => {
 
-const mutationKey = ['deleteListsListIdSharesShareId'];
+const mutationKey = ['deleteShare'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -337,10 +337,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteListsListIdSharesShareId>>, {listId: string;shareId: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteShare>>, {listId: string;shareId: string}> = (props) => {
           const {listId,shareId} = props ?? {};
 
-          return  deleteListsListIdSharesShareId(listId,shareId,requestOptions)
+          return  deleteShare(listId,shareId,requestOptions)
         }
 
 
@@ -350,20 +350,20 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type DeleteListsListIdSharesShareIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteListsListIdSharesShareId>>>
+    export type DeleteShareMutationResult = NonNullable<Awaited<ReturnType<typeof deleteShare>>>
 
-    export type DeleteListsListIdSharesShareIdMutationError = void
+    export type DeleteShareMutationError = ProblemDetails
 
     /**
  * @summary Revoke a share link (Owner). The token is rejected on its next use.
  */
-export const useDeleteListsListIdSharesShareId = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteListsListIdSharesShareId>>, TError,{listId: string;shareId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useDeleteShare = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteShare>>, TError,{listId: string;shareId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof deleteListsListIdSharesShareId>>,
+        Awaited<ReturnType<typeof deleteShare>>,
         TError,
         {listId: string;shareId: string},
         TContext
       > => {
-      return useMutation(getDeleteListsListIdSharesShareIdMutationOptions(options), queryClient);
+      return useMutation(getDeleteShareMutationOptions(options), queryClient);
     }

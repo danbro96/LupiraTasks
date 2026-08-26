@@ -7,6 +7,9 @@
  */
 import type { DirectoryPerson } from './directoryPerson';
 
+/**
+ * The distinct people across the caller's lists, for member-add autocomplete.
+ */
 export interface DirectoryResponse {
   people: DirectoryPerson[];
 }

@@ -7,6 +7,9 @@
  */
 import type { ShareResponse } from './shareResponse';
 
+/**
+ * Envelope for a list's active share links.
+ */
 export interface ShareCollectionResponse {
   shares: ShareResponse[];
 }

@@ -6,10 +6,17 @@
  * OpenAPI spec version: v1
  */
 
+/**
+ * Reparent and/or reorder an item. string MoveItemRequest.SortOrder is a fractional-index
+ * string so concurrent inserts get distinct keys without renumbering siblings.
+ */
 export interface MoveItemRequest {
   /** @nullable */
   parentItemId?: string | null;
   sortOrder: string;
-  /** @nullable */
+  /**
+     * Client wall-clock at the moment of the change (LWW key). Defaults to server now.
+     * @nullable
+     */
   occurredAt?: string | null;
 }

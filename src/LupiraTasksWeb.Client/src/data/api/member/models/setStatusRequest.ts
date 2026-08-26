@@ -7,10 +7,16 @@
  */
 import type { ItemStatus } from './itemStatus';
 
+/**
+ * Sets an item's lifecycle status, with an optional reason (e.g. why it's Blocked/Waiting).
+ */
 export interface SetStatusRequest {
   status: ItemStatus;
   /** @nullable */
   reason?: string | null;
-  /** @nullable */
+  /**
+     * Client wall-clock for LWW; defaults to server now when omitted.
+     * @nullable
+     */
   occurredAt?: string | null;
 }

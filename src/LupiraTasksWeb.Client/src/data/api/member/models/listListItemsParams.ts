@@ -5,7 +5,12 @@
  * Task and command processing backend for Lupira. Authenticate with a Bearer token issued by the OIDC provider (Authentik).
  * OpenAPI spec version: v1
  */
+import type { ItemStatus } from './itemStatus';
 
-export type DeleteSharedTokenItemsItemIdParams = {
-occurredAt?: string;
+export type ListListItemsParams = {
+completed?: boolean;
+tagId?: string;
+parentItemId?: string;
+assignedTo?: string;
+status?: ItemStatus;
 };

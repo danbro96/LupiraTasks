@@ -7,6 +7,9 @@
  */
 import type { ItemResponse } from './itemResponse';
 
+/**
+ * Envelope for a list's items.
+ */
 export interface ItemCollectionResponse {
   items: ItemResponse[];
 }

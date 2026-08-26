@@ -8,8 +8,15 @@
 import type { ItemResponse } from './itemResponse';
 import type { ListResponse } from './listResponse';
 
+/**
+ * A full re-derive of a list and its live items, for the offline delta-pull. v1 is
+ * "simplest-correct": the whole list + all non-deleted items are returned regardless of
+ * the `since` cursor, and long SyncResponse.NextCursor is the high-water mark of the items'
+ * update timestamps (the client plumbs the cursor through but the server ignores it for now).
+ */
 export interface SyncResponse {
   list: ListResponse;
   items: ItemResponse[];
+  /** Opaque cursor to pass as `?since=` on the next pull. */
   nextCursor: number;
 }

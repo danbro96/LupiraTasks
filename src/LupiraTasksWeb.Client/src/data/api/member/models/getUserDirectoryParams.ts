@@ -6,8 +6,6 @@
  * OpenAPI spec version: v1
  */
 
-export type DeleteListsListIdItemsItemIdRelationsParams = {
-toKind: string;
-toRef: string;
-relationType: string;
+export type GetUserDirectoryParams = {
+q?: string;
 };

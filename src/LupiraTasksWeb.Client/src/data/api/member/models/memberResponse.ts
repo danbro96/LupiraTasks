@@ -8,6 +8,9 @@
 import type { ListRole } from './listRole';
 import type { PersonRef } from './personRef';
 
+/**
+ * A member of a list: the stable `PrincipalId` plus resolved `Email`/`DisplayName`.
+ */
 export interface MemberResponse {
   principalId: string;
   email: string;

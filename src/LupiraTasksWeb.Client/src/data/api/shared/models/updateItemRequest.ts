@@ -6,6 +6,12 @@
  * OpenAPI spec version: v1
  */
 
+/**
+ * Patch an item. Emits exactly one event per changed field. A field changes only when
+ * its `*Provided` flag is true, so a `null` value can be sent intentionally
+ * (e.g. unassign, clear due date) without being confused with "leave unchanged".
+ * DateTimeOffset? UpdateItemRequest.OccurredAt is the client wall-clock used for per-field LWW.
+ */
 export interface UpdateItemRequest {
   /** @nullable */
   title?: string | null;
@@ -24,12 +30,22 @@ export interface UpdateItemRequest {
   /** @nullable */
   unit?: string | null;
   quantityProvided?: boolean;
+  /** Standard iCalendar priority, 0..9 (0 = none). Only applied when bool UpdateItemRequest.PriorityProvided is true. */
   priority?: number;
   priorityProvided?: boolean;
-  /** @nullable */
+  /**
+     * Tag ids to add (commutative delta).
+     * @nullable
+     */
   addTagIds?: string[] | null;
-  /** @nullable */
+  /**
+     * Tag ids to remove (commutative delta).
+     * @nullable
+     */
   removeTagIds?: string[] | null;
-  /** @nullable */
+  /**
+     * Client wall-clock at the moment of the change (LWW key). Defaults to server now.
+     * @nullable
+     */
   occurredAt?: string | null;
 }

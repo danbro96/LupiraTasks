@@ -6,6 +6,6 @@
  * OpenAPI spec version: v1
  */
 
-export type GetListsParams = {
-archived?: boolean;
+export type DeleteSharedItemParams = {
+occurredAt?: string;
 };

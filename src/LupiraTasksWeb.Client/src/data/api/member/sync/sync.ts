@@ -21,7 +21,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  GetListsListIdSyncParams,
+  ProblemDetails,
+  SyncListParams,
   SyncResponse
 } from '../models';
 
@@ -47,8 +48,8 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export const getGetListsListIdSyncUrl = (listId: string,
-    params?: GetListsListIdSyncParams,) => {
+export const getSyncListUrl = (listId: string,
+    params?: SyncListParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -70,10 +71,10 @@ export const getGetListsListIdSyncUrl = (listId: string,
  * outbox rows.
  * @summary Offline delta-pull for a list (Viewer+).
  */
-export const getListsListIdSync = async (listId: string,
-    params?: GetListsListIdSyncParams, options?: RequestInit): Promise<SyncResponse> => {
+export const syncList = async (listId: string,
+    params?: SyncListParams, options?: RequestInit): Promise<SyncResponse> => {
 
-  return customFetch<SyncResponse>(getGetListsListIdSyncUrl(listId,params),
+  return customFetch<SyncResponse>(getSyncListUrl(listId,params),
   {
     ...options,
     method: 'GET'
@@ -86,75 +87,75 @@ export const getListsListIdSync = async (listId: string,
 
 
 
-export const getGetListsListIdSyncQueryKey = (listId: string,
-    params?: GetListsListIdSyncParams,) => {
+export const getSyncListQueryKey = (listId: string,
+    params?: SyncListParams,) => {
     return [
     `/lists/${listId}/sync`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetListsListIdSyncQueryOptions = <TData = Awaited<ReturnType<typeof getListsListIdSync>>, TError = void>(listId: string,
-    params?: GetListsListIdSyncParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListIdSync>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getSyncListQueryOptions = <TData = Awaited<ReturnType<typeof syncList>>, TError = ProblemDetails>(listId: string,
+    params?: SyncListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof syncList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetListsListIdSyncQueryKey(listId,params);
+  const queryKey =  queryOptions?.queryKey ?? getSyncListQueryKey(listId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getListsListIdSync>>> = ({ signal }) => getListsListIdSync(listId,params, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof syncList>>> = ({ signal }) => syncList(listId,params, { signal, ...requestOptions });
 
 
 
 
 
-   return  { queryKey, queryFn, enabled: listId !== null && listId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getListsListIdSync>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, enabled: listId !== null && listId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof syncList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetListsListIdSyncQueryResult = NonNullable<Awaited<ReturnType<typeof getListsListIdSync>>>
-export type GetListsListIdSyncQueryError = void
+export type SyncListQueryResult = NonNullable<Awaited<ReturnType<typeof syncList>>>
+export type SyncListQueryError = ProblemDetails
 
 
-export function useGetListsListIdSync<TData = Awaited<ReturnType<typeof getListsListIdSync>>, TError = void>(
+export function useSyncList<TData = Awaited<ReturnType<typeof syncList>>, TError = ProblemDetails>(
  listId: string,
-    params: undefined |  GetListsListIdSyncParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListIdSync>>, TError, TData>> & Pick<
+    params: undefined |  SyncListParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof syncList>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getListsListIdSync>>,
+          Awaited<ReturnType<typeof syncList>>,
           TError,
-          Awaited<ReturnType<typeof getListsListIdSync>>
+          Awaited<ReturnType<typeof syncList>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetListsListIdSync<TData = Awaited<ReturnType<typeof getListsListIdSync>>, TError = void>(
+export function useSyncList<TData = Awaited<ReturnType<typeof syncList>>, TError = ProblemDetails>(
  listId: string,
-    params?: GetListsListIdSyncParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListIdSync>>, TError, TData>> & Pick<
+    params?: SyncListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof syncList>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getListsListIdSync>>,
+          Awaited<ReturnType<typeof syncList>>,
           TError,
-          Awaited<ReturnType<typeof getListsListIdSync>>
+          Awaited<ReturnType<typeof syncList>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetListsListIdSync<TData = Awaited<ReturnType<typeof getListsListIdSync>>, TError = void>(
+export function useSyncList<TData = Awaited<ReturnType<typeof syncList>>, TError = ProblemDetails>(
  listId: string,
-    params?: GetListsListIdSyncParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListIdSync>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+    params?: SyncListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof syncList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Offline delta-pull for a list (Viewer+).
  */
 
-export function useGetListsListIdSync<TData = Awaited<ReturnType<typeof getListsListIdSync>>, TError = void>(
+export function useSyncList<TData = Awaited<ReturnType<typeof syncList>>, TError = ProblemDetails>(
  listId: string,
-    params?: GetListsListIdSyncParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListIdSync>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+    params?: SyncListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof syncList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetListsListIdSyncQueryOptions(listId,params,options)
+  const queryOptions = getSyncListQueryOptions(listId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

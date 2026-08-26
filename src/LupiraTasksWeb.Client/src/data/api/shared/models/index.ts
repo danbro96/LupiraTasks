@@ -7,7 +7,7 @@
  */
 
 export * from './createItemRequest';
-export * from './deleteSharedTokenItemsItemIdParams';
+export * from './deleteSharedItemParams';
 export * from './itemTimestampRequest';
 export * from './listKind';
 export * from './moveItemRequest';

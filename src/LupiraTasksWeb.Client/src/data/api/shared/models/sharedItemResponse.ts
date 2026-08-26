@@ -6,6 +6,11 @@
  * OpenAPI spec version: v1
  */
 
+/**
+ * An item as shown to a share-link recipient. Mirrors the fields a viewer/editor needs but
+ * OMITS every email field (`assignedTo`, `completedBy`, `createdBy`) so a public
+ * link never leaks family emails.
+ */
 export interface SharedItemResponse {
   id: string;
   /** @nullable */

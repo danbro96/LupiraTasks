@@ -7,6 +7,9 @@
  */
 import type { ListRole } from './listRole';
 
+/**
+ * Change a member's role on a list (Owner only).
+ */
 export interface UpdateMemberRoleRequest {
   role: ListRole;
 }

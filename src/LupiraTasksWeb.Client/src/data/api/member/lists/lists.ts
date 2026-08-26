@@ -27,8 +27,8 @@ import type {
 import type {
   AddMemberRequest,
   CreateListRequest,
-  GetListsParams,
   ListCollectionResponse,
+  ListListsParams,
   ListResponse,
   ProblemDetails,
   SetListOrderRequest,
@@ -58,7 +58,7 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export const getGetListsUrl = (params?: GetListsParams,) => {
+export const getListListsUrl = (params?: ListListsParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -77,9 +77,9 @@ export const getGetListsUrl = (params?: GetListsParams,) => {
  * `?archived=true` returns the caller's archived lists instead of the active ones.
  * @summary List the lists the caller is a member of.
  */
-export const getLists = async (params?: GetListsParams, options?: RequestInit): Promise<ListCollectionResponse> => {
+export const listLists = async (params?: ListListsParams, options?: RequestInit): Promise<ListCollectionResponse> => {
 
-  return customFetch<ListCollectionResponse>(getGetListsUrl(params),
+  return customFetch<ListCollectionResponse>(getListListsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -92,69 +92,69 @@ export const getLists = async (params?: GetListsParams, options?: RequestInit): 
 
 
 
-export const getGetListsQueryKey = (params?: GetListsParams,) => {
+export const getListListsQueryKey = (params?: ListListsParams,) => {
     return [
     `/lists`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetListsQueryOptions = <TData = Awaited<ReturnType<typeof getLists>>, TError = void>(params?: GetListsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLists>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getListListsQueryOptions = <TData = Awaited<ReturnType<typeof listLists>>, TError = ProblemDetails>(params?: ListListsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLists>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetListsQueryKey(params);
+  const queryKey =  queryOptions?.queryKey ?? getListListsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLists>>> = ({ signal }) => getLists(params, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listLists>>> = ({ signal }) => listLists(params, { signal, ...requestOptions });
 
 
 
 
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLists>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listLists>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetListsQueryResult = NonNullable<Awaited<ReturnType<typeof getLists>>>
-export type GetListsQueryError = void
+export type ListListsQueryResult = NonNullable<Awaited<ReturnType<typeof listLists>>>
+export type ListListsQueryError = ProblemDetails
 
 
-export function useGetLists<TData = Awaited<ReturnType<typeof getLists>>, TError = void>(
- params: undefined |  GetListsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLists>>, TError, TData>> & Pick<
+export function useListLists<TData = Awaited<ReturnType<typeof listLists>>, TError = ProblemDetails>(
+ params: undefined |  ListListsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLists>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getLists>>,
+          Awaited<ReturnType<typeof listLists>>,
           TError,
-          Awaited<ReturnType<typeof getLists>>
+          Awaited<ReturnType<typeof listLists>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetLists<TData = Awaited<ReturnType<typeof getLists>>, TError = void>(
- params?: GetListsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLists>>, TError, TData>> & Pick<
+export function useListLists<TData = Awaited<ReturnType<typeof listLists>>, TError = ProblemDetails>(
+ params?: ListListsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLists>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getLists>>,
+          Awaited<ReturnType<typeof listLists>>,
           TError,
-          Awaited<ReturnType<typeof getLists>>
+          Awaited<ReturnType<typeof listLists>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetLists<TData = Awaited<ReturnType<typeof getLists>>, TError = void>(
- params?: GetListsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLists>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export function useListLists<TData = Awaited<ReturnType<typeof listLists>>, TError = ProblemDetails>(
+ params?: ListListsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLists>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary List the lists the caller is a member of.
  */
 
-export function useGetLists<TData = Awaited<ReturnType<typeof getLists>>, TError = void>(
- params?: GetListsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLists>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export function useListLists<TData = Awaited<ReturnType<typeof listLists>>, TError = ProblemDetails>(
+ params?: ListListsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLists>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetListsQueryOptions(params,options)
+  const queryOptions = getListListsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -166,7 +166,7 @@ export function useGetLists<TData = Awaited<ReturnType<typeof getLists>>, TError
 
 
 
-export const getPostListsUrl = () => {
+export const getCreateListUrl = () => {
 
 
 
@@ -178,9 +178,9 @@ export const getPostListsUrl = () => {
  * Body `{ id (GUIDv7), name, kind, color? }`. `kind` is `Todo`, `Shopping`, or `Agent` (agent/system-owned lists). Re-sending an existing id is an idempotent success.
  * @summary Create a list; the caller becomes Owner.
  */
-export const postLists = async (createListRequest: CreateListRequest, options?: RequestInit): Promise<ListResponse> => {
+export const createList = async (createListRequest: CreateListRequest, options?: RequestInit): Promise<ListResponse> => {
 
-  return customFetch<ListResponse>(getPostListsUrl(),
+  return customFetch<ListResponse>(getCreateListUrl(),
   {
     ...options,
     method: 'POST',
@@ -192,11 +192,11 @@ export const postLists = async (createListRequest: CreateListRequest, options?: 
 
 
 
-export const getPostListsMutationOptions = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postLists>>, TError,{data: CreateListRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof postLists>>, TError,{data: CreateListRequest}, TContext> => {
+export const getCreateListMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createList>>, TError,{data: CreateListRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createList>>, TError,{data: CreateListRequest}, TContext> => {
 
-const mutationKey = ['postLists'];
+const mutationKey = ['createList'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -206,10 +206,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postLists>>, {data: CreateListRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createList>>, {data: CreateListRequest}> = (props) => {
           const {data} = props ?? {};
 
-          return  postLists(data,requestOptions)
+          return  createList(data,requestOptions)
         }
 
 
@@ -219,24 +219,24 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PostListsMutationResult = NonNullable<Awaited<ReturnType<typeof postLists>>>
-    export type PostListsMutationBody = CreateListRequest
-    export type PostListsMutationError = ProblemDetails | void
+    export type CreateListMutationResult = NonNullable<Awaited<ReturnType<typeof createList>>>
+    export type CreateListMutationBody = CreateListRequest
+    export type CreateListMutationError = ProblemDetails
 
     /**
  * @summary Create a list; the caller becomes Owner.
  */
-export const usePostLists = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postLists>>, TError,{data: CreateListRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useCreateList = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createList>>, TError,{data: CreateListRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postLists>>,
+        Awaited<ReturnType<typeof createList>>,
         TError,
         {data: CreateListRequest},
         TContext
       > => {
-      return useMutation(getPostListsMutationOptions(options), queryClient);
+      return useMutation(getCreateListMutationOptions(options), queryClient);
     }
-    export const getGetListsListIdUrl = (listId: string,) => {
+    export const getGetListUrl = (listId: string,) => {
 
 
 
@@ -247,9 +247,9 @@ export const usePostLists = <TError = ProblemDetails | void,
 /**
  * @summary Get a list with its members and tags (Viewer+).
  */
-export const getListsListId = async (listId: string, options?: RequestInit): Promise<ListResponse> => {
+export const getList = async (listId: string, options?: RequestInit): Promise<ListResponse> => {
 
-  return customFetch<ListResponse>(getGetListsListIdUrl(listId),
+  return customFetch<ListResponse>(getGetListUrl(listId),
   {
     ...options,
     method: 'GET'
@@ -262,69 +262,69 @@ export const getListsListId = async (listId: string, options?: RequestInit): Pro
 
 
 
-export const getGetListsListIdQueryKey = (listId: string,) => {
+export const getGetListQueryKey = (listId: string,) => {
     return [
     `/lists/${listId}`
     ] as const;
     }
 
 
-export const getGetListsListIdQueryOptions = <TData = Awaited<ReturnType<typeof getListsListId>>, TError = void>(listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListId>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getGetListQueryOptions = <TData = Awaited<ReturnType<typeof getList>>, TError = ProblemDetails>(listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetListsListIdQueryKey(listId);
+  const queryKey =  queryOptions?.queryKey ?? getGetListQueryKey(listId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getListsListId>>> = ({ signal }) => getListsListId(listId, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getList>>> = ({ signal }) => getList(listId, { signal, ...requestOptions });
 
 
 
 
 
-   return  { queryKey, queryFn, enabled: listId !== null && listId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getListsListId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, enabled: listId !== null && listId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetListsListIdQueryResult = NonNullable<Awaited<ReturnType<typeof getListsListId>>>
-export type GetListsListIdQueryError = void
+export type GetListQueryResult = NonNullable<Awaited<ReturnType<typeof getList>>>
+export type GetListQueryError = ProblemDetails
 
 
-export function useGetListsListId<TData = Awaited<ReturnType<typeof getListsListId>>, TError = void>(
- listId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListId>>, TError, TData>> & Pick<
+export function useGetList<TData = Awaited<ReturnType<typeof getList>>, TError = ProblemDetails>(
+ listId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getList>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getListsListId>>,
+          Awaited<ReturnType<typeof getList>>,
           TError,
-          Awaited<ReturnType<typeof getListsListId>>
+          Awaited<ReturnType<typeof getList>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetListsListId<TData = Awaited<ReturnType<typeof getListsListId>>, TError = void>(
- listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListId>>, TError, TData>> & Pick<
+export function useGetList<TData = Awaited<ReturnType<typeof getList>>, TError = ProblemDetails>(
+ listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getList>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getListsListId>>,
+          Awaited<ReturnType<typeof getList>>,
           TError,
-          Awaited<ReturnType<typeof getListsListId>>
+          Awaited<ReturnType<typeof getList>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetListsListId<TData = Awaited<ReturnType<typeof getListsListId>>, TError = void>(
- listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListId>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export function useGetList<TData = Awaited<ReturnType<typeof getList>>, TError = ProblemDetails>(
+ listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get a list with its members and tags (Viewer+).
  */
 
-export function useGetListsListId<TData = Awaited<ReturnType<typeof getListsListId>>, TError = void>(
- listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListId>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export function useGetList<TData = Awaited<ReturnType<typeof getList>>, TError = ProblemDetails>(
+ listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getList>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetListsListIdQueryOptions(listId,options)
+  const queryOptions = getGetListQueryOptions(listId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -336,7 +336,7 @@ export function useGetListsListId<TData = Awaited<ReturnType<typeof getListsList
 
 
 
-export const getPatchListsListIdUrl = (listId: string,) => {
+export const getUpdateListUrl = (listId: string,) => {
 
 
 
@@ -348,10 +348,10 @@ export const getPatchListsListIdUrl = (listId: string,) => {
  * Each provided field emits its own event. Set `colorProvided` to apply `color` (incl. clearing it). Send `simplePriority` (bool) to switch between simple on/off and the full 0..9 scale.
  * @summary Rename / recolor a list, or set its priority mode (Editor+).
  */
-export const patchListsListId = async (listId: string,
+export const updateList = async (listId: string,
     updateListRequest: UpdateListRequest, options?: RequestInit): Promise<ListResponse> => {
 
-  return customFetch<ListResponse>(getPatchListsListIdUrl(listId),
+  return customFetch<ListResponse>(getUpdateListUrl(listId),
   {
     ...options,
     method: 'PATCH',
@@ -363,11 +363,11 @@ export const patchListsListId = async (listId: string,
 
 
 
-export const getPatchListsListIdMutationOptions = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchListsListId>>, TError,{listId: string;data: UpdateListRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof patchListsListId>>, TError,{listId: string;data: UpdateListRequest}, TContext> => {
+export const getUpdateListMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateList>>, TError,{listId: string;data: UpdateListRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateList>>, TError,{listId: string;data: UpdateListRequest}, TContext> => {
 
-const mutationKey = ['patchListsListId'];
+const mutationKey = ['updateList'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -377,10 +377,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchListsListId>>, {listId: string;data: UpdateListRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateList>>, {listId: string;data: UpdateListRequest}> = (props) => {
           const {listId,data} = props ?? {};
 
-          return  patchListsListId(listId,data,requestOptions)
+          return  updateList(listId,data,requestOptions)
         }
 
 
@@ -390,24 +390,24 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PatchListsListIdMutationResult = NonNullable<Awaited<ReturnType<typeof patchListsListId>>>
-    export type PatchListsListIdMutationBody = UpdateListRequest
-    export type PatchListsListIdMutationError = ProblemDetails | void
+    export type UpdateListMutationResult = NonNullable<Awaited<ReturnType<typeof updateList>>>
+    export type UpdateListMutationBody = UpdateListRequest
+    export type UpdateListMutationError = ProblemDetails
 
     /**
  * @summary Rename / recolor a list, or set its priority mode (Editor+).
  */
-export const usePatchListsListId = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchListsListId>>, TError,{listId: string;data: UpdateListRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useUpdateList = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateList>>, TError,{listId: string;data: UpdateListRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof patchListsListId>>,
+        Awaited<ReturnType<typeof updateList>>,
         TError,
         {listId: string;data: UpdateListRequest},
         TContext
       > => {
-      return useMutation(getPatchListsListIdMutationOptions(options), queryClient);
+      return useMutation(getUpdateListMutationOptions(options), queryClient);
     }
-    export const getDeleteListsListIdUrl = (listId: string,) => {
+    export const getDeleteListUrl = (listId: string,) => {
 
 
 
@@ -418,9 +418,9 @@ export const usePatchListsListId = <TError = ProblemDetails | void,
 /**
  * @summary Delete a list (Owner). Tombstone — stream retained.
  */
-export const deleteListsListId = async (listId: string, options?: RequestInit): Promise<void> => {
+export const deleteList = async (listId: string, options?: RequestInit): Promise<void> => {
 
-  return customFetch<void>(getDeleteListsListIdUrl(listId),
+  return customFetch<void>(getDeleteListUrl(listId),
   {
     ...options,
     method: 'DELETE'
@@ -432,11 +432,11 @@ export const deleteListsListId = async (listId: string, options?: RequestInit): 
 
 
 
-export const getDeleteListsListIdMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteListsListId>>, TError,{listId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof deleteListsListId>>, TError,{listId: string}, TContext> => {
+export const getDeleteListMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteList>>, TError,{listId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteList>>, TError,{listId: string}, TContext> => {
 
-const mutationKey = ['deleteListsListId'];
+const mutationKey = ['deleteList'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -446,10 +446,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteListsListId>>, {listId: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteList>>, {listId: string}> = (props) => {
           const {listId} = props ?? {};
 
-          return  deleteListsListId(listId,requestOptions)
+          return  deleteList(listId,requestOptions)
         }
 
 
@@ -459,24 +459,24 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type DeleteListsListIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteListsListId>>>
+    export type DeleteListMutationResult = NonNullable<Awaited<ReturnType<typeof deleteList>>>
 
-    export type DeleteListsListIdMutationError = void
+    export type DeleteListMutationError = ProblemDetails
 
     /**
  * @summary Delete a list (Owner). Tombstone — stream retained.
  */
-export const useDeleteListsListId = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteListsListId>>, TError,{listId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useDeleteList = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteList>>, TError,{listId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof deleteListsListId>>,
+        Awaited<ReturnType<typeof deleteList>>,
         TError,
         {listId: string},
         TContext
       > => {
-      return useMutation(getDeleteListsListIdMutationOptions(options), queryClient);
+      return useMutation(getDeleteListMutationOptions(options), queryClient);
     }
-    export const getPostListsListIdArchiveUrl = (listId: string,) => {
+    export const getArchiveListUrl = (listId: string,) => {
 
 
 
@@ -487,9 +487,9 @@ export const useDeleteListsListId = <TError = void,
 /**
  * @summary Archive a list (Owner). Soft — items retained.
  */
-export const postListsListIdArchive = async (listId: string, options?: RequestInit): Promise<ListResponse> => {
+export const archiveList = async (listId: string, options?: RequestInit): Promise<ListResponse> => {
 
-  return customFetch<ListResponse>(getPostListsListIdArchiveUrl(listId),
+  return customFetch<ListResponse>(getArchiveListUrl(listId),
   {
     ...options,
     method: 'POST'
@@ -501,11 +501,11 @@ export const postListsListIdArchive = async (listId: string, options?: RequestIn
 
 
 
-export const getPostListsListIdArchiveMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postListsListIdArchive>>, TError,{listId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof postListsListIdArchive>>, TError,{listId: string}, TContext> => {
+export const getArchiveListMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof archiveList>>, TError,{listId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof archiveList>>, TError,{listId: string}, TContext> => {
 
-const mutationKey = ['postListsListIdArchive'];
+const mutationKey = ['archiveList'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -515,10 +515,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postListsListIdArchive>>, {listId: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof archiveList>>, {listId: string}> = (props) => {
           const {listId} = props ?? {};
 
-          return  postListsListIdArchive(listId,requestOptions)
+          return  archiveList(listId,requestOptions)
         }
 
 
@@ -528,24 +528,24 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PostListsListIdArchiveMutationResult = NonNullable<Awaited<ReturnType<typeof postListsListIdArchive>>>
+    export type ArchiveListMutationResult = NonNullable<Awaited<ReturnType<typeof archiveList>>>
 
-    export type PostListsListIdArchiveMutationError = void
+    export type ArchiveListMutationError = ProblemDetails
 
     /**
  * @summary Archive a list (Owner). Soft — items retained.
  */
-export const usePostListsListIdArchive = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postListsListIdArchive>>, TError,{listId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useArchiveList = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof archiveList>>, TError,{listId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postListsListIdArchive>>,
+        Awaited<ReturnType<typeof archiveList>>,
         TError,
         {listId: string},
         TContext
       > => {
-      return useMutation(getPostListsListIdArchiveMutationOptions(options), queryClient);
+      return useMutation(getArchiveListMutationOptions(options), queryClient);
     }
-    export const getPostListsListIdRestoreUrl = (listId: string,) => {
+    export const getRestoreListUrl = (listId: string,) => {
 
 
 
@@ -556,9 +556,9 @@ export const usePostListsListIdArchive = <TError = void,
 /**
  * @summary Restore an archived list (Owner).
  */
-export const postListsListIdRestore = async (listId: string, options?: RequestInit): Promise<ListResponse> => {
+export const restoreList = async (listId: string, options?: RequestInit): Promise<ListResponse> => {
 
-  return customFetch<ListResponse>(getPostListsListIdRestoreUrl(listId),
+  return customFetch<ListResponse>(getRestoreListUrl(listId),
   {
     ...options,
     method: 'POST'
@@ -570,11 +570,11 @@ export const postListsListIdRestore = async (listId: string, options?: RequestIn
 
 
 
-export const getPostListsListIdRestoreMutationOptions = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postListsListIdRestore>>, TError,{listId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof postListsListIdRestore>>, TError,{listId: string}, TContext> => {
+export const getRestoreListMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof restoreList>>, TError,{listId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof restoreList>>, TError,{listId: string}, TContext> => {
 
-const mutationKey = ['postListsListIdRestore'];
+const mutationKey = ['restoreList'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -584,10 +584,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postListsListIdRestore>>, {listId: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof restoreList>>, {listId: string}> = (props) => {
           const {listId} = props ?? {};
 
-          return  postListsListIdRestore(listId,requestOptions)
+          return  restoreList(listId,requestOptions)
         }
 
 
@@ -597,24 +597,24 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PostListsListIdRestoreMutationResult = NonNullable<Awaited<ReturnType<typeof postListsListIdRestore>>>
+    export type RestoreListMutationResult = NonNullable<Awaited<ReturnType<typeof restoreList>>>
 
-    export type PostListsListIdRestoreMutationError = void
+    export type RestoreListMutationError = ProblemDetails
 
     /**
  * @summary Restore an archived list (Owner).
  */
-export const usePostListsListIdRestore = <TError = void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postListsListIdRestore>>, TError,{listId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useRestoreList = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof restoreList>>, TError,{listId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postListsListIdRestore>>,
+        Awaited<ReturnType<typeof restoreList>>,
         TError,
         {listId: string},
         TContext
       > => {
-      return useMutation(getPostListsListIdRestoreMutationOptions(options), queryClient);
+      return useMutation(getRestoreListMutationOptions(options), queryClient);
     }
-    export const getPostListsListIdOrderUrl = (listId: string,) => {
+    export const getReorderListItemsUrl = (listId: string,) => {
 
 
 
@@ -626,10 +626,10 @@ export const usePostListsListIdRestore = <TError = void,
  * Body `{ sortOrder }` — a fractional-index key generated between the neighbours the list was dropped between. Per-user: other members' ordering is untouched, and this does not count as a change to the list. Returned as `sortOrder` on the caller's `ListResponse`; lists the caller has never ordered come back null and sort by name after the ordered ones.
  * @summary Set the caller's own position for this list (Viewer+).
  */
-export const postListsListIdOrder = async (listId: string,
+export const reorderListItems = async (listId: string,
     setListOrderRequest: SetListOrderRequest, options?: RequestInit): Promise<ListResponse> => {
 
-  return customFetch<ListResponse>(getPostListsListIdOrderUrl(listId),
+  return customFetch<ListResponse>(getReorderListItemsUrl(listId),
   {
     ...options,
     method: 'POST',
@@ -641,11 +641,11 @@ export const postListsListIdOrder = async (listId: string,
 
 
 
-export const getPostListsListIdOrderMutationOptions = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postListsListIdOrder>>, TError,{listId: string;data: SetListOrderRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof postListsListIdOrder>>, TError,{listId: string;data: SetListOrderRequest}, TContext> => {
+export const getReorderListItemsMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderListItems>>, TError,{listId: string;data: SetListOrderRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reorderListItems>>, TError,{listId: string;data: SetListOrderRequest}, TContext> => {
 
-const mutationKey = ['postListsListIdOrder'];
+const mutationKey = ['reorderListItems'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -655,10 +655,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postListsListIdOrder>>, {listId: string;data: SetListOrderRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reorderListItems>>, {listId: string;data: SetListOrderRequest}> = (props) => {
           const {listId,data} = props ?? {};
 
-          return  postListsListIdOrder(listId,data,requestOptions)
+          return  reorderListItems(listId,data,requestOptions)
         }
 
 
@@ -668,24 +668,24 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PostListsListIdOrderMutationResult = NonNullable<Awaited<ReturnType<typeof postListsListIdOrder>>>
-    export type PostListsListIdOrderMutationBody = SetListOrderRequest
-    export type PostListsListIdOrderMutationError = ProblemDetails | void
+    export type ReorderListItemsMutationResult = NonNullable<Awaited<ReturnType<typeof reorderListItems>>>
+    export type ReorderListItemsMutationBody = SetListOrderRequest
+    export type ReorderListItemsMutationError = ProblemDetails
 
     /**
  * @summary Set the caller's own position for this list (Viewer+).
  */
-export const usePostListsListIdOrder = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postListsListIdOrder>>, TError,{listId: string;data: SetListOrderRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useReorderListItems = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reorderListItems>>, TError,{listId: string;data: SetListOrderRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postListsListIdOrder>>,
+        Awaited<ReturnType<typeof reorderListItems>>,
         TError,
         {listId: string;data: SetListOrderRequest},
         TContext
       > => {
-      return useMutation(getPostListsListIdOrderMutationOptions(options), queryClient);
+      return useMutation(getReorderListItemsMutationOptions(options), queryClient);
     }
-    export const getPostListsListIdMembersUrl = (listId: string,) => {
+    export const getAddListMemberUrl = (listId: string,) => {
 
 
 
@@ -697,10 +697,10 @@ export const usePostListsListIdOrder = <TError = ProblemDetails | void,
  * Body `{ email, role? }`. Direct-add, no invite/accept. An unseen email provisions a placeholder principal (its `sub` is upgraded when the person first logs in). Members are returned with their `principalId`; use that for role change / removal.
  * @summary Add a member by email (any member; defaults to Editor).
  */
-export const postListsListIdMembers = async (listId: string,
+export const addListMember = async (listId: string,
     addMemberRequest: AddMemberRequest, options?: RequestInit): Promise<ListResponse> => {
 
-  return customFetch<ListResponse>(getPostListsListIdMembersUrl(listId),
+  return customFetch<ListResponse>(getAddListMemberUrl(listId),
   {
     ...options,
     method: 'POST',
@@ -712,11 +712,11 @@ export const postListsListIdMembers = async (listId: string,
 
 
 
-export const getPostListsListIdMembersMutationOptions = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postListsListIdMembers>>, TError,{listId: string;data: AddMemberRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof postListsListIdMembers>>, TError,{listId: string;data: AddMemberRequest}, TContext> => {
+export const getAddListMemberMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addListMember>>, TError,{listId: string;data: AddMemberRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addListMember>>, TError,{listId: string;data: AddMemberRequest}, TContext> => {
 
-const mutationKey = ['postListsListIdMembers'];
+const mutationKey = ['addListMember'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -726,10 +726,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postListsListIdMembers>>, {listId: string;data: AddMemberRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addListMember>>, {listId: string;data: AddMemberRequest}> = (props) => {
           const {listId,data} = props ?? {};
 
-          return  postListsListIdMembers(listId,data,requestOptions)
+          return  addListMember(listId,data,requestOptions)
         }
 
 
@@ -739,24 +739,24 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PostListsListIdMembersMutationResult = NonNullable<Awaited<ReturnType<typeof postListsListIdMembers>>>
-    export type PostListsListIdMembersMutationBody = AddMemberRequest
-    export type PostListsListIdMembersMutationError = ProblemDetails | void
+    export type AddListMemberMutationResult = NonNullable<Awaited<ReturnType<typeof addListMember>>>
+    export type AddListMemberMutationBody = AddMemberRequest
+    export type AddListMemberMutationError = ProblemDetails
 
     /**
  * @summary Add a member by email (any member; defaults to Editor).
  */
-export const usePostListsListIdMembers = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postListsListIdMembers>>, TError,{listId: string;data: AddMemberRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useAddListMember = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addListMember>>, TError,{listId: string;data: AddMemberRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postListsListIdMembers>>,
+        Awaited<ReturnType<typeof addListMember>>,
         TError,
         {listId: string;data: AddMemberRequest},
         TContext
       > => {
-      return useMutation(getPostListsListIdMembersMutationOptions(options), queryClient);
+      return useMutation(getAddListMemberMutationOptions(options), queryClient);
     }
-    export const getPatchListsListIdMembersPrincipalIdUrl = (listId: string,
+    export const getUpdateListMemberUrl = (listId: string,
     principalId: string,) => {
 
 
@@ -768,11 +768,11 @@ export const usePostListsListIdMembers = <TError = ProblemDetails | void,
 /**
  * @summary Change a member's role by principal id (Owner only).
  */
-export const patchListsListIdMembersPrincipalId = async (listId: string,
+export const updateListMember = async (listId: string,
     principalId: string,
     updateMemberRoleRequest: UpdateMemberRoleRequest, options?: RequestInit): Promise<ListResponse> => {
 
-  return customFetch<ListResponse>(getPatchListsListIdMembersPrincipalIdUrl(listId,principalId),
+  return customFetch<ListResponse>(getUpdateListMemberUrl(listId,principalId),
   {
     ...options,
     method: 'PATCH',
@@ -784,11 +784,11 @@ export const patchListsListIdMembersPrincipalId = async (listId: string,
 
 
 
-export const getPatchListsListIdMembersPrincipalIdMutationOptions = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchListsListIdMembersPrincipalId>>, TError,{listId: string;principalId: string;data: UpdateMemberRoleRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof patchListsListIdMembersPrincipalId>>, TError,{listId: string;principalId: string;data: UpdateMemberRoleRequest}, TContext> => {
+export const getUpdateListMemberMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateListMember>>, TError,{listId: string;principalId: string;data: UpdateMemberRoleRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateListMember>>, TError,{listId: string;principalId: string;data: UpdateMemberRoleRequest}, TContext> => {
 
-const mutationKey = ['patchListsListIdMembersPrincipalId'];
+const mutationKey = ['updateListMember'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -798,10 +798,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchListsListIdMembersPrincipalId>>, {listId: string;principalId: string;data: UpdateMemberRoleRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateListMember>>, {listId: string;principalId: string;data: UpdateMemberRoleRequest}> = (props) => {
           const {listId,principalId,data} = props ?? {};
 
-          return  patchListsListIdMembersPrincipalId(listId,principalId,data,requestOptions)
+          return  updateListMember(listId,principalId,data,requestOptions)
         }
 
 
@@ -811,24 +811,24 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PatchListsListIdMembersPrincipalIdMutationResult = NonNullable<Awaited<ReturnType<typeof patchListsListIdMembersPrincipalId>>>
-    export type PatchListsListIdMembersPrincipalIdMutationBody = UpdateMemberRoleRequest
-    export type PatchListsListIdMembersPrincipalIdMutationError = ProblemDetails | void
+    export type UpdateListMemberMutationResult = NonNullable<Awaited<ReturnType<typeof updateListMember>>>
+    export type UpdateListMemberMutationBody = UpdateMemberRoleRequest
+    export type UpdateListMemberMutationError = ProblemDetails
 
     /**
  * @summary Change a member's role by principal id (Owner only).
  */
-export const usePatchListsListIdMembersPrincipalId = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchListsListIdMembersPrincipalId>>, TError,{listId: string;principalId: string;data: UpdateMemberRoleRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useUpdateListMember = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateListMember>>, TError,{listId: string;principalId: string;data: UpdateMemberRoleRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof patchListsListIdMembersPrincipalId>>,
+        Awaited<ReturnType<typeof updateListMember>>,
         TError,
         {listId: string;principalId: string;data: UpdateMemberRoleRequest},
         TContext
       > => {
-      return useMutation(getPatchListsListIdMembersPrincipalIdMutationOptions(options), queryClient);
+      return useMutation(getUpdateListMemberMutationOptions(options), queryClient);
     }
-    export const getDeleteListsListIdMembersPrincipalIdUrl = (listId: string,
+    export const getRemoveListMemberUrl = (listId: string,
     principalId: string,) => {
 
 
@@ -840,10 +840,10 @@ export const usePatchListsListIdMembersPrincipalId = <TError = ProblemDetails | 
 /**
  * @summary Remove a member by principal id, or leave (self). Last owner leaving deletes the list for everyone.
  */
-export const deleteListsListIdMembersPrincipalId = async (listId: string,
+export const removeListMember = async (listId: string,
     principalId: string, options?: RequestInit): Promise<void> => {
 
-  return customFetch<void>(getDeleteListsListIdMembersPrincipalIdUrl(listId,principalId),
+  return customFetch<void>(getRemoveListMemberUrl(listId,principalId),
   {
     ...options,
     method: 'DELETE'
@@ -855,11 +855,11 @@ export const deleteListsListIdMembersPrincipalId = async (listId: string,
 
 
 
-export const getDeleteListsListIdMembersPrincipalIdMutationOptions = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteListsListIdMembersPrincipalId>>, TError,{listId: string;principalId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof deleteListsListIdMembersPrincipalId>>, TError,{listId: string;principalId: string}, TContext> => {
+export const getRemoveListMemberMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeListMember>>, TError,{listId: string;principalId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeListMember>>, TError,{listId: string;principalId: string}, TContext> => {
 
-const mutationKey = ['deleteListsListIdMembersPrincipalId'];
+const mutationKey = ['removeListMember'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -869,10 +869,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteListsListIdMembersPrincipalId>>, {listId: string;principalId: string}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeListMember>>, {listId: string;principalId: string}> = (props) => {
           const {listId,principalId} = props ?? {};
 
-          return  deleteListsListIdMembersPrincipalId(listId,principalId,requestOptions)
+          return  removeListMember(listId,principalId,requestOptions)
         }
 
 
@@ -882,20 +882,20 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type DeleteListsListIdMembersPrincipalIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteListsListIdMembersPrincipalId>>>
+    export type RemoveListMemberMutationResult = NonNullable<Awaited<ReturnType<typeof removeListMember>>>
 
-    export type DeleteListsListIdMembersPrincipalIdMutationError = ProblemDetails | void
+    export type RemoveListMemberMutationError = ProblemDetails
 
     /**
  * @summary Remove a member by principal id, or leave (self). Last owner leaving deletes the list for everyone.
  */
-export const useDeleteListsListIdMembersPrincipalId = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteListsListIdMembersPrincipalId>>, TError,{listId: string;principalId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useRemoveListMember = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeListMember>>, TError,{listId: string;principalId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof deleteListsListIdMembersPrincipalId>>,
+        Awaited<ReturnType<typeof removeListMember>>,
         TError,
         {listId: string;principalId: string},
         TContext
       > => {
-      return useMutation(getDeleteListsListIdMembersPrincipalIdMutationOptions(options), queryClient);
+      return useMutation(getRemoveListMemberMutationOptions(options), queryClient);
     }

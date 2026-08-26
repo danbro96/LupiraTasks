@@ -7,6 +7,9 @@
  */
 import type { ListResponse } from './listResponse';
 
+/**
+ * Envelope for the caller's lists.
+ */
 export interface ListCollectionResponse {
   lists: ListResponse[];
 }

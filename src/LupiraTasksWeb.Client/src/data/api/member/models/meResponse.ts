@@ -6,6 +6,11 @@
  * OpenAPI spec version: v1
  */
 
+/**
+ * The caller's provisioned identity, returned by `GET /me`. Guid MeResponse.PrincipalId is
+ *             the stable internal id a client stores and matches against list members (and uses as its offline
+ *             actor); email/displayName are for display.
+ */
 export interface MeResponse {
   principalId: string;
   email: string;

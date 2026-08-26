@@ -7,6 +7,11 @@
  */
 import type { ListKind } from './listKind';
 
+/**
+ * Create a list. The client supplies a GUIDv7 Guid CreateListRequest.Id so the create is
+ * idempotent on replay (an existing stream is treated as success). The caller
+ * becomes the Owner.
+ */
 export interface CreateListRequest {
   id: string;
   name: string;

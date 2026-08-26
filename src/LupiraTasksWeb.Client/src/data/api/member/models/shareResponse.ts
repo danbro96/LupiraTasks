@@ -7,6 +7,9 @@
  */
 import type { ShareAccess } from './shareAccess';
 
+/**
+ * A share link as the owner sees it, including the opaque string ShareResponse.Token and ready-to-copy string ShareResponse.Url.
+ */
 export interface ShareResponse {
   shareId: string;
   token: string;

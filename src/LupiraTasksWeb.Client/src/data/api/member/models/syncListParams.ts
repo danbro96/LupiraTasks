@@ -6,6 +6,6 @@
  * OpenAPI spec version: v1
  */
 
-export type GetListsListIdSyncParams = {
+export type SyncListParams = {
 since?: number;
 };

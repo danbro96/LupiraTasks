@@ -6,6 +6,9 @@
  * OpenAPI spec version: v1
  */
 
+/**
+ * A tag definition as shown on a shared list (no sensitive data).
+ */
 export interface SharedTagResponse {
   id: string;
   label: string;

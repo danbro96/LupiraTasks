@@ -6,6 +6,9 @@
  * OpenAPI spec version: v1
  */
 
+/**
+ * A tag definition on a list.
+ */
 export interface TagResponse {
   id: string;
   label: string;

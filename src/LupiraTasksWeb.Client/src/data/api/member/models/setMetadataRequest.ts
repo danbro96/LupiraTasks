@@ -7,8 +7,14 @@
  */
 import type { JsonNode } from './jsonNode';
 
+/**
+ * Sets an item's free-form JSON metadata (whole-field). Send `null` to clear it.
+ */
 export interface SetMetadataRequest {
   metadata?: null | JsonNode;
-  /** @nullable */
+  /**
+     * Client wall-clock for LWW; defaults to server now when omitted.
+     * @nullable
+     */
   occurredAt?: string | null;
 }

@@ -6,6 +6,9 @@
  * OpenAPI spec version: v1
  */
 
+/**
+ * Redeem a share link as the authenticated caller (the token, not in the URL path here).
+ */
 export interface RedeemShareRequest {
   token: string;
 }

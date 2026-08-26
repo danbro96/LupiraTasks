@@ -6,6 +6,13 @@
  * OpenAPI spec version: v1
  */
 
+/**
+ * The canonical identity projection on the read boundary: the stable Guid PersonRef.PrincipalId (the
+ * key a client should store/compare) plus the current string PersonRef.Email and string? PersonRef.DisplayName
+ * for display. Every identity slot the API returns (owner, member, assignee, creator, completer,
+ * directory person) is a `PersonRef`; identity <em>inputs</em> stay email (invite/assign). Built
+ * from a resolved Principal.
+ */
 export interface PersonRef {
   principalId: string;
   email: string;

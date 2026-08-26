@@ -10,6 +10,11 @@ import type { ShareAccess } from './shareAccess';
 import type { SharedItemResponse } from './sharedItemResponse';
 import type { SharedTagResponse } from './sharedTagResponse';
 
+/**
+ * The public, account-less view of a shared list. Deliberately TRIMMED: it carries no member
+ * list, no owner email, and items carry no assignee/creator/completer emails — a public link must
+ * not leak family emails. ShareAccess SharedListResponse.Access tells the client whether to show edit controls.
+ */
 export interface SharedListResponse {
   name: string;
   kind: ListKind;

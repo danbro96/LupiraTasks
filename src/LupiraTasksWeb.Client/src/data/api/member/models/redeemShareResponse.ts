@@ -7,6 +7,9 @@
  */
 import type { ListRole } from './listRole';
 
+/**
+ * The list the caller joined and the role they now hold on it.
+ */
 export interface RedeemShareResponse {
   listId: string;
   role: ListRole;

@@ -6,6 +6,9 @@
  * OpenAPI spec version: v1
  */
 
+/**
+ * A member's authority on a list. Ordered: Owner &gt; Editor &gt; Viewer.
+ */
 export type ListRole = typeof ListRole[keyof typeof ListRole];
 
 

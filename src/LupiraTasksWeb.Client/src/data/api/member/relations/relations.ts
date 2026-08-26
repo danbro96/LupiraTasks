@@ -26,7 +26,7 @@ import type {
 
 import type {
   CreateRelationRequest,
-  DeleteListsListIdItemsItemIdRelationsParams,
+  DeleteRelationParams,
   ProblemDetails,
   RelationDto
 } from '../models';
@@ -53,7 +53,7 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export const getPostListsListIdItemsItemIdRelationsUrl = (listId: string,
+export const getCreateRelationUrl = (listId: string,
     itemId: string,) => {
 
 
@@ -66,11 +66,11 @@ export const getPostListsListIdItemsItemIdRelationsUrl = (listId: string,
  * Body `{ toKind, toRef, relationType, metadata? }`. `toKind` e.g. `cal-item` (the checking heartbeat Prompt) or `url` (issue/PR/incident/release). `relationType` e.g. `monitors`, `spawned-by`, `produced`, `blocked-by`, `relates-to`. Idempotent: re-linking the same edge is a no-op.
  * @summary Link a task to a cal-api Prompt heartbeat or an external ref (Editor+).
  */
-export const postListsListIdItemsItemIdRelations = async (listId: string,
+export const createRelation = async (listId: string,
     itemId: string,
     createRelationRequest: CreateRelationRequest, options?: RequestInit): Promise<RelationDto> => {
 
-  return customFetch<RelationDto>(getPostListsListIdItemsItemIdRelationsUrl(listId,itemId),
+  return customFetch<RelationDto>(getCreateRelationUrl(listId,itemId),
   {
     ...options,
     method: 'POST',
@@ -82,11 +82,11 @@ export const postListsListIdItemsItemIdRelations = async (listId: string,
 
 
 
-export const getPostListsListIdItemsItemIdRelationsMutationOptions = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postListsListIdItemsItemIdRelations>>, TError,{listId: string;itemId: string;data: CreateRelationRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof postListsListIdItemsItemIdRelations>>, TError,{listId: string;itemId: string;data: CreateRelationRequest}, TContext> => {
+export const getCreateRelationMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRelation>>, TError,{listId: string;itemId: string;data: CreateRelationRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createRelation>>, TError,{listId: string;itemId: string;data: CreateRelationRequest}, TContext> => {
 
-const mutationKey = ['postListsListIdItemsItemIdRelations'];
+const mutationKey = ['createRelation'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -96,10 +96,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postListsListIdItemsItemIdRelations>>, {listId: string;itemId: string;data: CreateRelationRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createRelation>>, {listId: string;itemId: string;data: CreateRelationRequest}> = (props) => {
           const {listId,itemId,data} = props ?? {};
 
-          return  postListsListIdItemsItemIdRelations(listId,itemId,data,requestOptions)
+          return  createRelation(listId,itemId,data,requestOptions)
         }
 
 
@@ -109,24 +109,24 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type PostListsListIdItemsItemIdRelationsMutationResult = NonNullable<Awaited<ReturnType<typeof postListsListIdItemsItemIdRelations>>>
-    export type PostListsListIdItemsItemIdRelationsMutationBody = CreateRelationRequest
-    export type PostListsListIdItemsItemIdRelationsMutationError = ProblemDetails | void
+    export type CreateRelationMutationResult = NonNullable<Awaited<ReturnType<typeof createRelation>>>
+    export type CreateRelationMutationBody = CreateRelationRequest
+    export type CreateRelationMutationError = ProblemDetails
 
     /**
  * @summary Link a task to a cal-api Prompt heartbeat or an external ref (Editor+).
  */
-export const usePostListsListIdItemsItemIdRelations = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postListsListIdItemsItemIdRelations>>, TError,{listId: string;itemId: string;data: CreateRelationRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useCreateRelation = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRelation>>, TError,{listId: string;itemId: string;data: CreateRelationRequest}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postListsListIdItemsItemIdRelations>>,
+        Awaited<ReturnType<typeof createRelation>>,
         TError,
         {listId: string;itemId: string;data: CreateRelationRequest},
         TContext
       > => {
-      return useMutation(getPostListsListIdItemsItemIdRelationsMutationOptions(options), queryClient);
+      return useMutation(getCreateRelationMutationOptions(options), queryClient);
     }
-    export const getGetListsListIdItemsItemIdRelationsUrl = (listId: string,
+    export const getListRelationsUrl = (listId: string,
     itemId: string,) => {
 
 
@@ -138,10 +138,10 @@ export const usePostListsListIdItemsItemIdRelations = <TError = ProblemDetails |
 /**
  * @summary List a task's relations (Viewer+).
  */
-export const getListsListIdItemsItemIdRelations = async (listId: string,
+export const listRelations = async (listId: string,
     itemId: string, options?: RequestInit): Promise<RelationDto[]> => {
 
-  return customFetch<RelationDto[]>(getGetListsListIdItemsItemIdRelationsUrl(listId,itemId),
+  return customFetch<RelationDto[]>(getListRelationsUrl(listId,itemId),
   {
     ...options,
     method: 'GET'
@@ -154,7 +154,7 @@ export const getListsListIdItemsItemIdRelations = async (listId: string,
 
 
 
-export const getGetListsListIdItemsItemIdRelationsQueryKey = (listId: string,
+export const getListRelationsQueryKey = (listId: string,
     itemId: string,) => {
     return [
     `/lists/${listId}/items/${itemId}/relations`
@@ -162,67 +162,67 @@ export const getGetListsListIdItemsItemIdRelationsQueryKey = (listId: string,
     }
 
 
-export const getGetListsListIdItemsItemIdRelationsQueryOptions = <TData = Awaited<ReturnType<typeof getListsListIdItemsItemIdRelations>>, TError = void>(listId: string,
-    itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListIdItemsItemIdRelations>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getListRelationsQueryOptions = <TData = Awaited<ReturnType<typeof listRelations>>, TError = ProblemDetails>(listId: string,
+    itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRelations>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetListsListIdItemsItemIdRelationsQueryKey(listId,itemId);
+  const queryKey =  queryOptions?.queryKey ?? getListRelationsQueryKey(listId,itemId);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getListsListIdItemsItemIdRelations>>> = ({ signal }) => getListsListIdItemsItemIdRelations(listId,itemId, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRelations>>> = ({ signal }) => listRelations(listId,itemId, { signal, ...requestOptions });
 
 
 
 
 
-   return  { queryKey, queryFn, enabled: listId !== null && listId !== undefined && itemId !== null && itemId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getListsListIdItemsItemIdRelations>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, enabled: listId !== null && listId !== undefined && itemId !== null && itemId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRelations>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetListsListIdItemsItemIdRelationsQueryResult = NonNullable<Awaited<ReturnType<typeof getListsListIdItemsItemIdRelations>>>
-export type GetListsListIdItemsItemIdRelationsQueryError = void
+export type ListRelationsQueryResult = NonNullable<Awaited<ReturnType<typeof listRelations>>>
+export type ListRelationsQueryError = ProblemDetails
 
 
-export function useGetListsListIdItemsItemIdRelations<TData = Awaited<ReturnType<typeof getListsListIdItemsItemIdRelations>>, TError = void>(
+export function useListRelations<TData = Awaited<ReturnType<typeof listRelations>>, TError = ProblemDetails>(
  listId: string,
-    itemId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListIdItemsItemIdRelations>>, TError, TData>> & Pick<
+    itemId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRelations>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getListsListIdItemsItemIdRelations>>,
+          Awaited<ReturnType<typeof listRelations>>,
           TError,
-          Awaited<ReturnType<typeof getListsListIdItemsItemIdRelations>>
+          Awaited<ReturnType<typeof listRelations>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetListsListIdItemsItemIdRelations<TData = Awaited<ReturnType<typeof getListsListIdItemsItemIdRelations>>, TError = void>(
+export function useListRelations<TData = Awaited<ReturnType<typeof listRelations>>, TError = ProblemDetails>(
  listId: string,
-    itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListIdItemsItemIdRelations>>, TError, TData>> & Pick<
+    itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRelations>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getListsListIdItemsItemIdRelations>>,
+          Awaited<ReturnType<typeof listRelations>>,
           TError,
-          Awaited<ReturnType<typeof getListsListIdItemsItemIdRelations>>
+          Awaited<ReturnType<typeof listRelations>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetListsListIdItemsItemIdRelations<TData = Awaited<ReturnType<typeof getListsListIdItemsItemIdRelations>>, TError = void>(
+export function useListRelations<TData = Awaited<ReturnType<typeof listRelations>>, TError = ProblemDetails>(
  listId: string,
-    itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListIdItemsItemIdRelations>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+    itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRelations>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary List a task's relations (Viewer+).
  */
 
-export function useGetListsListIdItemsItemIdRelations<TData = Awaited<ReturnType<typeof getListsListIdItemsItemIdRelations>>, TError = void>(
+export function useListRelations<TData = Awaited<ReturnType<typeof listRelations>>, TError = ProblemDetails>(
  listId: string,
-    itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getListsListIdItemsItemIdRelations>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+    itemId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listRelations>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetListsListIdItemsItemIdRelationsQueryOptions(listId,itemId,options)
+  const queryOptions = getListRelationsQueryOptions(listId,itemId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -234,9 +234,9 @@ export function useGetListsListIdItemsItemIdRelations<TData = Awaited<ReturnType
 
 
 
-export const getDeleteListsListIdItemsItemIdRelationsUrl = (listId: string,
+export const getDeleteRelationUrl = (listId: string,
     itemId: string,
-    params: DeleteListsListIdItemsItemIdRelationsParams,) => {
+    params: DeleteRelationParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -255,11 +255,11 @@ export const getDeleteListsListIdItemsItemIdRelationsUrl = (listId: string,
  * Identify the edge with `?toKind=&toRef=&relationType=`. Idempotent: removing a link that isn't there is a no-op (204).
  * @summary Remove a task relation by its edge tuple (Editor+).
  */
-export const deleteListsListIdItemsItemIdRelations = async (listId: string,
+export const deleteRelation = async (listId: string,
     itemId: string,
-    params: DeleteListsListIdItemsItemIdRelationsParams, options?: RequestInit): Promise<void> => {
+    params: DeleteRelationParams, options?: RequestInit): Promise<void> => {
 
-  return customFetch<void>(getDeleteListsListIdItemsItemIdRelationsUrl(listId,itemId,params),
+  return customFetch<void>(getDeleteRelationUrl(listId,itemId,params),
   {
     ...options,
     method: 'DELETE'
@@ -271,11 +271,11 @@ export const deleteListsListIdItemsItemIdRelations = async (listId: string,
 
 
 
-export const getDeleteListsListIdItemsItemIdRelationsMutationOptions = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteListsListIdItemsItemIdRelations>>, TError,{listId: string;itemId: string;params: DeleteListsListIdItemsItemIdRelationsParams}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof deleteListsListIdItemsItemIdRelations>>, TError,{listId: string;itemId: string;params: DeleteListsListIdItemsItemIdRelationsParams}, TContext> => {
+export const getDeleteRelationMutationOptions = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRelation>>, TError,{listId: string;itemId: string;params: DeleteRelationParams}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteRelation>>, TError,{listId: string;itemId: string;params: DeleteRelationParams}, TContext> => {
 
-const mutationKey = ['deleteListsListIdItemsItemIdRelations'];
+const mutationKey = ['deleteRelation'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -285,10 +285,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteListsListIdItemsItemIdRelations>>, {listId: string;itemId: string;params: DeleteListsListIdItemsItemIdRelationsParams}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteRelation>>, {listId: string;itemId: string;params: DeleteRelationParams}> = (props) => {
           const {listId,itemId,params} = props ?? {};
 
-          return  deleteListsListIdItemsItemIdRelations(listId,itemId,params,requestOptions)
+          return  deleteRelation(listId,itemId,params,requestOptions)
         }
 
 
@@ -298,20 +298,20 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type DeleteListsListIdItemsItemIdRelationsMutationResult = NonNullable<Awaited<ReturnType<typeof deleteListsListIdItemsItemIdRelations>>>
+    export type DeleteRelationMutationResult = NonNullable<Awaited<ReturnType<typeof deleteRelation>>>
 
-    export type DeleteListsListIdItemsItemIdRelationsMutationError = ProblemDetails | void
+    export type DeleteRelationMutationError = ProblemDetails
 
     /**
  * @summary Remove a task relation by its edge tuple (Editor+).
  */
-export const useDeleteListsListIdItemsItemIdRelations = <TError = ProblemDetails | void,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteListsListIdItemsItemIdRelations>>, TError,{listId: string;itemId: string;params: DeleteListsListIdItemsItemIdRelationsParams}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useDeleteRelation = <TError = ProblemDetails,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRelation>>, TError,{listId: string;itemId: string;params: DeleteRelationParams}, TContext>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof deleteListsListIdItemsItemIdRelations>>,
+        Awaited<ReturnType<typeof deleteRelation>>,
         TError,
-        {listId: string;itemId: string;params: DeleteListsListIdItemsItemIdRelationsParams},
+        {listId: string;itemId: string;params: DeleteRelationParams},
         TContext
       > => {
-      return useMutation(getDeleteListsListIdItemsItemIdRelationsMutationOptions(options), queryClient);
+      return useMutation(getDeleteRelationMutationOptions(options), queryClient);
     }

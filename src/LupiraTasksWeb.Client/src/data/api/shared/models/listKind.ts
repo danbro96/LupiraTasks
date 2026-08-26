@@ -6,6 +6,11 @@
  * OpenAPI spec version: v1
  */
 
+/**
+ * Drives client UI affordances (e.g. shopping lists surface quantity/unit), and distinguishes
+ *             agent/system-owned lists from a user's own (ListKind.Agent) in queries and UI. A pure label set at
+ *             creation (carried by `ListCreated`); ownership/membership still govern access.
+ */
 export type ListKind = typeof ListKind[keyof typeof ListKind];
 
 

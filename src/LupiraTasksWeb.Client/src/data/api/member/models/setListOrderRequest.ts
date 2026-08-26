@@ -6,6 +6,11 @@
  * OpenAPI spec version: v1
  */
 
+/**
+ * Set the caller's own position for a list in their lists screen. string SetListOrderRequest.SortOrder is a
+ * fractional-index string (same scheme as item ordering) generated client-side between the
+ * neighbours it was dropped between. Per-user: other members are unaffected.
+ */
 export interface SetListOrderRequest {
   sortOrder: string;
 }

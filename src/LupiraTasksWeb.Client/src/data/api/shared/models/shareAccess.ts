@@ -6,6 +6,9 @@
  * OpenAPI spec version: v1
  */
 
+/**
+ * What a public share link permits.
+ */
 export type ShareAccess = typeof ShareAccess[keyof typeof ShareAccess];
 
 

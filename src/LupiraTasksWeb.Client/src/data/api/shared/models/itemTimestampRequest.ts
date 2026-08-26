@@ -6,7 +6,14 @@
  * OpenAPI spec version: v1
  */
 
+/**
+ * Body for complete/reopen/delete. Carries only the LWW timestamp; the item id is in
+ * the route. DateTimeOffset? ItemTimestampRequest.OccurredAt defaults to server now when omitted.
+ */
 export interface ItemTimestampRequest {
-  /** @nullable */
+  /**
+     * Client wall-clock at the moment of the change (LWW key). Defaults to server now.
+     * @nullable
+     */
   occurredAt?: string | null;
 }

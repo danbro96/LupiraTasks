@@ -6,12 +6,24 @@
  * OpenAPI spec version: v1
  */
 
+/**
+ * Patch a list's metadata. Each non-null field emits its own event; omit a field
+ * (leave it `null`) to leave it unchanged. To clear the color, send
+ * bool UpdateListRequest.ColorProvided = `true` with string? UpdateListRequest.Color = `null`.
+ */
 export interface UpdateListRequest {
   /** @nullable */
   name?: string | null;
-  /** @nullable */
+  /**
+     * The new color. Honored only when bool UpdateListRequest.ColorProvided is true.
+     * @nullable
+     */
   color?: string | null;
+  /** Set true to apply string? UpdateListRequest.Color (including clearing it to null). */
   colorProvided?: boolean;
-  /** @nullable */
+  /**
+     * Whether priority is a simple on/off (true) or the full 0..9 scale (false). Null leaves it unchanged.
+     * @nullable
+     */
   simplePriority?: boolean | null;
 }

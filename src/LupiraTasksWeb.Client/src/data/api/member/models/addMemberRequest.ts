@@ -7,6 +7,11 @@
  */
 import type { ListRole } from './listRole';
 
+/**
+ * Add a member to a list by email. Any member may add someone; the role defaults to
+ * ListRole.Editor when omitted. Only a real Authentik user can ever use the
+ * membership (provisioned on first login), so a wrong email is simply inert.
+ */
 export interface AddMemberRequest {
   email: string;
   role?: null | ListRole;

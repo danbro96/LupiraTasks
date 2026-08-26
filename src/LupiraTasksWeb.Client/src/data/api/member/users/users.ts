@@ -22,7 +22,8 @@ import type {
 
 import type {
   DirectoryResponse,
-  GetUsersDirectoryParams
+  GetUserDirectoryParams,
+  ProblemDetails
 } from '../models';
 
 import { customFetch } from '../../fetcher';
@@ -47,7 +48,7 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export const getGetUsersDirectoryUrl = (params?: GetUsersDirectoryParams,) => {
+export const getGetUserDirectoryUrl = (params?: GetUserDirectoryParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -66,9 +67,9 @@ export const getGetUsersDirectoryUrl = (params?: GetUsersDirectoryParams,) => {
  * `?q=` filters the distinct member emails (case-insensitive substring).
  * @summary People seen across the caller's shared lists (for adding members).
  */
-export const getUsersDirectory = async (params?: GetUsersDirectoryParams, options?: RequestInit): Promise<DirectoryResponse> => {
+export const getUserDirectory = async (params?: GetUserDirectoryParams, options?: RequestInit): Promise<DirectoryResponse> => {
 
-  return customFetch<DirectoryResponse>(getGetUsersDirectoryUrl(params),
+  return customFetch<DirectoryResponse>(getGetUserDirectoryUrl(params),
   {
     ...options,
     method: 'GET'
@@ -81,69 +82,69 @@ export const getUsersDirectory = async (params?: GetUsersDirectoryParams, option
 
 
 
-export const getGetUsersDirectoryQueryKey = (params?: GetUsersDirectoryParams,) => {
+export const getGetUserDirectoryQueryKey = (params?: GetUserDirectoryParams,) => {
     return [
     `/users/directory`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetUsersDirectoryQueryOptions = <TData = Awaited<ReturnType<typeof getUsersDirectory>>, TError = void>(params?: GetUsersDirectoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersDirectory>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export const getGetUserDirectoryQueryOptions = <TData = Awaited<ReturnType<typeof getUserDirectory>>, TError = ProblemDetails>(params?: GetUserDirectoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserDirectory>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetUsersDirectoryQueryKey(params);
+  const queryKey =  queryOptions?.queryKey ?? getGetUserDirectoryQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUsersDirectory>>> = ({ signal }) => getUsersDirectory(params, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUserDirectory>>> = ({ signal }) => getUserDirectory(params, { signal, ...requestOptions });
 
 
 
 
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getUsersDirectory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getUserDirectory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type GetUsersDirectoryQueryResult = NonNullable<Awaited<ReturnType<typeof getUsersDirectory>>>
-export type GetUsersDirectoryQueryError = void
+export type GetUserDirectoryQueryResult = NonNullable<Awaited<ReturnType<typeof getUserDirectory>>>
+export type GetUserDirectoryQueryError = ProblemDetails
 
 
-export function useGetUsersDirectory<TData = Awaited<ReturnType<typeof getUsersDirectory>>, TError = void>(
- params: undefined |  GetUsersDirectoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersDirectory>>, TError, TData>> & Pick<
+export function useGetUserDirectory<TData = Awaited<ReturnType<typeof getUserDirectory>>, TError = ProblemDetails>(
+ params: undefined |  GetUserDirectoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserDirectory>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getUsersDirectory>>,
+          Awaited<ReturnType<typeof getUserDirectory>>,
           TError,
-          Awaited<ReturnType<typeof getUsersDirectory>>
+          Awaited<ReturnType<typeof getUserDirectory>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetUsersDirectory<TData = Awaited<ReturnType<typeof getUsersDirectory>>, TError = void>(
- params?: GetUsersDirectoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersDirectory>>, TError, TData>> & Pick<
+export function useGetUserDirectory<TData = Awaited<ReturnType<typeof getUserDirectory>>, TError = ProblemDetails>(
+ params?: GetUserDirectoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserDirectory>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getUsersDirectory>>,
+          Awaited<ReturnType<typeof getUserDirectory>>,
           TError,
-          Awaited<ReturnType<typeof getUsersDirectory>>
+          Awaited<ReturnType<typeof getUserDirectory>>
         > , 'initialData'
       >, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetUsersDirectory<TData = Awaited<ReturnType<typeof getUsersDirectory>>, TError = void>(
- params?: GetUsersDirectoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersDirectory>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export function useGetUserDirectory<TData = Awaited<ReturnType<typeof getUserDirectory>>, TError = ProblemDetails>(
+ params?: GetUserDirectoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserDirectory>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary People seen across the caller's shared lists (for adding members).
  */
 
-export function useGetUsersDirectory<TData = Awaited<ReturnType<typeof getUsersDirectory>>, TError = void>(
- params?: GetUsersDirectoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUsersDirectory>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+export function useGetUserDirectory<TData = Awaited<ReturnType<typeof getUserDirectory>>, TError = ProblemDetails>(
+ params?: GetUserDirectoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserDirectory>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetUsersDirectoryQueryOptions(params,options)
+  const queryOptions = getGetUserDirectoryQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
