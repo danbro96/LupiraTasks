@@ -10,6 +10,8 @@ import IconButton from '@mui/material/IconButton';
 import MuiLink from '@mui/material/Link';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import {
@@ -85,12 +87,12 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
         </IconButton>
       </DialogTitle>
       <DialogContent>
-        <div className="section-label">MEMBERS</div>
+        <Typography variant="overline" component="div" sx={{ display: 'block', color: 'text.subtle', p: '16px 16px 8px' }}>MEMBERS</Typography>
         {members.map(m => {
           const name = m.displayName ?? m.email;
           return (
-            <div className="sub-row" key={m.principalId}>
-              <span className="list-row-name">{name}</span>
+            <Box key={m.principalId} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
+              <Typography component="span" sx={{ flex: 1, fontSize: 16, overflowWrap: 'anywhere' }}>{name}</Typography>
               {isOwner ? (
                 <TextField
                   select
@@ -113,12 +115,13 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
                   <DeleteOutlineIcon />
                 </IconButton>
               ) : null}
-            </div>
+            </Box>
           );
         })}
 
-        <form
-          className="add-bar"
+        <Box
+          component="form"
+          sx={{ display: 'flex', gap: 1, p: '12px 16px' }}
           onSubmit={addForm.handleSubmit(v => {
             if (v.email.trim()) addMut.mutate();
           })}
@@ -163,7 +166,7 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
           <Button type="submit" variant="contained" disabled={!email.trim() || addMut.isPending}>
             Add
           </Button>
-        </form>
+        </Box>
         {addMut.isError ? (
           <Alert severity="error" variant="outlined">
             Couldn't add that member.
@@ -172,11 +175,11 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
 
         {isOwner ? (
           <>
-            <div className="section-label">SHARE LINKS</div>
+            <Typography variant="overline" component="div" sx={{ display: 'block', color: 'text.subtle', p: '16px 16px 8px' }}>SHARE LINKS</Typography>
             {shares.data && shares.data.length > 0 ? (
               shares.data.map(s => (
-                <div className="sub-row" key={s.shareId}>
-                  <span className="list-row-name share-url">{s.url}</span>
+                <Box key={s.shareId} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
+                  <Typography component="span" variant="caption" sx={{ flex: 1, color: 'text.secondary', overflowWrap: 'anywhere', wordBreak: 'break-all' }}>{s.url}</Typography>
                   <Chip variant="outlined" label={s.access === 'ReadWrite' ? 'Edit' : 'Read'} />
                   <MuiLink component="button" type="button" onClick={() => void navigator.clipboard?.writeText(s.url)}>
                     Copy
@@ -184,12 +187,12 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
                   <IconButton aria-label="Revoke link" onClick={() => revokeShareMut.mutate(s.shareId)}>
                     <DeleteOutlineIcon />
                   </IconButton>
-                </div>
+                </Box>
               ))
             ) : (
-              <p className="field-value">No active links.</p>
+              <Typography component="p" sx={{ m: 0, pb: 1, color: 'text.secondary' }}>No active links.</Typography>
             )}
-            <div className="add-bar">
+            <Box sx={{ display: 'flex', gap: 1, p: '12px 16px' }}>
               <Controller
                 name="access"
                 control={shareForm.control}
@@ -211,7 +214,7 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
               <Button variant="contained" disabled={createShareMut.isPending} onClick={() => createShareMut.mutate()}>
                 Create link
               </Button>
-            </div>
+            </Box>
           </>
         ) : null}
       </DialogContent>

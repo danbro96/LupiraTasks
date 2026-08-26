@@ -48,7 +48,12 @@ export const theme = createTheme({
   spacing: SPACING.sm,
   components: {
     MuiCssBaseline: {
-      styleOverrides: { ':root': { ...px(SPACING, 'sp'), ...px(RADII, 'r') } },
+      styleOverrides: {
+        ':root': { ...px(SPACING, 'sp'), ...px(RADII, 'r') },
+        // The page behind the column takes the surface tone. Must live here — CssBaseline's own
+        // body rule is in the mui layer, which outranks bespoke.
+        body: { backgroundColor: 'var(--mui-palette-background-paper)' },
+      },
     },
     // The app is uniformly compact; opt out per-instance rather than repeating size="small".
     MuiButton: { defaultProps: { size: 'small' } },

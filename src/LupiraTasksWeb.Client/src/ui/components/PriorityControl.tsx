@@ -2,6 +2,7 @@ import { useState } from 'react';
 import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import Box from '@mui/material/Box';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 
@@ -22,7 +23,7 @@ export function PriorityControl({ simple, value, editable, onChange }: Props) {
 
   if (simple) {
     const on = value > 0;
-    if (!editable) return on ? <span className="priority-star on"><StarIcon fontSize="small" /></span> : null;
+    if (!editable) return on ? <StarIcon fontSize="small" sx={{ color: 'primary.main' }} /> : null;
     return (
       <IconButton
         color={on ? 'primary' : 'default'}
@@ -39,7 +40,28 @@ export function PriorityControl({ simple, value, editable, onChange }: Props) {
     );
   }
 
-  const badge = <span className={`priority-badge${value > 0 ? ' on' : ''}`}>{value}</span>;
+  const badge = (
+    <Box
+      component="span"
+      sx={{
+        minWidth: 22,
+        height: 22,
+        px: '6px',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        border: 1,
+        borderRadius: 1,
+        fontSize: 12,
+        fontWeight: 700,
+        ...(value > 0
+          ? { bgcolor: 'primary.main', borderColor: 'primary.main', color: 'primary.contrastText' }
+          : { borderColor: 'border', color: 'text.secondary' }),
+      }}
+    >
+      {value}
+    </Box>
+  );
   if (!editable) return badge;
 
   return (

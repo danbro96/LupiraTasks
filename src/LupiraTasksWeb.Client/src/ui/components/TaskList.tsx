@@ -13,6 +13,8 @@ import type { SharedItemResponse, SharedTagResponse } from '../../data/api/share
 import { rowsForMode, siblingReorder, type CompletedMode } from '../../domain/itemTree';
 import type { ItemChange } from '../../domain/itemChange';
 import { TaskRow } from './TaskRow';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 
 interface Props {
   items: SharedItemResponse[];
@@ -76,16 +78,16 @@ export function TaskList({
   }
 
   if (rows.length === 0) {
-    return <p className="empty">No tasks yet.</p>;
+    return <Typography component="p" sx={{ textAlign: 'center', color: 'text.subtle', mt: 6 }}>No tasks yet.</Typography>;
   }
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
       <SortableContext items={rows.map(r => r.item.id)} strategy={verticalListSortingStrategy}>
-        <div className="task-list" role="list">
+        <Box role="list" sx={{ pb: 3 }}>
           {rows.map((row, i) => (
             <div key={row.item.id} role="listitem">
-              {i === firstCompleted ? <div className="section-label">COMPLETED</div> : null}
+              {i === firstCompleted ? <Typography variant="overline" component="div" sx={{ display: 'block', color: 'text.subtle', p: '16px 16px 8px' }}>COMPLETED</Typography> : null}
               <TaskRow
                 row={row}
                 isShopping={isShopping}
@@ -104,7 +106,7 @@ export function TaskList({
               />
             </div>
           ))}
-        </div>
+        </Box>
       </SortableContext>
     </DndContext>
   );

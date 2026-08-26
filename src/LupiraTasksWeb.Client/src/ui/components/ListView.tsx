@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import Chip from '@mui/material/Chip';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import type { SharedTagResponse } from '../../data/api/shared/models';
 import { collapseDescendants, type CompletedMode } from '../../domain/itemTree';
 import type { ItemChange } from '../../domain/itemChange';
@@ -84,13 +86,13 @@ export function ListView({ list, items, canEdit, tagsById, actions, members, hea
 
   return (
     <div>
-      <div className="color-stripe" style={{ background: list.color ?? 'transparent' }} />
-      <header className="list-head">
-        <div className="list-head-top">
-          <h1 className="list-title">{list.name}</h1>
+      <Box sx={{ height: 5 }} style={{ background: list.color ?? 'transparent' }} />
+      <Box component="header" sx={{ p: 2, borderBottom: 1, borderColor: 'divider', position: 'sticky', top: 0, bgcolor: 'background.default', zIndex: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Typography variant="h5" component="h1" sx={{ fontWeight: 700, m: 0, flex: 1, overflowWrap: 'anywhere' }}>{list.name}</Typography>
           {canEdit ? null : <Chip variant="outlined" label="View only" />}
           {headerExtra}
-        </div>
+        </Box>
         <ToggleButtonGroup
           exclusive
           value={mode}
@@ -104,12 +106,12 @@ export function ListView({ list, items, canEdit, tagsById, actions, members, hea
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
-      </header>
+      </Box>
 
       {pollPaused ? (
-        <p className="poll-paused" role="status">
+        <Typography component="p" role="status" sx={{ p: '6px 16px', bgcolor: 'background.paper', borderBottom: 1, borderColor: 'divider', color: 'text.secondary', fontSize: 11, textAlign: 'center' }}>
           Auto-refresh paused while idle — any activity resumes it.
-        </p>
+        </Typography>
       ) : null}
 
       {canEdit ? <AddTaskBar onAdd={t => actions.addTask(t)} /> : null}

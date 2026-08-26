@@ -10,6 +10,9 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import ButtonBase from '@mui/material/ButtonBase';
 import CloseIcon from '@mui/icons-material/Close';
 import type { ListActions, ListItem, ListViewModel } from './listController';
 import { childrenOf } from '../../domain/itemTree';
@@ -149,10 +152,10 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
             label={item.completed ? 'Completed' : 'Mark complete'}
           />
 
-          <div className="section-label">DUE</div>
+          <Typography variant="overline" component="div" sx={{ display: 'block', color: 'text.subtle', p: '16px 16px 8px' }}>DUE</Typography>
           {canEdit ? (
-            <div className="due-controls">
-              <div className="chip-row">
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {DUE_QUICK.map(q => (
                   <Chip
                     key={q.label}
@@ -164,7 +167,7 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
                 {item.dueAt ? (
                   <Chip variant="outlined" color="error" label="Clear" onClick={() => actions.setDue(item.id, null)} />
                 ) : null}
-              </div>
+              </Box>
               <TextField
                 fullWidth
                 type="date"
@@ -173,31 +176,31 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
                 slotProps={{ inputLabel: { shrink: true } }}
                 onChange={e => actions.setDue(item.id, fromDateInput(e.target.value))}
               />
-            </div>
+            </Box>
           ) : (
-            <p className="field-value" style={due?.overdue ? { color: 'var(--mui-palette-error-main)' } : undefined}>
+            <Typography component="p" sx={{ m: 0, pb: 1, color: due?.overdue ? 'error.main' : 'text.secondary' }}>
               {due ? (due.overdue ? `Overdue · ${due.label}` : due.label) : 'None'}
-            </p>
+            </Typography>
           )}
 
-          <div className="section-label">PRIORITY</div>
+          <Typography variant="overline" component="div" sx={{ display: 'block', color: 'text.subtle', p: '16px 16px 8px' }}>PRIORITY</Typography>
           {canEdit ? (
-            <div className="priority-detail">
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
               <PriorityControl
                 simple={simplePriority}
                 value={item.priority ?? 0}
                 editable
                 onChange={n => actions.setPriority(item.id, n)}
               />
-              <span className="field-value">{priorityLabel(simplePriority, item.priority ?? 0)}</span>
-            </div>
+              <Typography component="span" sx={{ m: 0, pb: 1, color: 'text.secondary' }}>{priorityLabel(simplePriority, item.priority ?? 0)}</Typography>
+            </Box>
           ) : (
-            <p className="field-value">{priorityLabel(simplePriority, item.priority ?? 0)}</p>
+            <Typography component="p" sx={{ m: 0, pb: 1, color: 'text.secondary' }}>{priorityLabel(simplePriority, item.priority ?? 0)}</Typography>
           )}
 
           {members && members.length > 0 ? (
             <>
-              <div className="section-label">ASSIGNEE</div>
+              <Typography variant="overline" component="div" sx={{ display: 'block', color: 'text.subtle', p: '16px 16px 8px' }}>ASSIGNEE</Typography>
               {canEdit ? (
                 <TextField
                   select
@@ -219,16 +222,16 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
                   ))}
                 </TextField>
               ) : (
-                <p className="field-value">{item.assignee ? (item.assignee.displayName ?? item.assignee.email) : 'Unassigned'}</p>
+                <Typography component="p" sx={{ m: 0, pb: 1, color: 'text.secondary' }}>{item.assignee ? (item.assignee.displayName ?? item.assignee.email) : 'Unassigned'}</Typography>
               )}
             </>
           ) : null}
 
           {isShopping ? (
             <>
-              <div className="section-label">QUANTITY</div>
+              <Typography variant="overline" component="div" sx={{ display: 'block', color: 'text.subtle', p: '16px 16px 8px' }}>QUANTITY</Typography>
               {canEdit ? (
-                <div className="qty-row">
+                <Box sx={{ display: 'flex', gap: 1 }}>
                   <Controller
                     name="quantity"
                     control={control}
@@ -266,19 +269,19 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
                       />
                     )}
                   />
-                </div>
+                </Box>
               ) : (
-                <p className="field-value">
+                <Typography component="p" sx={{ m: 0, pb: 1, color: 'text.secondary' }}>
                   {item.quantity != null || item.unit ? `${item.quantity ?? ''} ${item.unit ?? ''}`.trim() : 'None'}
-                </p>
+                </Typography>
               )}
             </>
           ) : null}
 
           {list.tags.length > 0 ? (
             <>
-              <div className="section-label">TAGS</div>
-              <div className="chip-row">
+              <Typography variant="overline" component="div" sx={{ display: 'block', color: 'text.subtle', p: '16px 16px 8px' }}>TAGS</Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {list.tags.map(t => {
                   const on = itemTagIds.has(t.id);
                   return (
@@ -293,11 +296,11 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
                     />
                   );
                 })}
-              </div>
+              </Box>
             </>
           ) : null}
 
-          <div className="section-label">NOTES</div>
+          <Typography variant="overline" component="div" sx={{ display: 'block', color: 'text.subtle', p: '16px 16px 8px' }}>NOTES</Typography>
           {canEdit ? (
             <Controller
               name="notes"
@@ -321,20 +324,30 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
               )}
             />
           ) : (
-            <p className="field-value">{item.notes || 'None'}</p>
+            <Typography component="p" sx={{ m: 0, pb: 1, color: 'text.secondary' }}>{item.notes || 'None'}</Typography>
           )}
 
-          <div className="section-label">
+          <Typography variant="overline" component="div" sx={{ display: 'block', color: 'text.subtle', p: '16px 16px 8px' }}>
             SUBTASKS{subtasks.length > 0 ? ` · ${subtasksDone}/${subtasks.length} done` : ''}
-          </div>
-          {subtasks.length === 0 ? <p className="field-value">No subtasks</p> : null}
+          </Typography>
+          {subtasks.length === 0 ? <Typography component="p" sx={{ m: 0, pb: 1, color: 'text.secondary' }}>No subtasks</Typography> : null}
           {subtasks.map(st => (
-            <div className="sub-row" key={st.id}>
+            <Box key={st.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
               <Checkbox checked={st.completed} disabled={!canEdit} onChange={() => actions.toggleComplete(st)} />
-              <button type="button" className={`sub-title${st.completed ? ' done' : ''}`} onClick={() => onOpen(st)}>
+              <ButtonBase
+                onClick={() => onOpen(st)}
+                sx={{
+                  flex: 1,
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  fontSize: 15,
+                  color: st.completed ? 'text.disabled' : 'text.primary',
+                  ...(st.completed && { textDecoration: 'line-through' }),
+                }}
+              >
                 {st.title}
-              </button>
-            </div>
+              </ButtonBase>
+            </Box>
           ))}
           {canEdit ? <AddTaskBar placeholder="Add subtask…" onAdd={t => actions.addTask(t, item.id)} /> : null}
         </DialogContent>

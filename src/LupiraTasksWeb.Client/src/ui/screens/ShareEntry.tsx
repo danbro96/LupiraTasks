@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Button from '@mui/material/Button';
 import MuiLink from '@mui/material/Link';
+import Box from '@mui/material/Box';
 import { postSharesRedeem } from '../../data/api/member/shares/shares';
 import { login } from '../../data/api/session';
 import { ApiError } from '../../data/api/fetcher';
@@ -55,11 +56,11 @@ export function ShareEntry() {
     return (
       <>
         {!loggedIn ? (
-          <div className="topbar">
+          <Box sx={{ display: 'flex', alignItems: 'center', p: '8px 16px 0' }}>
             <MuiLink component="button" type="button" onClick={() => login(`/s/${token}`)}>
               Sign in to join this list
             </MuiLink>
-          </div>
+          </Box>
         ) : null}
         <SharedListView token={token} />
       </>

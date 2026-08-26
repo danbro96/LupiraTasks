@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Button from '@mui/material/Button';
 import MuiLink from '@mui/material/Link';
+import Box from '@mui/material/Box';
 import { useMemberList } from '../../state/useMemberList';
 import { ApiError } from '../../data/api/fetcher';
 import { Centered } from '../components/Centered';
@@ -55,11 +56,11 @@ function ListDetail({ listId }: { listId: string }) {
 
   return (
     <>
-      <div className="topbar">
+      <Box sx={{ display: 'flex', alignItems: 'center', p: '8px 16px 0' }}>
         <MuiLink component={Link} to="/">
           ← All lists
         </MuiLink>
-      </div>
+      </Box>
       <ListView
         list={c.list}
         items={c.items}

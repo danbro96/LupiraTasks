@@ -1,6 +1,7 @@
 import { Controller, useForm } from 'react-hook-form';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
+import Box from '@mui/material/Box';
 import { oneLine } from '../../domain/text';
 
 interface Props {
@@ -14,8 +15,9 @@ export function AddTaskBar({ placeholder = 'Add task…', onAdd }: Props) {
   const title = watch('title');
 
   return (
-    <form
-      className="add-bar"
+    <Box
+      component="form"
+      sx={{ display: 'flex', gap: 1, p: '12px 16px' }}
       onSubmit={handleSubmit(v => {
         const t = oneLine(v.title).trim();
         if (!t) return;
@@ -40,6 +42,6 @@ export function AddTaskBar({ placeholder = 'Add task…', onAdd }: Props) {
       <Button type="submit" variant="contained" disabled={!title.trim()}>
         Add
       </Button>
-    </form>
+    </Box>
   );
 }

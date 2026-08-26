@@ -24,6 +24,8 @@ import MuiLink from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CloseIcon from '@mui/icons-material/Close';
 import { useLists } from '../../state/useLists';
@@ -50,15 +52,20 @@ function ListRow({ list }: { list: ListResponse }) {
       <button type="button" className="row-grip" aria-label={`Reorder ${list.name}`} {...attributes} {...listeners}>
         <GripIcon />
       </button>
-      <Link to={`/lists/${list.id}`} className="list-row-link">
-        <span
-          className="color-dot"
+      <Box
+        component={Link}
+        to={`/lists/${list.id}`}
+        sx={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0, textDecoration: 'none', color: 'inherit' }}
+      >
+        <Box
+          component="span"
+          sx={{ width: 14, height: 14, borderRadius: '999px', border: 1, flex: 'none' }}
           style={{ background: list.color ?? 'transparent', borderColor: list.color ?? 'var(--mui-palette-border)' }}
         />
-        <span className="list-row-name">{list.name}</span>
+        <Typography component="span" sx={{ flex: 1, fontSize: 16, overflowWrap: 'anywhere' }}>{list.name}</Typography>
         {list.kind === 'Shopping' ? <Chip variant="outlined" label="Shopping" /> : null}
         <ChevronRightIcon fontSize="small" sx={{ color: 'text.disabled', flex: 'none' }} />
-      </Link>
+      </Box>
     </div>
   );
 }
@@ -87,20 +94,20 @@ export function ListsScreen() {
 
   return (
     <div>
-      <header className="list-head">
-        <div className="list-head-top">
-          <h1 className="list-title">Lupira Tasks</h1>
+      <Box component="header" sx={{ p: 2, borderBottom: 1, borderColor: 'divider', position: 'sticky', top: 0, bgcolor: 'background.default', zIndex: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Typography variant="h5" component="h1" sx={{ fontWeight: 700, m: 0, flex: 1, overflowWrap: 'anywhere' }}>Lupira Tasks</Typography>
           <Button variant="contained" onClick={() => setCreating(true)}>
             New list
           </Button>
-        </div>
-        <div className="account-row">
-          {me.data ? <span className="meta">{me.data.displayName ?? me.data.email}</span> : null}
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 1 }}>
+          {me.data ? <Typography variant="caption" sx={{ color: 'text.secondary' }}>{me.data.displayName ?? me.data.email}</Typography> : null}
           <MuiLink component="button" type="button" onClick={() => logout()}>
             Sign out
           </MuiLink>
-        </div>
-      </header>
+        </Box>
+      </Box>
 
       {query.isLoading ? (
         <Centered title="Loading…" />
@@ -116,13 +123,13 @@ export function ListsScreen() {
           </Button>
         </Centered>
       ) : lists.length === 0 ? (
-        <p className="empty">No lists yet — create your first one.</p>
+        <Typography component="p" sx={{ textAlign: 'center', color: 'text.subtle', mt: 6 }}>No lists yet — create your first one.</Typography>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <SortableContext items={lists.map(l => l.id)} strategy={verticalListSortingStrategy}>
-            <div className="list-rows" role="list">
+            <Box role="list" sx={{ pb: 3 }}>
               {lists.map(l => <ListRow key={l.id} list={l} />)}
-            </div>
+            </Box>
           </SortableContext>
         </DndContext>
       )}
@@ -189,7 +196,7 @@ function CreateListModal({
             )}
           />
 
-          <div className="section-label">TYPE</div>
+          <Typography variant="overline" component="div" sx={{ display: 'block', color: 'text.subtle', p: '16px 16px 8px' }}>TYPE</Typography>
           <Controller
             name="kind"
             control={control}
@@ -211,7 +218,7 @@ function CreateListModal({
             )}
           />
 
-          <div className="section-label">COLOR</div>
+          <Typography variant="overline" component="div" sx={{ display: 'block', color: 'text.subtle', p: '16px 16px 8px' }}>COLOR</Typography>
           <Controller
             name="color"
             control={control}

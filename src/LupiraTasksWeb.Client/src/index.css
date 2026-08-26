@@ -26,10 +26,8 @@
 
 /* Migrating away; left unindented so the diffs stay readable. */
 @layer bespoke {
-/* The app column sits on the surface tone, not CssBaseline's base background. */
 body {
   min-height: 100vh;
-  background: var(--mui-palette-background-paper);
 }
 
 button {
@@ -45,70 +43,7 @@ code {
   font-size: 0.9em;
 }
 
-/* App shell: centered phone-width column. */
-.app {
-  max-width: 640px;
-  margin: 0 auto;
-  min-height: 100vh;
-  background: var(--mui-palette-background-default);
-}
-
-/* Centered states (loading / invalid / error / landing). */
-.centered {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: var(--sp-sm);
-  padding: var(--sp-xl);
-}
-.centered h2 {
-  margin: 0;
-}
-.centered p {
-  margin: 0;
-  color: var(--mui-palette-text-secondary);
-  max-width: 36ch;
-}
-
-/* Shared list view. */
-.color-stripe {
-  height: 5px;
-}
-.list-head {
-  padding: var(--sp-lg);
-  border-bottom: 1px solid var(--mui-palette-divider);
-  position: sticky;
-  top: 0;
-  background: var(--mui-palette-background-default);
-  z-index: 1;
-}
-.list-head-top {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-md);
-}
-.list-title {
-  font-size: 22px;
-  font-weight: 700;
-  margin: 0;
-  flex: 1;
-  overflow-wrap: anywhere;
-}
-
-/* Add-task bar + inputs. */
-.add-bar {
-  display: flex;
-  gap: var(--sp-sm);
-  padding: var(--sp-md) var(--sp-lg);
-}
-
 /* Task rows. */
-.task-list {
-  padding-bottom: var(--sp-xl);
-}
 .row {
   display: flex;
   align-items: center;
@@ -148,15 +83,6 @@ code {
   gap: 2px;
   padding: 0;
   min-width: 0;
-}
-/* Says why the list has stopped refreshing itself. Quiet on purpose — information, not a problem. */
-.poll-paused {
-  padding: 6px var(--sp-lg);
-  background: var(--mui-palette-background-paper);
-  border-bottom: 1px solid var(--mui-palette-divider);
-  color: var(--mui-palette-text-secondary);
-  font-size: 11px;
-  text-align: center;
 }
 
 .title-line {
@@ -205,109 +131,7 @@ code {
   font-weight: 600;
 }
 
-.section-label {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  color: var(--mui-palette-text-subtle);
-  padding: var(--sp-lg) var(--sp-lg) var(--sp-sm);
-}
-.empty {
-  text-align: center;
-  color: var(--mui-palette-text-subtle);
-  margin-top: 48px;
-}
-.field-value {
-  margin: 0;
-  color: var(--mui-palette-text-secondary);
-  padding: 0 0 var(--sp-sm);
-}
-.due-controls {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-sm);
-}
-.chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-sm);
-}
-.qty-row {
-  display: flex;
-  gap: var(--sp-sm);
-}
-.sub-row {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-md);
-  padding: var(--sp-md) 0;
-  border-bottom: 1px solid var(--mui-palette-divider);
-}
-.sub-title {
-  flex: 1;
-  text-align: left;
-  border: 0;
-  background: transparent;
-  color: var(--mui-palette-text-primary);
-  font-size: 15px;
-  padding: 0;
-}
-.sub-title.done {
-  color: var(--mui-palette-text-disabled);
-  text-decoration: line-through;
-}
-
-/* Priority: a star (simple mode) or a numeric badge → 0–9 popover (scale mode). */
-.priority-star.on {
-  color: var(--mui-palette-primary-main);
-}
-span.priority-star {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px;
-  flex: none;
-}
-.priority-badge {
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--mui-palette-border);
-  border-radius: var(--r-md);
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--mui-palette-text-secondary);
-}
-.priority-badge.on {
-  background: var(--mui-palette-primary-main);
-  border-color: var(--mui-palette-primary-main);
-  color: var(--mui-palette-primary-contrastText);
-}
-.priority-detail {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-md);
-}
-
-/* Lists landing: account row, back bar, and a text-button affordance. */
-.account-row {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-md);
-  margin-top: var(--sp-sm);
-}
-.topbar {
-  display: flex;
-  align-items: center;
-  padding: var(--sp-sm) var(--sp-lg) 0;
-}
-
 /* List-of-lists rows. */
-.list-rows {
-  padding-bottom: var(--sp-xl);
-}
 .list-row {
   display: flex;
   align-items: center;
@@ -323,33 +147,5 @@ span.priority-star {
   opacity: 0.85;
   background: var(--mui-palette-background-paper);
 }
-/* The link fills the row; the grip beside it keeps its own click target. */
-.list-row-link {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-md);
-  min-width: 0;
-  text-decoration: none;
-  color: inherit;
-}
-.list-row-name {
-  flex: 1;
-  font-size: 16px;
-  overflow-wrap: anywhere;
-}
-.color-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: var(--r-pill);
-  border: 1px solid var(--mui-palette-border);
-  flex: none;
-}
 
-.share-url {
-  font-size: 12px;
-  color: var(--mui-palette-text-secondary);
-  overflow-wrap: anywhere;
-  word-break: break-all;
-}
 }
