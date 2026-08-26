@@ -9,9 +9,11 @@ Check `../LupiraTasksMobile/src/ui/screens`, `src/ui/components` before adding o
 MUI v9 (Emotion; per-component default imports; v9 API only — `slots`/`slotProps`, `sx`, `*Outlined`
 icons). `ui/theme/tokens/` mirrors the mobile app's `src/ui/theme` (shared neutrals; estate teal
 primary) and feeds `ui/theme/muiTheme.ts`, which emits every token: `--mui-palette-*` (incl. custom
-`border`, `remoteChange`, `text.subtle`) plus `--sp-*`/`--r-*` via `MuiCssBaseline`. `index.css` is
-bespoke-only — rows, drag chrome, the remote-flash keyframes — and defines no tokens. Never put a
-bespoke styling class and an MUI component on the same element (Emotion wins injection-order ties).
+`border`, `remoteChange`, `text.subtle`) plus `--sp-*` via `MuiCssBaseline`. `index.css` is down to what no
+component can own — the dnd-kit row/grip structure and the remote-flash keyframes — and defines no tokens.
+Row *contents* are `Typography`/`Box` + `sx`. Never put a bespoke styling class and an MUI component on
+the same element, and **never set `modularCssLayers`** (MUI 9.3.1 declares `mui.*` layers it never emits,
+so `sx` silently loses to component styles).
 Forms use react-hook-form; TaskDetail keeps blur-to-save with per-field dirty checks. **dnd-kit rows,
 grips and the flash overlay stay plain DOM** — dnd-kit writes inline transforms on them.
 
@@ -42,3 +44,7 @@ grips and the flash overlay stay plain DOM** — dnd-kit writes inline transform
 - The API (`../LupiraTasksApi`) and mobile are untouched — the BFF reuses the same public `lupira-tasks`
   client, so the forwarded token's issuer + `aud=lupira-tasks` already match. Only Authentik changes: add
   the web redirect URI to that client.
+
+## Estate
+- **Stay in step with the sibling Lupira frontends.** Same components, theme wiring and layout;
+  match what they already do rather than inventing a local shape. Shared files stay byte-identical.
