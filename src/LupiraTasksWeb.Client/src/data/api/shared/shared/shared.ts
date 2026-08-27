@@ -30,7 +30,7 @@ import type {
   ItemTimestampRequest,
   MoveItemRequest,
   ProblemDetails,
-  SharedItemResponse,
+  SharedItemDto,
   SharedListResponse,
   UpdateItemRequest
 } from '../models';
@@ -170,9 +170,9 @@ export const getCreateSharedItemUrl = (token: string,) => {
  * @summary Add an item via a read/write share link.
  */
 export const createSharedItem = async (token: string,
-    createItemRequest: CreateItemRequest, options?: RequestInit): Promise<SharedItemResponse> => {
+    createItemRequest: CreateItemRequest, options?: RequestInit): Promise<SharedItemDto> => {
 
-  return customFetchShared<SharedItemResponse>(getCreateSharedItemUrl(token),
+  return customFetchShared<SharedItemDto>(getCreateSharedItemUrl(token),
   {
     ...options,
     method: 'POST',
@@ -242,9 +242,9 @@ export const useCreateSharedItem = <TError = ProblemDetails,
  */
 export const updateSharedItem = async (token: string,
     itemId: string,
-    updateItemRequest: UpdateItemRequest, options?: RequestInit): Promise<SharedItemResponse> => {
+    updateItemRequest: UpdateItemRequest, options?: RequestInit): Promise<SharedItemDto> => {
 
-  return customFetchShared<SharedItemResponse>(getUpdateSharedItemUrl(token,itemId),
+  return customFetchShared<SharedItemDto>(getUpdateSharedItemUrl(token,itemId),
   {
     ...options,
     method: 'PATCH',
@@ -394,9 +394,9 @@ export const useDeleteSharedItem = <TError = ProblemDetails,
  */
 export const completeSharedItem = async (token: string,
     itemId: string,
-    nullItemTimestampRequest?: null | ItemTimestampRequest, options?: RequestInit): Promise<SharedItemResponse> => {
+    nullItemTimestampRequest?: null | ItemTimestampRequest, options?: RequestInit): Promise<SharedItemDto> => {
 
-  return customFetchShared<SharedItemResponse>(getCompleteSharedItemUrl(token,itemId),
+  return customFetchShared<SharedItemDto>(getCompleteSharedItemUrl(token,itemId),
   {
     ...options,
     method: 'POST',
@@ -466,9 +466,9 @@ export const useCompleteSharedItem = <TError = ProblemDetails,
  */
 export const reopenSharedItem = async (token: string,
     itemId: string,
-    nullItemTimestampRequest?: null | ItemTimestampRequest, options?: RequestInit): Promise<SharedItemResponse> => {
+    nullItemTimestampRequest?: null | ItemTimestampRequest, options?: RequestInit): Promise<SharedItemDto> => {
 
-  return customFetchShared<SharedItemResponse>(getReopenSharedItemUrl(token,itemId),
+  return customFetchShared<SharedItemDto>(getReopenSharedItemUrl(token,itemId),
   {
     ...options,
     method: 'POST',
@@ -538,9 +538,9 @@ export const useReopenSharedItem = <TError = ProblemDetails,
  */
 export const moveSharedItem = async (token: string,
     itemId: string,
-    moveItemRequest: MoveItemRequest, options?: RequestInit): Promise<SharedItemResponse> => {
+    moveItemRequest: MoveItemRequest, options?: RequestInit): Promise<SharedItemDto> => {
 
-  return customFetchShared<SharedItemResponse>(getMoveSharedItemUrl(token,itemId),
+  return customFetchShared<SharedItemDto>(getMoveSharedItemUrl(token,itemId),
   {
     ...options,
     method: 'POST',

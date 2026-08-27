@@ -5,30 +5,22 @@
  * Task and command processing backend for Lupira. Authenticate with a Bearer token issued by the OIDC provider (Authentik).
  * OpenAPI spec version: v1
  */
-import type { ItemStatus } from './itemStatus';
-import type { JsonNode } from './jsonNode';
-import type { PersonRef } from './personRef';
 
 /**
- * An item's current snapshot. Clients nest by Guid? ItemResponse.ParentItemId.
+ * An item as shown to a share-link recipient. Mirrors the fields a viewer/editor needs but
+ * OMITS every email field (`assignedTo`, `completedBy`, `createdBy`) so a public
+ * link never leaks family emails.
  */
-export interface ItemResponse {
+export interface SharedItemDto {
   id: string;
-  listId: string;
   /** @nullable */
   parentItemId?: string | null;
   title: string;
   /** @nullable */
   notes?: string | null;
-  /** The lifecycle status; bool ItemResponse.Completed is the derived `Status == Done` convenience. */
-  status: ItemStatus;
-  /** @nullable */
-  statusReason?: string | null;
   completed: boolean;
   /** @nullable */
   completedAt?: string | null;
-  completedBy?: null | PersonRef;
-  assignee?: null | PersonRef;
   /** @nullable */
   dueAt?: string | null;
   /** @nullable */
@@ -38,8 +30,4 @@ export interface ItemResponse {
   priority: number;
   tags: string[];
   sortOrder: string;
-  createdBy?: null | PersonRef;
-  createdAt: string;
-  updatedAt: string;
-  metadata?: null | JsonNode;
 }

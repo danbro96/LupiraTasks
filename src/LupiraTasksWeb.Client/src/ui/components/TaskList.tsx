@@ -9,7 +9,7 @@ import {
   type DragEndEvent,
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import type { SharedItemResponse, SharedTagResponse } from '../../data/api/shared/models';
+import type { SharedItemDto, SharedTagDto } from '../../data/api/shared/models';
 import { rowsForMode, siblingReorder, type CompletedMode } from '../../domain/itemTree';
 import type { ItemChange } from '../../domain/itemChange';
 import { TaskRow } from './TaskRow';
@@ -17,22 +17,22 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
 interface Props {
-  items: SharedItemResponse[];
+  items: SharedItemDto[];
   isShopping: boolean;
   canEdit: boolean;
   simplePriority: boolean;
   completedMode: CompletedMode;
   expanded: Set<string>;
-  tagsById: Map<string, SharedTagResponse>;
+  tagsById: Map<string, SharedTagDto>;
   /** Rows currently announcing someone else's edit. */
   flashes: Map<string, ItemChange>;
   /** Completed rows to leave where they are while their flash runs. */
   held: ReadonlySet<string>;
-  onToggle: (item: SharedItemResponse) => void;
-  onOpen: (item: SharedItemResponse) => void;
+  onToggle: (item: SharedItemDto) => void;
+  onOpen: (item: SharedItemDto) => void;
   onToggleExpand: (id: string) => void;
   onSetPriority: (itemId: string, priority: number) => void;
-  onDelete: (item: SharedItemResponse) => void;
+  onDelete: (item: SharedItemDto) => void;
   onMove: (itemId: string, sortOrder: string, parentItemId: string | null) => void;
 }
 

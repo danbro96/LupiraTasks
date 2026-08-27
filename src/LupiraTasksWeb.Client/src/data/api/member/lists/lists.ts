@@ -27,9 +27,8 @@ import type {
 import type {
   AddMemberRequest,
   CreateListRequest,
-  ListCollectionResponse,
+  ListDto,
   ListListsParams,
-  ListResponse,
   ProblemDetails,
   SetListOrderRequest,
   UpdateListRequest,
@@ -77,9 +76,9 @@ export const getListListsUrl = (params?: ListListsParams,) => {
  * `?archived=true` returns the caller's archived lists instead of the active ones.
  * @summary List the lists the caller is a member of.
  */
-export const listLists = async (params?: ListListsParams, options?: RequestInit): Promise<ListCollectionResponse> => {
+export const listLists = async (params?: ListListsParams, options?: RequestInit): Promise<ListDto[]> => {
 
-  return customFetch<ListCollectionResponse>(getListListsUrl(params),
+  return customFetch<ListDto[]>(getListListsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -178,9 +177,9 @@ export const getCreateListUrl = () => {
  * Body `{ id (GUIDv7), name, kind, color? }`. `kind` is `Todo`, `Shopping`, or `Agent` (agent/system-owned lists). Re-sending an existing id is an idempotent success.
  * @summary Create a list; the caller becomes Owner.
  */
-export const createList = async (createListRequest: CreateListRequest, options?: RequestInit): Promise<ListResponse> => {
+export const createList = async (createListRequest: CreateListRequest, options?: RequestInit): Promise<ListDto> => {
 
-  return customFetch<ListResponse>(getCreateListUrl(),
+  return customFetch<ListDto>(getCreateListUrl(),
   {
     ...options,
     method: 'POST',
@@ -247,9 +246,9 @@ export const useCreateList = <TError = ProblemDetails,
 /**
  * @summary Get a list with its members and tags (Viewer+).
  */
-export const getList = async (listId: string, options?: RequestInit): Promise<ListResponse> => {
+export const getList = async (listId: string, options?: RequestInit): Promise<ListDto> => {
 
-  return customFetch<ListResponse>(getGetListUrl(listId),
+  return customFetch<ListDto>(getGetListUrl(listId),
   {
     ...options,
     method: 'GET'
@@ -349,9 +348,9 @@ export const getUpdateListUrl = (listId: string,) => {
  * @summary Rename / recolor a list, or set its priority mode (Editor+).
  */
 export const updateList = async (listId: string,
-    updateListRequest: UpdateListRequest, options?: RequestInit): Promise<ListResponse> => {
+    updateListRequest: UpdateListRequest, options?: RequestInit): Promise<ListDto> => {
 
-  return customFetch<ListResponse>(getUpdateListUrl(listId),
+  return customFetch<ListDto>(getUpdateListUrl(listId),
   {
     ...options,
     method: 'PATCH',
@@ -487,9 +486,9 @@ export const useDeleteList = <TError = ProblemDetails,
 /**
  * @summary Archive a list (Owner). Soft — items retained.
  */
-export const archiveList = async (listId: string, options?: RequestInit): Promise<ListResponse> => {
+export const archiveList = async (listId: string, options?: RequestInit): Promise<ListDto> => {
 
-  return customFetch<ListResponse>(getArchiveListUrl(listId),
+  return customFetch<ListDto>(getArchiveListUrl(listId),
   {
     ...options,
     method: 'POST'
@@ -556,9 +555,9 @@ export const useArchiveList = <TError = ProblemDetails,
 /**
  * @summary Restore an archived list (Owner).
  */
-export const restoreList = async (listId: string, options?: RequestInit): Promise<ListResponse> => {
+export const restoreList = async (listId: string, options?: RequestInit): Promise<ListDto> => {
 
-  return customFetch<ListResponse>(getRestoreListUrl(listId),
+  return customFetch<ListDto>(getRestoreListUrl(listId),
   {
     ...options,
     method: 'POST'
@@ -623,13 +622,13 @@ export const useRestoreList = <TError = ProblemDetails,
 }
 
 /**
- * Body `{ sortOrder }` — a fractional-index key generated between the neighbours the list was dropped between. Per-user: other members' ordering is untouched, and this does not count as a change to the list. Returned as `sortOrder` on the caller's `ListResponse`; lists the caller has never ordered come back null and sort by name after the ordered ones.
+ * Body `{ sortOrder }` — a fractional-index key generated between the neighbours the list was dropped between. Per-user: other members' ordering is untouched, and this does not count as a change to the list. Returned as `sortOrder` on the caller's `ListDto`; lists the caller has never ordered come back null and sort by name after the ordered ones.
  * @summary Set the caller's own position for this list (Viewer+).
  */
 export const reorderListItems = async (listId: string,
-    setListOrderRequest: SetListOrderRequest, options?: RequestInit): Promise<ListResponse> => {
+    setListOrderRequest: SetListOrderRequest, options?: RequestInit): Promise<ListDto> => {
 
-  return customFetch<ListResponse>(getReorderListItemsUrl(listId),
+  return customFetch<ListDto>(getReorderListItemsUrl(listId),
   {
     ...options,
     method: 'POST',
@@ -698,9 +697,9 @@ export const useReorderListItems = <TError = ProblemDetails,
  * @summary Add a member by email (any member; defaults to Editor).
  */
 export const addListMember = async (listId: string,
-    addMemberRequest: AddMemberRequest, options?: RequestInit): Promise<ListResponse> => {
+    addMemberRequest: AddMemberRequest, options?: RequestInit): Promise<ListDto> => {
 
-  return customFetch<ListResponse>(getAddListMemberUrl(listId),
+  return customFetch<ListDto>(getAddListMemberUrl(listId),
   {
     ...options,
     method: 'POST',
@@ -770,9 +769,9 @@ export const useAddListMember = <TError = ProblemDetails,
  */
 export const updateListMember = async (listId: string,
     principalId: string,
-    updateMemberRoleRequest: UpdateMemberRoleRequest, options?: RequestInit): Promise<ListResponse> => {
+    updateMemberRoleRequest: UpdateMemberRoleRequest, options?: RequestInit): Promise<ListDto> => {
 
-  return customFetch<ListResponse>(getUpdateListMemberUrl(listId,principalId),
+  return customFetch<ListDto>(getUpdateListMemberUrl(listId,principalId),
   {
     ...options,
     method: 'PATCH',

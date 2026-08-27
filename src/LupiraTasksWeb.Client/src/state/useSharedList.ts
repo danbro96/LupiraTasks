@@ -13,9 +13,9 @@ import {
 } from '../data/api/shared/shared/shared';
 import type {
   CreateItemRequest,
-  SharedItemResponse,
+  SharedItemDto,
   SharedListResponse,
-  SharedTagResponse,
+  SharedTagDto,
   UpdateItemRequest,
 } from '../data/api/shared/models';
 import { newId } from '../domain/ids';
@@ -37,7 +37,7 @@ export function useSharedList(token: string) {
   const qc = useQueryClient();
   const key = useMemo(() => getGetSharedListQueryKey(token), [token]);
 
-  const { changes, absorb, emit } = useRemoteChanges<SharedItemResponse>(token);
+  const { changes, absorb, emit } = useRemoteChanges<SharedItemDto>(token);
   const refetchInterval = useListPollInterval();
 
   // Hand-rolled rather than the generated hook so `emit` can sit in queryFn: only a network result
@@ -58,13 +58,13 @@ export function useSharedList(token: string) {
   const items = useMemo(() => list?.items ?? [], [list]);
   const canEdit = list?.access === 'ReadWrite';
   const tagsById = useMemo(
-    () => new Map<string, SharedTagResponse>((list?.tags ?? []).map(t => [t.id, t])),
+    () => new Map<string, SharedTagDto>((list?.tags ?? []).map(t => [t.id, t])),
     [list],
   );
 
   // Shared optimistic scaffolding for every mutation: snapshot → patch items → roll back on error
   // → refetch on settle.
-  function optimistic<V>(apply: (items: SharedItemResponse[], vars: V) => SharedItemResponse[]) {
+  function optimistic<V>(apply: (items: SharedItemDto[], vars: V) => SharedItemDto[]) {
     return {
       onMutate: async (vars: V): Promise<Ctx> => {
         await qc.cancelQueries({ queryKey: key });
@@ -88,7 +88,7 @@ export function useSharedList(token: string) {
     };
   }
 
-  const addMut = useMutation<SharedItemResponse, unknown, CreateItemRequest, Ctx>({
+  const addMut = useMutation<SharedItemDto, unknown, CreateItemRequest, Ctx>({
     mutationFn: body => createSharedItem(token, { occurredAt: nowIso(), ...body }),
     ...optimistic<CreateItemRequest>((curr, body) => [
       ...curr,
@@ -109,7 +109,7 @@ export function useSharedList(token: string) {
     ]),
   });
 
-  const updateMut = useMutation<SharedItemResponse, unknown, { itemId: string; body: UpdateItemRequest }, Ctx>({
+  const updateMut = useMutation<SharedItemDto, unknown, { itemId: string; body: UpdateItemRequest }, Ctx>({
     mutationFn: ({ itemId, body }) => updateSharedItem(token, itemId, { occurredAt: nowIso(), ...body }),
     ...optimistic<{ itemId: string; body: UpdateItemRequest }>((curr, { itemId, body }) =>
       curr.map(it => {
@@ -130,12 +130,12 @@ export function useSharedList(token: string) {
     ),
   });
 
-  const toggleMut = useMutation<SharedItemResponse, unknown, SharedItemResponse, Ctx>({
+  const toggleMut = useMutation<SharedItemDto, unknown, SharedItemDto, Ctx>({
     mutationFn: item =>
       item.completed
         ? reopenSharedItem(token, item.id, { occurredAt: nowIso() })
         : completeSharedItem(token, item.id, { occurredAt: nowIso() }),
-    ...optimistic<SharedItemResponse>((curr, item) =>
+    ...optimistic<SharedItemDto>((curr, item) =>
       curr.map(it =>
         it.id === item.id ? { ...it, completed: !item.completed, completedAt: item.completed ? null : nowIso() } : it,
       ),
@@ -143,7 +143,7 @@ export function useSharedList(token: string) {
   });
 
   const moveMut = useMutation<
-    SharedItemResponse,
+    SharedItemDto,
     unknown,
     { itemId: string; sortOrder: string; parentItemId: string | null },
     Ctx
@@ -188,13 +188,13 @@ export function useSharedList(token: string) {
       toggleTag(itemId: string, tagId: string, on: boolean) {
         updateMut.mutate({ itemId, body: on ? { addTagIds: [tagId] } : { removeTagIds: [tagId] } });
       },
-      toggleComplete(item: SharedItemResponse) {
+      toggleComplete(item: SharedItemDto) {
         toggleMut.mutate(item);
       },
       move(itemId: string, sortOrder: string, parentItemId: string | null) {
         moveMut.mutate({ itemId, sortOrder, parentItemId });
       },
-      remove(item: SharedItemResponse) {
+      remove(item: SharedItemDto) {
         deleteMut.mutate({ ids: [item.id, ...descendantIds(items, item.id)] });
       },
     }),

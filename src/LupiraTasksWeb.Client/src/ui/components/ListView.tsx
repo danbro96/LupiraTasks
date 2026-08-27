@@ -4,7 +4,7 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import type { SharedTagResponse } from '../../data/api/shared/models';
+import type { SharedTagDto } from '../../data/api/shared/models';
 import { collapseDescendants, type CompletedMode } from '../../domain/itemTree';
 import type { ItemChange } from '../../domain/itemChange';
 import type { RemoteChanges } from '../../state/useRemoteChanges';
@@ -28,7 +28,7 @@ interface Props {
   list: ListViewModel;
   items: ListItem[];
   canEdit: boolean;
-  tagsById: Map<string, SharedTagResponse>;
+  tagsById: Map<string, SharedTagDto>;
   actions: ListActions;
   /** Member surface only: list members for the assignee picker. Omitted on the share surface. */
   members?: { principalId: string; email: string; displayName?: string | null }[];

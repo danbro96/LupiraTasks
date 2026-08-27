@@ -26,13 +26,13 @@ import {
   listShares,
   createShare,
 } from '../../data/api/member/shares/shares';
-import type { ListRole, MemberResponse, ShareAccess } from '../../data/api/member/models';
+import type { ListRole, MemberDto, ShareAccess } from '../../data/api/member/models';
 
 const ROLES: ListRole[] = ['Owner', 'Editor', 'Viewer'];
 
 interface Props {
   listId: string;
-  members: MemberResponse[];
+  members: MemberDto[];
   /** Owner-only controls: change roles, remove members, mint/revoke share links. */
   isOwner: boolean;
   onClose: () => void;
@@ -68,7 +68,7 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
     onSuccess: invalidateList,
   });
 
-  const shares = useQuery({ queryKey: sharesKey, queryFn: () => listShares(listId), select: r => r.shares, enabled: isOwner });
+  const shares = useQuery({ queryKey: sharesKey, queryFn: () => listShares(listId), enabled: isOwner });
   const createShareMut = useMutation({
     mutationFn: () => createShare(listId, { access: shareAccess }),
     onSuccess: invalidateShares,

@@ -1,4 +1,4 @@
-import type { ListKind, SharedItemResponse, SharedTagResponse } from '../../data/api/shared/models';
+import type { ListKind, SharedItemDto, SharedTagDto } from '../../data/api/shared/models';
 import type { PersonRef } from '../../data/api/member/models';
 
 // The surface-agnostic contract the task UI consumes. Both the account-less share hook
@@ -8,19 +8,19 @@ import type { PersonRef } from '../../data/api/member/models';
 /** An item as the UI needs it: the shared item shape, plus the member surface's identity fields.
  *  The share surface omits them by design (the API strips emails), so a change there can be shown
  *  but not attributed. */
-export type ListItem = SharedItemResponse & {
+export type ListItem = SharedItemDto & {
   assignee?: PersonRef | null;
   completedBy?: PersonRef | null;
   createdBy?: PersonRef | null;
 };
 
-/** The list metadata the task UI reads — common to SharedListResponse and the member ListResponse. */
+/** The list metadata the task UI reads — common to SharedListResponse and the member ListDto. */
 export interface ListViewModel {
   name: string;
   kind: ListKind;
   color?: string | null;
   simplePriority?: boolean;
-  tags: SharedTagResponse[];
+  tags: SharedTagDto[];
 }
 
 /** The mutation surface. The share hook supplies a no-op `setAssignee` (that surface has no assignee). */

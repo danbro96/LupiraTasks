@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import type { SharedItemResponse, SharedTagResponse } from '../../data/api/shared/models';
+import type { SharedItemDto, SharedTagDto } from '../../data/api/shared/models';
 import type { VisibleRow } from '../../domain/itemTree';
 import { changeLabel, type ActorRef, type ItemChangeKind } from '../../domain/itemChange';
 import { formatDue } from '../../domain/dueDate';
@@ -19,29 +19,29 @@ import { GripIcon } from './icons';
 const INDENT = 18; // px per nesting level
 
 /** "2 kg"-style label for shopping items, or null when there's nothing to show. */
-function qtyLabel(it: SharedItemResponse): string | null {
+function qtyLabel(it: SharedItemDto): string | null {
   if (it.quantity == null && !it.unit) return null;
   const q = it.quantity != null ? String(it.quantity) : '';
   return `${q}${q && it.unit ? ' ' : ''}${it.unit ?? ''}`.trim() || null;
 }
 
 interface Props {
-  row: VisibleRow<SharedItemResponse>;
+  row: VisibleRow<SharedItemDto>;
   isShopping: boolean;
   canEdit: boolean;
   /** The list's priority mode: a star (0↔1) when true, a 0–9 picker badge when false. */
   simplePriority: boolean;
   sortable: boolean;
   expanded: boolean;
-  tagsById: Map<string, SharedTagResponse>;
+  tagsById: Map<string, SharedTagDto>;
   /** Set while someone else's edit to this row is being announced. */
   changeKind?: ItemChangeKind;
   changeActor?: ActorRef | null;
-  onToggle: (item: SharedItemResponse) => void;
-  onOpen: (item: SharedItemResponse) => void;
+  onToggle: (item: SharedItemDto) => void;
+  onOpen: (item: SharedItemDto) => void;
   onToggleExpand: (id: string) => void;
   onSetPriority: (itemId: string, priority: number) => void;
-  onDelete: (item: SharedItemResponse) => void;
+  onDelete: (item: SharedItemDto) => void;
 }
 
 export function TaskRow({
@@ -69,7 +69,7 @@ export function TaskRow({
 
   const due = formatDue(item.dueAt);
   const qty = isShopping ? qtyLabel(item) : null;
-  const tags = item.tags.map(id => tagsById.get(id)).filter((t): t is SharedTagResponse => !!t);
+  const tags = item.tags.map(id => tagsById.get(id)).filter((t): t is SharedTagDto => !!t);
 
   return (
     <div

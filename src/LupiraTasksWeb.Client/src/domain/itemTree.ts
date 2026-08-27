@@ -3,7 +3,7 @@ import { generateKeyBetween } from 'fractional-indexing';
 // Pure helpers for the nested task tree: build the visible (flattened) rows for rendering, the
 // cascade-collapse of a node, and the sibling-only reorder target. Ported from the mobile app
 // (src/domain/itemTree.ts) and made generic over any item with id/parent/sortOrder/completed, so
-// it works on the API's SharedItemResponse directly. Framework-free and unit-tested.
+// it works on the API's SharedItemDto directly. Framework-free and unit-tested.
 
 export interface TreeItem {
   id: string;

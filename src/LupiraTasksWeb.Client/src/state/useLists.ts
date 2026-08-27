@@ -6,7 +6,7 @@ import {
   reorderListItems,
   useListLists,
 } from '../data/api/member/lists/lists';
-import type { CreateListRequest, ListCollectionResponse, ListResponse } from '../data/api/member/models';
+import type { CreateListRequest, ListDto } from '../data/api/member/models';
 import { newId } from '../domain/ids';
 import { planListReorder, sortActiveLists, sortArchivedLists } from '../domain/listOrder';
 
@@ -20,9 +20,8 @@ export function useLists(archived = false) {
   const params = { archived };
   const key = getListListsQueryKey(params);
 
-  const query = useListLists<ListResponse[], ApiError>(params, {
+  const query = useListLists<ListDto[], ApiError>(params, {
     query: {
-      select: (r: ListCollectionResponse) => r.lists,
       retry: (count, err) => !(err instanceof ApiError && TERMINAL.has(err.status)) && count < 2,
     },
   });
@@ -49,11 +48,8 @@ export function useLists(archived = false) {
     onMutate: ({ from, to }: { from: number; to: number }) => {
       const keys = new Map(planListReorder(sorted, from, to).map(t => [t.listId, t.sortOrder]));
       if (keys.size === 0) return;
-      qc.setQueryData<ListCollectionResponse>(key, prev =>
-        prev && {
-          ...prev,
-          lists: prev.lists.map(l => (keys.has(l.id) ? { ...l, sortOrder: keys.get(l.id)! } : l)),
-        });
+      qc.setQueryData<ListDto[]>(key, prev =>
+        prev?.map(l => (keys.has(l.id) ? { ...l, sortOrder: keys.get(l.id)! } : l)));
     },
     onSettled: () => void qc.invalidateQueries({ queryKey: ['/lists'] }),
   });

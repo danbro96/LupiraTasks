@@ -27,8 +27,7 @@ import type {
 import type {
   CreateItemRequest,
   DeleteListItemParams,
-  ItemCollectionResponse,
-  ItemResponse,
+  ItemDto,
   ItemTimestampRequest,
   ListItemsParams,
   ListListItemsParams,
@@ -80,9 +79,9 @@ export const getListItemsUrl = (params?: ListItemsParams,) => {
  * Case-insensitive `query` title substring, optional `completed`/`status`. `dueFrom`/`dueTo` bound `dueAt` half-open `[from, to)`; either bound implies `dueAt` is set. Spans every list the caller is a member of (archived included).
  * @summary Search items across the caller's lists (Viewer+).
  */
-export const listItems = async (params?: ListItemsParams, options?: RequestInit): Promise<ItemCollectionResponse> => {
+export const listItems = async (params?: ListItemsParams, options?: RequestInit): Promise<ItemDto[]> => {
 
-  return customFetch<ItemCollectionResponse>(getListItemsUrl(params),
+  return customFetch<ItemDto[]>(getListItemsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -182,9 +181,9 @@ export const getUpdateItemUrl = (itemId: string,) => {
  * @summary Edit item fields addressed by id (Editor+); the list is resolved server-side.
  */
 export const updateItem = async (itemId: string,
-    updateItemRequest: UpdateItemRequest, options?: RequestInit): Promise<ItemResponse> => {
+    updateItemRequest: UpdateItemRequest, options?: RequestInit): Promise<ItemDto> => {
 
-  return customFetch<ItemResponse>(getUpdateItemUrl(itemId),
+  return customFetch<ItemDto>(getUpdateItemUrl(itemId),
   {
     ...options,
     method: 'PATCH',
@@ -253,9 +252,9 @@ export const useUpdateItem = <TError = ProblemDetails,
  * @summary Set an item's metadata addressed by id (Editor+); the list is resolved server-side.
  */
 export const setItemMetadata = async (itemId: string,
-    setMetadataRequest: SetMetadataRequest, options?: RequestInit): Promise<ItemResponse> => {
+    setMetadataRequest: SetMetadataRequest, options?: RequestInit): Promise<ItemDto> => {
 
-  return customFetch<ItemResponse>(getSetItemMetadataUrl(itemId),
+  return customFetch<ItemDto>(getSetItemMetadataUrl(itemId),
   {
     ...options,
     method: 'POST',
@@ -332,9 +331,9 @@ export const useSetItemMetadata = <TError = ProblemDetails,
  * @summary List a list's items (Viewer+).
  */
 export const listListItems = async (listId: string,
-    params?: ListListItemsParams, options?: RequestInit): Promise<ItemCollectionResponse> => {
+    params?: ListListItemsParams, options?: RequestInit): Promise<ItemDto[]> => {
 
-  return customFetch<ItemCollectionResponse>(getListListItemsUrl(listId,params),
+  return customFetch<ItemDto[]>(getListListItemsUrl(listId,params),
   {
     ...options,
     method: 'GET'
@@ -440,9 +439,9 @@ export const getCreateListItemUrl = (listId: string,) => {
  * @summary Add an item (Editor+).
  */
 export const createListItem = async (listId: string,
-    createItemRequest: CreateItemRequest, options?: RequestInit): Promise<ItemResponse> => {
+    createItemRequest: CreateItemRequest, options?: RequestInit): Promise<ItemDto> => {
 
-  return customFetch<ItemResponse>(getCreateListItemUrl(listId),
+  return customFetch<ItemDto>(getCreateListItemUrl(listId),
   {
     ...options,
     method: 'POST',
@@ -511,9 +510,9 @@ export const useCreateListItem = <TError = ProblemDetails,
  * @summary Get a single item (Viewer+).
  */
 export const getItem = async (listId: string,
-    itemId: string, options?: RequestInit): Promise<ItemResponse> => {
+    itemId: string, options?: RequestInit): Promise<ItemDto> => {
 
-  return customFetch<ItemResponse>(getGetItemUrl(listId,itemId),
+  return customFetch<ItemDto>(getGetItemUrl(listId,itemId),
   {
     ...options,
     method: 'GET'
@@ -621,9 +620,9 @@ export const getUpdateListItemUrl = (listId: string,
  */
 export const updateListItem = async (listId: string,
     itemId: string,
-    updateItemRequest: UpdateItemRequest, options?: RequestInit): Promise<ItemResponse> => {
+    updateItemRequest: UpdateItemRequest, options?: RequestInit): Promise<ItemDto> => {
 
-  return customFetch<ItemResponse>(getUpdateListItemUrl(listId,itemId),
+  return customFetch<ItemDto>(getUpdateListItemUrl(listId,itemId),
   {
     ...options,
     method: 'PATCH',
@@ -774,9 +773,9 @@ export const useDeleteListItem = <TError = ProblemDetails,
  */
 export const completeItem = async (listId: string,
     itemId: string,
-    nullItemTimestampRequest?: null | ItemTimestampRequest, options?: RequestInit): Promise<ItemResponse> => {
+    nullItemTimestampRequest?: null | ItemTimestampRequest, options?: RequestInit): Promise<ItemDto> => {
 
-  return customFetch<ItemResponse>(getCompleteItemUrl(listId,itemId),
+  return customFetch<ItemDto>(getCompleteItemUrl(listId,itemId),
   {
     ...options,
     method: 'POST',
@@ -846,9 +845,9 @@ export const useCompleteItem = <TError = ProblemDetails,
  */
 export const reopenItem = async (listId: string,
     itemId: string,
-    nullItemTimestampRequest?: null | ItemTimestampRequest, options?: RequestInit): Promise<ItemResponse> => {
+    nullItemTimestampRequest?: null | ItemTimestampRequest, options?: RequestInit): Promise<ItemDto> => {
 
-  return customFetch<ItemResponse>(getReopenItemUrl(listId,itemId),
+  return customFetch<ItemDto>(getReopenItemUrl(listId,itemId),
   {
     ...options,
     method: 'POST',
@@ -919,9 +918,9 @@ export const useReopenItem = <TError = ProblemDetails,
  */
 export const setItemStatus = async (listId: string,
     itemId: string,
-    setStatusRequest: SetStatusRequest, options?: RequestInit): Promise<ItemResponse> => {
+    setStatusRequest: SetStatusRequest, options?: RequestInit): Promise<ItemDto> => {
 
-  return customFetch<ItemResponse>(getSetItemStatusUrl(listId,itemId),
+  return customFetch<ItemDto>(getSetItemStatusUrl(listId,itemId),
   {
     ...options,
     method: 'POST',
@@ -992,9 +991,9 @@ export const useSetItemStatus = <TError = ProblemDetails,
  */
 export const setListItemMetadata = async (listId: string,
     itemId: string,
-    setMetadataRequest: SetMetadataRequest, options?: RequestInit): Promise<ItemResponse> => {
+    setMetadataRequest: SetMetadataRequest, options?: RequestInit): Promise<ItemDto> => {
 
-  return customFetch<ItemResponse>(getSetListItemMetadataUrl(listId,itemId),
+  return customFetch<ItemDto>(getSetListItemMetadataUrl(listId,itemId),
   {
     ...options,
     method: 'POST',
@@ -1065,9 +1064,9 @@ export const useSetListItemMetadata = <TError = ProblemDetails,
  */
 export const moveItem = async (listId: string,
     itemId: string,
-    moveItemRequest: MoveItemRequest, options?: RequestInit): Promise<ItemResponse> => {
+    moveItemRequest: MoveItemRequest, options?: RequestInit): Promise<ItemDto> => {
 
-  return customFetch<ItemResponse>(getMoveItemUrl(listId,itemId),
+  return customFetch<ItemDto>(getMoveItemUrl(listId,itemId),
   {
     ...options,
     method: 'POST',

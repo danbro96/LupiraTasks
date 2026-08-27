@@ -29,8 +29,7 @@ import type {
   ProblemDetails,
   RedeemShareRequest,
   RedeemShareResponse,
-  ShareCollectionResponse,
-  ShareResponse
+  ShareDto
 } from '../models';
 
 import { customFetch } from '../../fetcher';
@@ -138,9 +137,9 @@ export const useRedeemShare = <TError = ProblemDetails,
  * @summary Mint a public share link for a list (Owner).
  */
 export const createShare = async (listId: string,
-    createShareRequest: CreateShareRequest, options?: RequestInit): Promise<ShareResponse> => {
+    createShareRequest: CreateShareRequest, options?: RequestInit): Promise<ShareDto> => {
 
-  return customFetch<ShareResponse>(getCreateShareUrl(listId),
+  return customFetch<ShareDto>(getCreateShareUrl(listId),
   {
     ...options,
     method: 'POST',
@@ -207,9 +206,9 @@ export const useCreateShare = <TError = ProblemDetails,
 /**
  * @summary List a list's active share links (Owner).
  */
-export const listShares = async (listId: string, options?: RequestInit): Promise<ShareCollectionResponse> => {
+export const listShares = async (listId: string, options?: RequestInit): Promise<ShareDto[]> => {
 
-  return customFetch<ShareCollectionResponse>(getListSharesUrl(listId),
+  return customFetch<ShareDto[]>(getListSharesUrl(listId),
   {
     ...options,
     method: 'GET'

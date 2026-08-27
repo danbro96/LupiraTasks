@@ -32,14 +32,14 @@ import { useLists } from '../../state/useLists';
 import { useMe } from '../../state/useMe';
 import { logout } from '../../data/api/session';
 import { ApiError } from '../../data/api/fetcher';
-import type { ListKind, ListResponse } from '../../data/api/member/models';
+import type { ListKind, ListDto } from '../../data/api/member/models';
 import { listColorOptions } from '../theme/colors';
 import { Centered } from '../components/Centered';
 import { GripIcon } from '../components/icons';
 
 /** One list row: a drag grip plus a link into the list. The grip owns the drag listeners so the
  *  link stays clickable (same split as TaskRow). */
-function ListRow({ list }: { list: ListResponse }) {
+function ListRow({ list }: { list: ListDto }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: list.id });
 
   return (

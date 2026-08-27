@@ -13,7 +13,7 @@ import {
 } from '../data/api/member/items/items';
 import { getGetListQueryKey, useGetList } from '../data/api/member/lists/lists';
 import { ItemStatus } from '../data/api/member/models';
-import type { CreateItemRequest, ItemResponse, ListResponse, TagResponse, UpdateItemRequest } from '../data/api/member/models';
+import type { CreateItemRequest, ItemDto, ListDto, TagDto, UpdateItemRequest } from '../data/api/member/models';
 import { newId } from '../domain/ids';
 import { descendantIds, nextChildSortOrder, topSortOrder } from '../domain/itemTree';
 import { useRemoteChanges } from './useRemoteChanges';
@@ -28,7 +28,7 @@ import { useListPollInterval } from './usePollInterval';
 const TERMINAL = new Set([400, 401, 403, 404]);
 const nowIso = () => new Date().toISOString();
 
-type Ctx = { previous?: ItemResponse[] };
+type Ctx = { previous?: ItemDto[] };
 
 export function useMemberList(listId: string) {
   const qc = useQueryClient();
@@ -37,19 +37,19 @@ export function useMemberList(listId: string) {
   const retry = (count: number, err: unknown) =>
     !(err instanceof ApiError && TERMINAL.has(err.status)) && count < 2;
 
-  const { changes, absorb, emit } = useRemoteChanges<ItemResponse>(listId);
+  const { changes, absorb, emit } = useRemoteChanges<ItemDto>(listId);
   const refetchInterval = useListPollInterval();
 
   // Polled so another member's edits appear without a manual refresh. refetchIntervalInBackground is
   // left at its default (false) so a hidden tab stops polling. Meta is polled too: a remote rename /
   // recolor / tag / member change matters, and `members` is what puts a name on the notice.
-  const metaQuery = useGetList<ListResponse, ApiError>(listId, { query: { retry, refetchInterval } });
+  const metaQuery = useGetList<ListDto, ApiError>(listId, { query: { retry, refetchInterval } });
   // Hand-rolled rather than the generated hook so `emit` can sit in queryFn: only a network result may
   // announce a change, and setQueryData never runs queryFn.
   const itemsQuery = useQuery({
     queryKey: itemsKey,
     queryFn: async () => {
-      const { items: rows } = await listListItems(listId);
+      const rows = await listListItems(listId);
       emit(rows);
       return rows;
     },
@@ -61,7 +61,7 @@ export function useMemberList(listId: string) {
   const items = useMemo(() => itemsQuery.data ?? [], [itemsQuery.data]);
   const members = useMemo(() => list?.members ?? [], [list]);
   const tagsById = useMemo(
-    () => new Map<string, TagResponse>((list?.tags ?? []).map(t => [t.id, t])),
+    () => new Map<string, TagDto>((list?.tags ?? []).map(t => [t.id, t])),
     [list],
   );
 
@@ -79,14 +79,14 @@ export function useMemberList(listId: string) {
     },
   };
 
-  function optimistic<V>(apply: (items: ItemResponse[], vars: V) => ItemResponse[]) {
+  function optimistic<V>(apply: (items: ItemDto[], vars: V) => ItemDto[]) {
     return {
       onMutate: async (vars: V): Promise<Ctx> => {
         await qc.cancelQueries({ queryKey: itemsKey });
-        const previous = qc.getQueryData<ItemResponse[]>(itemsKey);
+        const previous = qc.getQueryData<ItemDto[]>(itemsKey);
         if (previous) {
           const patched = apply(previous, vars);
-          qc.setQueryData<ItemResponse[]>(itemsKey, patched);
+          qc.setQueryData<ItemDto[]>(itemsKey, patched);
           absorb(patched); // the user's own edit — never announce it back to them
         }
         return { previous };
@@ -104,7 +104,7 @@ export function useMemberList(listId: string) {
     };
   }
 
-  const addMut = useMutation<ItemResponse, unknown, CreateItemRequest, Ctx>({
+  const addMut = useMutation<ItemDto, unknown, CreateItemRequest, Ctx>({
     mutationFn: body => createListItem(listId, { occurredAt: nowIso(), ...body }),
     ...optimistic<CreateItemRequest>((curr, body) => [
       ...curr,
@@ -130,7 +130,7 @@ export function useMemberList(listId: string) {
     ]),
   });
 
-  const updateMut = useMutation<ItemResponse, unknown, { itemId: string; body: UpdateItemRequest }, Ctx>({
+  const updateMut = useMutation<ItemDto, unknown, { itemId: string; body: UpdateItemRequest }, Ctx>({
     mutationFn: ({ itemId, body }) => updateListItem(listId, itemId, { occurredAt: nowIso(), ...body }),
     ...optimistic<{ itemId: string; body: UpdateItemRequest }>((curr, { itemId, body }) =>
       curr.map(it => {
@@ -162,8 +162,8 @@ export function useMemberList(listId: string) {
     ),
   });
 
-  // Only id+completed: the UI passes the surface-agnostic ListItem, not the full member ItemResponse.
-  const toggleMut = useMutation<ItemResponse, unknown, { id: string; completed: boolean }, Ctx>({
+  // Only id+completed: the UI passes the surface-agnostic ListItem, not the full member ItemDto.
+  const toggleMut = useMutation<ItemDto, unknown, { id: string; completed: boolean }, Ctx>({
     mutationFn: item =>
       item.completed
         ? reopenItem(listId, item.id, { occurredAt: nowIso() })
@@ -176,7 +176,7 @@ export function useMemberList(listId: string) {
   });
 
   const moveMut = useMutation<
-    ItemResponse,
+    ItemDto,
     unknown,
     { itemId: string; sortOrder: string; parentItemId: string | null },
     Ctx
