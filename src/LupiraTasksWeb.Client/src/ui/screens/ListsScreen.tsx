@@ -35,7 +35,7 @@ import { ApiError } from '../../data/api/fetcher';
 import type { ListKind, ListDto } from '../../data/api/member/models';
 import { listColorOptions } from '../theme/colors';
 import { Centered } from '../components/Centered';
-import { GripIcon } from '../components/icons';
+import { DragIcon } from '../icons';
 
 /** One list row: a drag grip plus a link into the list. The grip owns the drag listeners so the
  *  link stays clickable (same split as TaskRow). */
@@ -50,7 +50,7 @@ function ListRow({ list }: { list: ListDto }) {
       style={{ transform: CSS.Transform.toString(transform), transition }}
     >
       <button type="button" className="row-grip" aria-label={`Reorder ${list.name}`} {...attributes} {...listeners}>
-        <GripIcon />
+        <DragIcon fontSize="small" />
       </button>
       <Box
         component={Link}

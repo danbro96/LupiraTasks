@@ -14,7 +14,7 @@ import { changeLabel, type ActorRef, type ItemChangeKind } from '../../domain/it
 import { formatDue } from '../../domain/dueDate';
 import { Checkbox } from './Checkbox';
 import { PriorityControl } from './PriorityControl';
-import { GripIcon } from './icons';
+import { DragIcon } from '../icons';
 
 const INDENT = 18; // px per nesting level
 
@@ -87,7 +87,7 @@ export function TaskRow({
 
       {draggable ? (
         <button type="button" className="row-grip" aria-label={`Drag to reorder ${item.title}`} {...attributes} {...listeners}>
-          <GripIcon />
+          <DragIcon fontSize="small" />
         </button>
       ) : (
         <Box component="span" sx={{ width: 22, flex: 'none' }} />

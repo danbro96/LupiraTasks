@@ -48,3 +48,4 @@ grips and the flash overlay stay plain DOM** — dnd-kit writes inline transform
 ## Estate
 - **Stay in step with the sibling Lupira frontends.** Same components, theme wiring and layout;
   match what they already do rather than inventing a local shape. Shared files stay byte-identical.
+- **Icons**: `ui/icons.ts` re-exports `@mui/icons-material` `*Outlined` under concept names — import from there, never from `@mui/icons-material` directly, and don't hand-roll SVGs. No emoji as iconography.
