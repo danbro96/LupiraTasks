@@ -13,7 +13,7 @@ import { SharedListView } from '../components/SharedListView';
 
 /** Entry for `/s/:token` (public). Logged out → the account-less shared view + a "sign in to join"
  *  prompt. Logged in → automatically "cash in" the link via POST /shares/redeem, then go to the list. */
-export function ShareEntry() {
+export function ShareEntryScreen() {
   const { token } = useParams<{ token: string }>();
   const session = useSession();
   const navigate = useNavigate();
