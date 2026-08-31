@@ -14,7 +14,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
 import CloseIcon from '@mui/icons-material/Close';
-import type { ListActions, ListItem, ListViewModel } from './listController';
+import type { ListActions, ListItem, ListViewModel } from '../listController';
 import { childrenOf } from '../../domain/itemTree';
 import { dueInDays, dueNextWeekend, dueOnDate, formatDue, toDateInputValue } from '../../domain/dueDate';
 import { oneLine } from '../../domain/text';

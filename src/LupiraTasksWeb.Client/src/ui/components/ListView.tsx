@@ -9,7 +9,7 @@ import { collapseDescendants, type CompletedMode } from '../../domain/itemTree';
 import type { ItemChange } from '../../domain/itemChange';
 import type { RemoteChanges } from '../../state/useRemoteChanges';
 import { useListPollPaused } from '../../state/usePollInterval';
-import type { ListActions, ListItem, ListViewModel } from './listController';
+import type { ListActions, ListItem, ListViewModel } from '../listController';
 import { AddTaskBar } from './AddTaskBar';
 import { TaskList } from './TaskList';
 import { TaskDetail } from './TaskDetail';
