@@ -39,6 +39,10 @@ builder.Services.AddReverseProxy()
         if (transform.HttpContext.Request.Path.StartsWithSegments("/api/shared"))
             return;
 
+        // Native callers already presented a bearer the API accepts — YARP copies it verbatim.
+        if (transform.HttpContext.Request.Headers.Authorization.Count > 0)
+            return;
+
         if (isDev)
         {
             transform.ProxyRequest.Headers.TryAddWithoutValidation("X-Dev-User", devUser);
