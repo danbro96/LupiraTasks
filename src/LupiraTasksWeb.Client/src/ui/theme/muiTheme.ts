@@ -1,5 +1,5 @@
 import { createTheme } from '@mui/material/styles';
-import { DARK, LIGHT, REMOTE_CHANGE, type ColorScheme } from './tokens/color';
+import { darkColors, lightColors, type Palette as ColorScheme } from '@lupira/tasks-tokens/color';
 import { RADII, SPACING } from './tokens/spacing';
 import { FONT_FAMILY } from './tokens/typography';
 
@@ -17,13 +17,13 @@ declare module '@mui/material/styles' {
   }
 }
 
-function palette(c: ColorScheme, remoteChange: string) {
+function palette(c: ColorScheme) {
   return {
     background: { default: c.bg, paper: c.surface },
     primary: { main: c.primary, contrastText: c.onPrimary },
     divider: c.divider,
     border: c.border,
-    remoteChange,
+    remoteChange: c.remoteChange,
     text: { primary: c.text, secondary: c.textMuted, disabled: c.textDisabled, subtle: c.textSubtle },
     error: { main: c.danger },
   };
@@ -38,8 +38,8 @@ export const theme = createTheme({
   // Emotion injects unlayered, which outranks every layer — utilities would silently lose.
   // Order matches CalWeb; 'bespoke' is index.css.
   colorSchemes: {
-    light: { palette: palette(LIGHT, REMOTE_CHANGE.light) },
-    dark: { palette: palette(DARK, REMOTE_CHANGE.dark) },
+    light: { palette: palette(lightColors) },
+    dark: { palette: palette(darkColors) },
   },
   // No webfont is loaded; without this MUI assumes Roboto.
   typography: { fontFamily: FONT_FAMILY },

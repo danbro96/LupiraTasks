@@ -8,7 +8,7 @@ import {
 } from '../data/api/member/lists/lists';
 import type { CreateListRequest, ListDto } from '../data/api/member/models';
 import { newId } from '../domain/ids';
-import { planListReorder, sortActiveLists, sortArchivedLists } from '../domain/listOrder';
+import { planListReorder, sortActiveLists, sortArchivedLists } from '@lupira/tasks-domain/listOrder';
 
 const TERMINAL = new Set([400, 401, 403, 404]); // not worth retrying
 

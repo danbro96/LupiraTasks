@@ -1,9 +1,10 @@
-# Lupira Tasks Web
+# Lupira Tasks
 
-Web client for [LupiraTasks](../LupiraTasksApi), delivered as a **BFF (Backend-For-Frontend)**: a
+Both clients for [LupiraTasksApi](../LupiraTasksApi) in one npm-workspaces monorepo: the Expo/RN
+Android app (`apps/mobile`) and the web client, delivered as a **BFF (Backend-For-Frontend)** — a
 single .NET 10 image that serves a Vite + React 19 SPA and proxies its API calls. **Mobile-app-first:**
-this client mirrors the [mobile app](../LupiraTasksMobile)'s design, screen flow, and layered structure.
-Unlike the offline-first app, it is **online-only** — the server is the single source of truth.
+the web client mirrors the app's design, screen flow, and layered structure. Unlike the offline-first
+app, it is **online-only** — the server is the single source of truth.
 
 ## Why a BFF
 
@@ -30,9 +31,16 @@ own origin, so there is no CORS.
 src/
   LupiraTasksWeb/          # .NET 10 BFF — Authentik OIDC + cookie session, YARP proxy to LupiraTasksApi
   LupiraTasksWeb.Client/   # Vite + React 19 SPA (layered domain → data → state → ui; eslint-plugin-boundaries)
+apps/mobile/               # Expo/RN Android app — offline-first (SQLite mirror + outbox)
+packages/domain/           # @lupira/tasks-domain — pure logic shared by both clients
+packages/tokens/           # @lupira/tasks-tokens — the shared color palette
+docs/mobile/               # release + Play Store docs for the app
 Dockerfile                 # multi-stage: build the SPA → publish the BFF with the SPA in wwwroot
 deploy/                    # compose.yaml + .env.example
 ```
+
+Root scripts fan out over every workspace (`npm run lint|typecheck|test`) or delegate to the web
+client (`dev|build|gen:api`). The image builds the web workspaces only.
 
 The BFF proxies `/api/{**}` → LupiraTasksApi (member routes carry the forwarded token; `/api/shared/*`
 is anonymous) and owns `/auth/login`, `/auth/logout`, `/auth/user`.
@@ -40,25 +48,31 @@ is anonymous) and owns `/auth/login`, `/auth/logout`, `/auth/user`.
 ## Develop
 
 ```bash
+npm install                                        # once, at the repo root — installs every workspace
+
 # 1) BFF (dev auto-authenticates a local user; proxies to a local API at http://localhost:8080)
 dotnet run --project src/LupiraTasksWeb            # http://localhost:5180
 
 # 2) SPA (proxies /api + /auth to the BFF)
-cd src/LupiraTasksWeb.Client && npm install && npm run dev   # http://localhost:5173
+npm run dev                                        # http://localhost:5173
+
+# 3) the Android app
+npm start -w apps/mobile
 ```
 
 Set the deploy env (`deploy/.env.example`): add this web's redirect URI
 (`https://tasks.lupira.com/signin-oidc`) to the shared public `lupira-tasks` Authentik client, the API
 base URL, and a mounted `/keys` volume for data-protection key persistence. No client secret is needed.
 
-## Scripts (in `src/LupiraTasksWeb.Client`)
+## Scripts (at the repo root)
 
-| Script            | Description                                          |
-| ----------------- | ---------------------------------------------------- |
-| `npm run dev`     | Vite dev server (proxies to the BFF)                 |
-| `npm run build`   | Type-check + build the SPA into the BFF `wwwroot`    |
-| `npm run lint`    | Lint + enforce the layered import boundaries         |
-| `npm test`        | Domain unit tests (vitest)                           |
+| Script              | Description                                                |
+| ------------------- | ---------------------------------------------------------- |
+| `npm run dev`       | Vite dev server for the web client (proxies to the BFF)    |
+| `npm run build`     | Type-check + build the SPA into the BFF `wwwroot`          |
+| `npm run lint`      | Lint every workspace (incl. the layered import boundaries) |
+| `npm run typecheck` | Type-check every workspace                                 |
+| `npm test`          | Unit tests (vitest) across every workspace                 |
 
 ## Docker
 

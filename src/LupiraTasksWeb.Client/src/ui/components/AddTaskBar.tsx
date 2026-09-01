@@ -2,7 +2,7 @@ import { Controller, useForm } from 'react-hook-form';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
-import { oneLine } from '../../domain/text';
+import { oneLine } from '@lupira/tasks-domain/text';
 
 interface Props {
   placeholder?: string;

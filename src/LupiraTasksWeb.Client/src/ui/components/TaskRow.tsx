@@ -11,7 +11,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import type { SharedItemDto, SharedTagDto } from '../../data/api/shared/models';
 import type { VisibleRow } from '../../domain/itemTree';
 import { changeLabel, type ActorRef, type ItemChangeKind } from '../../domain/itemChange';
-import { formatDue } from '../../domain/dueDate';
+import { formatDue } from '@lupira/tasks-domain/dueDate';
 import { Checkbox } from './Checkbox';
 import { PriorityControl } from './PriorityControl';
 import { DragIcon } from '../icons';

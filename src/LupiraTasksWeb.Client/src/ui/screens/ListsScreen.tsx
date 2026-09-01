@@ -33,7 +33,7 @@ import { useMe } from '../../state/useMe';
 import { logout } from '../../data/api/session';
 import { ApiError } from '../../data/api/fetcher';
 import type { ListKind, ListDto } from '../../data/api/member/models';
-import { listColorOptions } from '../theme/colors';
+import { listColorOptions } from '@lupira/tasks-tokens/color';
 import { Centered } from '../components/Centered';
 import { DragIcon } from '../icons';
 

@@ -1,0 +1,23 @@
+// Authentik OIDC client config for LupiraTasks (public PKCE client — no secret).
+// The Authority/issuer + client id must match the Authentik `tasks` application/provider
+// (see DevOps/Websites/lupira-tasks-api/deployment.md Part 2).
+
+// No trailing slash — Authentik 2026.8 404s the doubled slash expo-auth-session would produce.
+export const OIDC_ISSUER = 'https://auth.lupira.com/application/o/tasks';
+
+/** Public client id — also the token `aud` the API validates. */
+export const OIDC_CLIENT_ID = 'lupira-tasks';
+
+/** `groups` drives admin; `offline_access` requests a refresh token. */
+export const OIDC_SCOPES = ['openid', 'email', 'profile', 'groups', 'offline_access'];
+
+/** App scheme (app.json `scheme`) — the redirect URI is `<scheme>://...`. */
+export const OIDC_SCHEME = 'lupiratasks';
+
+/**
+ * Redirect path. A bare `lupiratasks://` has an empty authority that gets normalized to
+ * `lupiratasks:` on redirect, so expo-auth-session can't match the callback (→ 'dismiss').
+ * A non-empty path keeps the URI stable: `lupiratasks://oauthredirect`.
+ * NOTE: this exact URI must be registered as an allowed redirect URI on the Authentik provider.
+ */
+export const OIDC_REDIRECT_PATH = 'oauthredirect';

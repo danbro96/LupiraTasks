@@ -3,12 +3,20 @@
 
 # --- SPA build ---
 FROM node:24-alpine AS client
-WORKDIR /client
-COPY src/LupiraTasksWeb.Client/package.json src/LupiraTasksWeb.Client/package-lock.json src/LupiraTasksWeb.Client/.npmrc ./
+WORKDIR /repo
+COPY package.json package-lock.json .npmrc ./
+# Every workspace's manifest — npm ci validates the lockfile against all of them.
+COPY src/LupiraTasksWeb.Client/package.json src/LupiraTasksWeb.Client/
+COPY packages/domain/package.json packages/domain/
+COPY packages/tokens/package.json packages/tokens/
+COPY apps/mobile/package.json apps/mobile/
 RUN npm i -g npm@12
-RUN npm ci
-COPY src/LupiraTasksWeb.Client/ ./
-RUN npm run build -- --outDir dist --emptyOutDir
+# Web workspaces only — the mobile app's Expo tree has no business in this image.
+RUN npm ci -w src/LupiraTasksWeb.Client -w packages/domain -w packages/tokens --include-workspace-root
+COPY packages/domain/ packages/domain/
+COPY packages/tokens/ packages/tokens/
+COPY src/LupiraTasksWeb.Client/ src/LupiraTasksWeb.Client/
+RUN npm run build -w src/LupiraTasksWeb.Client -- --outDir dist --emptyOutDir
 
 # --- backend publish ---
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
@@ -18,7 +26,7 @@ WORKDIR /src/LupiraTasksWeb
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet restore "./LupiraTasksWeb.csproj"
 RUN dotnet publish "./LupiraTasksWeb.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-COPY --from=client /client/dist /app/publish/wwwroot
+COPY --from=client /repo/src/LupiraTasksWeb.Client/dist /app/publish/wwwroot
 
 # --- runtime ---
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final

@@ -5,7 +5,6 @@ on:
 
 env:
   SOLUTION: LupiraTasksWeb.slnx
-  CLIENT_DIR: src/LupiraTasksWeb.Client
 
 jobs:
   unit:
@@ -19,18 +18,15 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.CLIENT_DIR }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version-file: ${{ env.CLIENT_DIR }}/.node-version
+          node-version-file: .node-version
           cache: npm
-          cache-dependency-path: ${{ env.CLIENT_DIR }}/package-lock.json
+          cache-dependency-path: package-lock.json
       - run: npm i -g npm@12
       - run: npm ci
       - run: npm run lint
-      - run: npx tsc -b
+      - run: npm run typecheck
       - run: npm test

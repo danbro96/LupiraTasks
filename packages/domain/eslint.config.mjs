@@ -1,0 +1,43 @@
+import boundaries from 'eslint-plugin-boundaries';
+import tseslint from 'typescript-eslint';
+
+// Purity by construction: production modules may import nothing but each other and the one pure
+// dependency below — no generated DTO types, no platform APIs. Test files are exempted in a trailing
+// override block (v7 element patterns match folders, so a `src/**/*.test.ts` element can never classify
+// files — they'd silently fall into `domain` and the exemption would not apply).
+export default [
+  { ignores: ['node_modules/**', '*.config.ts'] },
+  {
+    files: ['src/**/*.ts'],
+    languageOptions: { parser: tseslint.parser },
+    plugins: { boundaries },
+    settings: {
+      'boundaries/elements': [
+        { type: 'domain', pattern: 'src/**' },
+      ],
+      'import/resolver': { typescript: { alwaysTryTypes: true } },
+    },
+    rules: {
+      'boundaries/dependencies': ['error', {
+        default: 'disallow',
+        policies: [
+          { from: { element: { type: 'domain' } }, allow: [{ to: { element: { type: 'domain' } } }] },
+        ],
+      }],
+      'boundaries/external': ['error', {
+        default: 'disallow',
+        // Ordering keys are fractional indices; the algorithm is not worth reimplementing.
+        policies: [
+          { from: { element: { type: 'domain' } }, allow: ['fractional-indexing'] },
+        ],
+      }],
+    },
+  },
+  {
+    // Tests may use the runner + node builtins for fixtures; the boundary gate is for production code.
+    files: ['src/**/*.test.ts'],
+    rules: {
+      'boundaries/external': 'off',
+    },
+  },
+];

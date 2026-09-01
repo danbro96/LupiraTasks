@@ -1,14 +1,27 @@
 # LupiraTasks — agent notes
 
-**Mobile-app-first product.** `../LupiraTasksMobile` (Expo/RN) is the primary product. This web client
+**Mobile-app-first product.** `apps/mobile` (Expo/RN) is the primary product. The web client
 mirrors it — match the app's screen flow and structure rather than inventing a new design language.
-Check `../LupiraTasksMobile/src/ui/screens`, `src/ui/components` before adding or changing UI.
-**Online-only** (React Query, server is source of truth) — no offline mirror.
+Check `apps/mobile/src/ui/screens` before adding or changing web UI. The web is **online-only**
+(React Query, server is source of truth); only the app has the offline mirror.
 
-## UI stack
+## Monorepo (npm workspaces)
+Root `package.json` hoists the toolchain (eslint/typescript/vitest) and owns `engines`, `allowScripts`
+and the react `overrides` (RN pins exact versions). Workspaces:
+- `packages/domain` (`@lupira/tasks-domain`) — pure shared logic, consumed as TS source. Purity is
+  eslint-enforced: no generated DTO types, no platform APIs; `fractional-indexing` is the one allowed
+  dependency. Holds what both clients agree on (`dueDate`, `listOrder`, `text`). `itemChange`/`itemTree`
+  stay per-app — the app's are offline/LWW-aware and the web's are not; they are not drift.
+- `packages/tokens` (`@lupira/tasks-tokens`) — the color palette both clients render. Spacing/radii stay
+  per-app (the scales genuinely differ).
+- `src/LupiraTasksWeb.Client` — the SPA. `apps/mobile` — the Expo app.
+
+**New workspaces must also be added to the Dockerfile's COPY + `npm ci -w` lines.** Root scripts fan
+out (`npm run lint|typecheck|test`) or delegate (`dev|build|gen:api`).
+
+## UI stack (web)
 MUI v9 (Emotion; per-component default imports; v9 API only — `slots`/`slotProps`, `sx`, `*Outlined`
-icons). `ui/theme/tokens/` mirrors the mobile app's `src/ui/theme` (shared neutrals; estate teal
-primary) and feeds `ui/theme/muiTheme.ts`, which emits every token: `--mui-palette-*` (incl. custom
+icons). `ui/theme/muiTheme.ts` emits every token: `--mui-palette-*` (incl. custom
 `border`, `remoteChange`, `text.subtle`) plus `--sp-*` via `MuiCssBaseline`. `index.css` is down to what no
 component can own — the dnd-kit row/grip structure and the remote-flash keyframes — and defines no tokens.
 Row *contents* are `Typography`/`Box` + `sx`. Never put a bespoke styling class and an MUI component on
@@ -39,11 +52,14 @@ grips and the flash overlay stay plain DOM** — dnd-kit writes inline transform
 - **Member (SSO):** `/` list of lists, `/lists/:listId` its tasks. Calls same-origin `/api/*`.
 - **Share (account-less):** `/s/:token`. Logged in → auto-redeem (`POST /api/shares/redeem`) → `/lists/:listId`.
 
+## Mobile
+`apps/mobile` has its own agent notes — read `apps/mobile/CLAUDE.md` before touching the app.
+Offline-first (SQLite mirror + outbox), layering `domain → data → sync → state → ui`.
+
 ## Conventions
 - Latest stable deps; bump hard. vitest for tests. Comment only the non-obvious *why*; present state only.
-- The API (`../LupiraTasksApi`) and mobile are untouched — the BFF reuses the same public `lupira-tasks`
-  client, so the forwarded token's issuer + `aud=lupira-tasks` already match. Only Authentik changes: add
-  the web redirect URI to that client.
+- The API lives in the sibling repo `../LupiraTasksApi`. Both clients authenticate against Authentik
+  with `aud=lupira-tasks`, so the API needs no change when a client is added.
 
 ## Estate
 - **Screens** are `ui/screens/XScreen.tsx` with a named export.
