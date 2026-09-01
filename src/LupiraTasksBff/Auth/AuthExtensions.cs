@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 
-namespace LupiraTasksWeb.Auth;
+namespace LupiraTasksBff.Auth;
 
 /// <summary>
 /// SSO gate for the member surface. Two front doors share one authorization policy: browsers run Authentik

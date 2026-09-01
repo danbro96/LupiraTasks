@@ -17,7 +17,7 @@ bin/
 obj/
 
 # Generated SPA output (client build → BFF wwwroot)
-src/LupiraTasksWeb/wwwroot/
+src/LupiraTasksBff/wwwroot/
 
 # Expo (apps/mobile)
 .expo/

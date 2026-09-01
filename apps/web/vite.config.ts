@@ -19,7 +19,7 @@ export default defineConfig({
   },
   build: {
     // Single-container deploy: emit straight into the BFF's wwwroot.
-    outDir: "../LupiraTasksWeb/wwwroot",
+    outDir: "../../src/LupiraTasksBff/wwwroot",
     emptyOutDir: true,
     rolldownOptions: {
       output: {

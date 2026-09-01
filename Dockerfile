@@ -6,27 +6,27 @@ FROM node:24-alpine AS client
 WORKDIR /repo
 COPY package.json package-lock.json .npmrc ./
 # Every workspace's manifest — npm ci validates the lockfile against all of them.
-COPY src/LupiraTasksWeb.Client/package.json src/LupiraTasksWeb.Client/
+COPY apps/web/package.json apps/web/
 COPY packages/domain/package.json packages/domain/
 COPY packages/tokens/package.json packages/tokens/
 COPY apps/mobile/package.json apps/mobile/
 RUN npm i -g npm@12
 # Web workspaces only — the mobile app's Expo tree has no business in this image.
-RUN npm ci -w src/LupiraTasksWeb.Client -w packages/domain -w packages/tokens --include-workspace-root
+RUN npm ci -w apps/web -w packages/domain -w packages/tokens --include-workspace-root
 COPY packages/domain/ packages/domain/
 COPY packages/tokens/ packages/tokens/
-COPY src/LupiraTasksWeb.Client/ src/LupiraTasksWeb.Client/
-RUN npm run build -w src/LupiraTasksWeb.Client -- --outDir dist --emptyOutDir
+COPY apps/web/ apps/web/
+RUN npm run build -w apps/web -- --outDir dist --emptyOutDir
 
 # --- backend publish ---
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
-COPY src/LupiraTasksWeb/ ./LupiraTasksWeb/
-WORKDIR /src/LupiraTasksWeb
+COPY src/LupiraTasksBff/ ./LupiraTasksBff/
+WORKDIR /src/LupiraTasksBff
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet restore "./LupiraTasksWeb.csproj"
-RUN dotnet publish "./LupiraTasksWeb.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-COPY --from=client /repo/src/LupiraTasksWeb.Client/dist /app/publish/wwwroot
+RUN dotnet restore "./LupiraTasksBff.csproj"
+RUN dotnet publish "./LupiraTasksBff.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+COPY --from=client /repo/apps/web/dist /app/publish/wwwroot
 
 # --- runtime ---
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
@@ -45,4 +45,4 @@ USER app
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:80/livez || exit 1
-ENTRYPOINT ["dotnet", "LupiraTasksWeb.dll"]
+ENTRYPOINT ["dotnet", "LupiraTasksBff.dll"]

@@ -1,6 +1,6 @@
 # apps/mobile — agent notes
 
-- **Primary product.** The web client (`src/LupiraTasksWeb.Client`) mirrors this app's screen flow and
+- **Primary product.** The web client (`apps/web`) mirrors this app's screen flow and
   structure; keep changes here coherent with it. Android-first (`eas.json` builds Android only), package
   `com.lupira.tasks`, scheme `lupiratasks`, live on Play — see `docs/mobile/RELEASE.md` for the EAS/OTA path.
 - **Dev backend switching**: `API_PRESETS` in `config/` (prod / LAN / emulator — the emulator preset

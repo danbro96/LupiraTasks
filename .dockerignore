@@ -6,4 +6,4 @@
 .github
 **/*.local
 npm-debug.log*
-src/LupiraTasksWeb/wwwroot
+src/LupiraTasksBff/wwwroot

@@ -5,7 +5,7 @@ Draft answers for the gating declarations. Fill the **[BRACKETS]** and confirm e
 ## Privacy policy
 
 - Host `docs/mobile/PRIVACY.md` at a public URL (e.g. GitHub Pages on this repo, or a `/privacy` page on
-  `lupira.com` / the LupiraTasksWeb SPA) and paste that URL into **Play Console → App content → Privacy policy**.
+  `lupira.com` / the tasks SPA) and paste that URL into **Play Console → App content → Privacy policy**.
 
 ## App access (the app is login‑gated)
 

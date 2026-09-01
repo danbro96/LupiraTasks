@@ -28,9 +28,8 @@ own origin, so there is no CORS.
 ## Layout
 
 ```
-src/
-  LupiraTasksWeb/          # .NET 10 BFF — Authentik OIDC + cookie session, YARP proxy to LupiraTasksApi
-  LupiraTasksWeb.Client/   # Vite + React 19 SPA (layered domain → data → state → ui; eslint-plugin-boundaries)
+src/LupiraTasksBff/        # .NET 10 BFF — Authentik OIDC + cookie session, YARP proxy to LupiraTasksApi
+apps/web/                  # Vite + React 19 SPA (layered domain → data → state → ui)
 apps/mobile/               # Expo/RN Android app — offline-first (SQLite mirror + outbox)
 packages/domain/           # @lupira/tasks-domain — pure logic shared by both clients
 packages/tokens/           # @lupira/tasks-tokens — the shared color palette
@@ -51,7 +50,7 @@ is anonymous) and owns `/auth/login`, `/auth/logout`, `/auth/user`.
 npm install                                        # once, at the repo root — installs every workspace
 
 # 1) BFF (dev auto-authenticates a local user; proxies to a local API at http://localhost:8080)
-dotnet run --project src/LupiraTasksWeb            # http://localhost:5180
+dotnet run --project src/LupiraTasksBff            # http://localhost:5180
 
 # 2) SPA (proxies /api + /auth to the BFF)
 npm run dev                                        # http://localhost:5173

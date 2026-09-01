@@ -3,14 +3,13 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "src/LupiraTasksWeb.Client",
     "apps/*"
   ],
   "scripts": {
-    "dev": "npm run dev -w src/LupiraTasksWeb.Client",
-    "build": "npm run build -w src/LupiraTasksWeb.Client",
-    "preview": "npm run preview -w src/LupiraTasksWeb.Client",
-    "gen:api": "npm run gen:api -w src/LupiraTasksWeb.Client",
+    "dev": "npm run dev -w apps/web",
+    "build": "npm run build -w apps/web",
+    "preview": "npm run preview -w apps/web",
+    "gen:api": "npm run gen:api -w apps/web",
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present"

@@ -14,7 +14,7 @@ and the react `overrides` (RN pins exact versions). Workspaces:
   stay per-app — the app's are offline/LWW-aware and the web's are not; they are not drift.
 - `packages/tokens` (`@lupira/tasks-tokens`) — the color palette both clients render. Spacing/radii stay
   per-app (the scales genuinely differ).
-- `src/LupiraTasksWeb.Client` — the SPA. `apps/mobile` — the Expo app.
+- `apps/web` — the SPA. `apps/mobile` — the Expo app.
 
 **New workspaces must also be added to the Dockerfile's COPY + `npm ci -w` lines.** Root scripts fan
 out (`npm run lint|typecheck|test`) or delegate (`dev|build|gen:api`).
@@ -31,13 +31,13 @@ Forms use react-hook-form; TaskDetail keeps blur-to-save with per-field dirty ch
 grips and the flash overlay stay plain DOM** — dnd-kit writes inline transforms on them.
 
 ## Shape: BFF + SPA (one image)
-- `src/LupiraTasksWeb/` — .NET 10 **BFF**. Drives Authentik OIDC (code + PKCE) reusing the **shared
+- `src/LupiraTasksBff/` — .NET 10 **BFF**. Drives Authentik OIDC (code + PKCE) reusing the **shared
   public `lupira-tasks` client** (no secret — same issuer/aud as mobile, so the API is unchanged),
   server-side **HttpOnly cookie session** (`__Host-lupira-tasks`), Duende token refresh. **YARP** proxies `/api/{**}`
   to LupiraTasksApi: member routes carry the forwarded user token; `/api/shared/*` is anonymous (the
   account-less surface — never a bearer). Owns `/auth/login|logout|user`. Dev auto-auths a local user and
   forwards `X-Dev-User` instead of a token.
-- `src/LupiraTasksWeb.Client/` — Vite + React 19 SPA. The browser only talks to its own origin (no CORS,
+- `apps/web/` — Vite + React 19 SPA. The browser only talks to its own origin (no CORS,
   no tokens in JS); auth is the session cookie (`credentials: 'include'`, 401 → `/auth/login`).
 
 ## SPA layering (downward-only, `eslint-plugin-boundaries`)
