@@ -1,4 +1,4 @@
-# LupiraTasksWeb — agent notes
+# LupiraTasks — agent notes
 
 **Mobile-app-first product.** `../LupiraTasksMobile` (Expo/RN) is the primary product. This web client
 mirrors it — match the app's screen flow and structure rather than inventing a new design language.
