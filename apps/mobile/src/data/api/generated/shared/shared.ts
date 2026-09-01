@@ -52,7 +52,7 @@ export const getGetSharedListUrl = (token: string,) => {
 
 
 
-  return `/shared/${token}`
+  return `/api/shared/${token}`
 }
 
 /**
@@ -115,7 +115,7 @@ export const getCreateSharedItemUrl = (token: string,) => {
 
 
 
-  return `/shared/${token}/items`
+  return `/api/shared/${token}/items`
 }
 
 /**
@@ -185,7 +185,7 @@ export const getUpdateSharedItemUrl = (token: string,
 
 
 
-  return `/shared/${token}/items/${itemId}`
+  return `/api/shared/${token}/items/${itemId}`
 }
 
 /**
@@ -259,7 +259,7 @@ export const getDeleteSharedItemUrl = (token: string,
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/shared/${token}/items/${itemId}?${stringifiedParams}` : `/shared/${token}/items/${itemId}`
+  return stringifiedParams.length > 0 ? `/api/shared/${token}/items/${itemId}?${stringifiedParams}` : `/api/shared/${token}/items/${itemId}`
 }
 
 /**
@@ -319,7 +319,7 @@ export const getCompleteSharedItemUrl = (token: string,
 
 
 
-  return `/shared/${token}/items/${itemId}/complete`
+  return `/api/shared/${token}/items/${itemId}/complete`
 }
 
 /**
@@ -385,7 +385,7 @@ export const getReopenSharedItemUrl = (token: string,
 
 
 
-  return `/shared/${token}/items/${itemId}/reopen`
+  return `/api/shared/${token}/items/${itemId}/reopen`
 }
 
 /**
@@ -456,7 +456,7 @@ export const getMoveSharedItemUrl = (token: string,
 
 
 
-  return `/shared/${token}/items/${itemId}/move`
+  return `/api/shared/${token}/items/${itemId}/move`
 }
 
 /**

@@ -41,7 +41,7 @@ export const getGetMeUrl = () => {
 
 
 
-  return `/me`
+  return `/api/me`
 }
 
 /**

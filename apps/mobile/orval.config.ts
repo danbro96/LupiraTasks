@@ -15,7 +15,8 @@ export default defineConfig({
       target: './src/data/api/generated/api.ts',
       schemas: './src/data/api/generated/models',
       client: 'fetch',
-      baseUrl: '',
+      // The BFF route prefix — the app talks to one origin and this picks the upstream.
+      baseUrl: '/api',
       override: {
         mutator: { path: './src/data/api/mutator.ts', name: 'apiFetch' },
       },

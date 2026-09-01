@@ -41,7 +41,7 @@ export const getPingUrl = () => {
 
 
 
-  return `/pingz`
+  return `/api/pingz`
 }
 
 /**

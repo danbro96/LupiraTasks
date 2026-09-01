@@ -54,7 +54,7 @@ export const getListListsUrl = (params?: ListListsParams,) => {
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/lists?${stringifiedParams}` : `/lists`
+  return stringifiedParams.length > 0 ? `/api/lists?${stringifiedParams}` : `/api/lists`
 }
 
 /**
@@ -107,7 +107,7 @@ export const getCreateListUrl = () => {
 
 
 
-  return `/lists`
+  return `/api/lists`
 }
 
 /**
@@ -166,7 +166,7 @@ export const getGetListUrl = (listId: string,) => {
 
 
 
-  return `/lists/${listId}`
+  return `/api/lists/${listId}`
 }
 
 /**
@@ -223,7 +223,7 @@ export const getUpdateListUrl = (listId: string,) => {
 
 
 
-  return `/lists/${listId}`
+  return `/api/lists/${listId}`
 }
 
 /**
@@ -283,7 +283,7 @@ export const getDeleteListUrl = (listId: string,) => {
 
 
 
-  return `/lists/${listId}`
+  return `/api/lists/${listId}`
 }
 
 /**
@@ -335,7 +335,7 @@ export const getArchiveListUrl = (listId: string,) => {
 
 
 
-  return `/lists/${listId}/archive`
+  return `/api/lists/${listId}/archive`
 }
 
 /**
@@ -387,7 +387,7 @@ export const getRestoreListUrl = (listId: string,) => {
 
 
 
-  return `/lists/${listId}/restore`
+  return `/api/lists/${listId}/restore`
 }
 
 /**
@@ -444,7 +444,7 @@ export const getReorderListItemsUrl = (listId: string,) => {
 
 
 
-  return `/lists/${listId}/order`
+  return `/api/lists/${listId}/order`
 }
 
 /**
@@ -509,7 +509,7 @@ export const getAddListMemberUrl = (listId: string,) => {
 
 
 
-  return `/lists/${listId}/members`
+  return `/api/lists/${listId}/members`
 }
 
 /**
@@ -580,7 +580,7 @@ export const getUpdateListMemberUrl = (listId: string,
 
 
 
-  return `/lists/${listId}/members/${principalId}`
+  return `/api/lists/${listId}/members/${principalId}`
 }
 
 /**
@@ -651,7 +651,7 @@ export const getRemoveListMemberUrl = (listId: string,
 
 
 
-  return `/lists/${listId}/members/${principalId}`
+  return `/api/lists/${listId}/members/${principalId}`
 }
 
 /**

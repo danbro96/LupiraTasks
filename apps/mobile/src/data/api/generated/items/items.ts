@@ -57,7 +57,7 @@ export const getListItemsUrl = (params?: ListItemsParams,) => {
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/items?${stringifiedParams}` : `/items`
+  return stringifiedParams.length > 0 ? `/api/items?${stringifiedParams}` : `/api/items`
 }
 
 /**
@@ -115,7 +115,7 @@ export const getUpdateItemUrl = (itemId: string,) => {
 
 
 
-  return `/items/${itemId}`
+  return `/api/items/${itemId}`
 }
 
 /**
@@ -180,7 +180,7 @@ export const getSetItemMetadataUrl = (itemId: string,) => {
 
 
 
-  return `/items/${itemId}/metadata`
+  return `/api/items/${itemId}/metadata`
 }
 
 /**
@@ -248,7 +248,7 @@ export const getListListItemsUrl = (listId: string,
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/lists/${listId}/items?${stringifiedParams}` : `/lists/${listId}/items`
+  return stringifiedParams.length > 0 ? `/api/lists/${listId}/items?${stringifiedParams}` : `/api/lists/${listId}/items`
 }
 
 /**
@@ -307,7 +307,7 @@ export const getCreateListItemUrl = (listId: string,) => {
 
 
 
-  return `/lists/${listId}/items`
+  return `/api/lists/${listId}/items`
 }
 
 /**
@@ -368,7 +368,7 @@ export const getGetItemUrl = (listId: string,
 
 
 
-  return `/lists/${listId}/items/${itemId}`
+  return `/api/lists/${listId}/items/${itemId}`
 }
 
 /**
@@ -427,7 +427,7 @@ export const getUpdateListItemUrl = (listId: string,
 
 
 
-  return `/lists/${listId}/items/${itemId}`
+  return `/api/lists/${listId}/items/${itemId}`
 }
 
 /**
@@ -497,7 +497,7 @@ export const getDeleteListItemUrl = (listId: string,
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/lists/${listId}/items/${itemId}?${stringifiedParams}` : `/lists/${listId}/items/${itemId}`
+  return stringifiedParams.length > 0 ? `/api/lists/${listId}/items/${itemId}?${stringifiedParams}` : `/api/lists/${listId}/items/${itemId}`
 }
 
 /**
@@ -553,7 +553,7 @@ export const getCompleteItemUrl = (listId: string,
 
 
 
-  return `/lists/${listId}/items/${itemId}/complete`
+  return `/api/lists/${listId}/items/${itemId}/complete`
 }
 
 /**
@@ -614,7 +614,7 @@ export const getReopenItemUrl = (listId: string,
 
 
 
-  return `/lists/${listId}/items/${itemId}/reopen`
+  return `/api/lists/${listId}/items/${itemId}/reopen`
 }
 
 /**
@@ -680,7 +680,7 @@ export const getSetItemStatusUrl = (listId: string,
 
 
 
-  return `/lists/${listId}/items/${itemId}/status`
+  return `/api/lists/${listId}/items/${itemId}/status`
 }
 
 /**
@@ -747,7 +747,7 @@ export const getSetListItemMetadataUrl = (listId: string,
 
 
 
-  return `/lists/${listId}/items/${itemId}/metadata`
+  return `/api/lists/${listId}/items/${itemId}/metadata`
 }
 
 /**
@@ -814,7 +814,7 @@ export const getMoveItemUrl = (listId: string,
 
 
 
-  return `/lists/${listId}/items/${itemId}/move`
+  return `/api/lists/${listId}/items/${itemId}/move`
 }
 
 /**

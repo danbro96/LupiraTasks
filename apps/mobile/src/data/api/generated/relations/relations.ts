@@ -54,7 +54,7 @@ export const getCreateRelationUrl = (listId: string,
 
 
 
-  return `/lists/${listId}/items/${itemId}/relations`
+  return `/api/lists/${listId}/items/${itemId}/relations`
 }
 
 /**
@@ -116,7 +116,7 @@ export const getListRelationsUrl = (listId: string,
 
 
 
-  return `/lists/${listId}/items/${itemId}/relations`
+  return `/api/lists/${listId}/items/${itemId}/relations`
 }
 
 /**
@@ -183,7 +183,7 @@ export const getDeleteRelationUrl = (listId: string,
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/lists/${listId}/items/${itemId}/relations?${stringifiedParams}` : `/lists/${listId}/items/${itemId}/relations`
+  return stringifiedParams.length > 0 ? `/api/lists/${listId}/items/${itemId}/relations?${stringifiedParams}` : `/api/lists/${listId}/items/${itemId}/relations`
 }
 
 /**

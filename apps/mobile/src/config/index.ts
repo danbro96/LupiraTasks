@@ -9,13 +9,15 @@ export type ApiPreset = {
   authMode: AuthMode;
 };
 
+// Every preset is a BFF origin, never tasks-api itself: the generated client's paths carry the BFF's
+// `/api` prefix, and prod reaches the API only through it.
 export const API_PRESETS: ApiPreset[] = [
-  { key: 'prod', label: 'Production', urls: { api: 'https://tasks-api.lupira.com' }, authMode: 'oidc' },
-  { key: 'lan', label: 'LAN dev', urls: { api: 'http://192.168.14.108:8080' }, authMode: 'dev' },
-  { key: 'emulator', label: 'Emulator dev', urls: { api: 'http://10.0.2.2:8080' }, authMode: 'dev' },
+  { key: 'prod', label: 'Production', urls: { api: 'https://tasks.lupira.com' }, authMode: 'oidc' },
+  { key: 'lan', label: 'LAN dev', urls: { api: 'http://192.168.14.108:5180' }, authMode: 'dev' },
+  { key: 'emulator', label: 'Emulator dev', urls: { api: 'http://10.0.2.2:5180' }, authMode: 'dev' },
 ];
 
-/** tasks-api trusts X-Dev-User only in Development. */
+/** The BFF and tasks-api trust X-Dev-User only in Development. */
 export const DEV_USER = 'daniel.brostrom@hotmail.se';
 
 export const DEFAULT_API_URL = process.env.EXPO_PUBLIC_API_URL ?? API_PRESETS[0].urls.api;

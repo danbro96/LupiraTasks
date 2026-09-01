@@ -55,7 +55,7 @@ export const getSyncListUrl = (listId: string,
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/lists/${listId}/sync?${stringifiedParams}` : `/lists/${listId}/sync`
+  return stringifiedParams.length > 0 ? `/api/lists/${listId}/sync?${stringifiedParams}` : `/api/lists/${listId}/sync`
 }
 
 /**

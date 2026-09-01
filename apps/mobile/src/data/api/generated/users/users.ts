@@ -49,7 +49,7 @@ export const getGetUserDirectoryUrl = (params?: GetUserDirectoryParams,) => {
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/users/directory?${stringifiedParams}` : `/users/directory`
+  return stringifiedParams.length > 0 ? `/api/users/directory?${stringifiedParams}` : `/api/users/directory`
 }
 
 /**

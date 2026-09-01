@@ -54,7 +54,7 @@ export const getRedeemShareUrl = () => {
 
 
 
-  return `/shares/redeem`
+  return `/api/shares/redeem`
 }
 
 /**
@@ -118,7 +118,7 @@ export const getCreateShareUrl = (listId: string,) => {
 
 
 
-  return `/lists/${listId}/shares`
+  return `/api/lists/${listId}/shares`
 }
 
 /**
@@ -178,7 +178,7 @@ export const getListSharesUrl = (listId: string,) => {
 
 
 
-  return `/lists/${listId}/shares`
+  return `/api/lists/${listId}/shares`
 }
 
 /**
@@ -231,7 +231,7 @@ export const getDeleteShareUrl = (listId: string,
 
 
 
-  return `/lists/${listId}/shares/${shareId}`
+  return `/api/lists/${listId}/shares/${shareId}`
 }
 
 /**
