@@ -36,7 +36,7 @@ if (arg) {
     console.error(
       `No sibling spec at ${sibling}. Either:\n` +
       `  • Run \`dotnet build\` in ../LupiraTasksApi to emit it, or\n` +
-      `  • Pass a URL: \`npm run fetch:openapi -- https://tasks-api.lupira.com/openapi/v1.json\``,
+      `  • Pass a URL: \`npm run fetch:openapi -- http://192.168.14.134:40980/openapi/v1.json\``,
     );
     console.error(`(${e instanceof Error ? e.message : String(e)})`);
     process.exit(1);
