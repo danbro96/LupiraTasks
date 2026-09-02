@@ -23,7 +23,9 @@ builder.AddTasksAuth();
 // Persist data-protection keys so the auth cookie survives container restarts (mount DataProtection:KeyPath).
 var keyPath = builder.Configuration["DataProtection:KeyPath"];
 if (!string.IsNullOrWhiteSpace(keyPath))
-    builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keyPath));
+    builder.Services.AddDataProtection()
+        .SetApplicationName("LupiraTasksBff")
+        .PersistKeysToFileSystem(new DirectoryInfo(keyPath));
 
 builder.Services.AddAppHealthChecks();
 
