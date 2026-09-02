@@ -2,9 +2,15 @@ name: tests
 
 on:
   workflow_call:
+    inputs:
+      run_integration:
+        description: Also run the BFF integration tests
+        type: boolean
+        default: false
 
 env:
   SOLUTION: LupiraTasksBff.slnx
+  INTEGRATION_PROJECT: tests/LupiraTasksBff.IntegrationTests
 
 jobs:
   unit:
@@ -15,6 +21,16 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - run: dotnet test ${{ env.SOLUTION }} -c Release
+
+  integration:
+    if: ${{ inputs.run_integration }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet test ${{ env.INTEGRATION_PROJECT }} -c Release
 
   frontend:
     runs-on: ubuntu-latest

@@ -1,0 +1,19 @@
+{
+  "name": "@lupira/tasks-api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "fetch:openapi": "node scripts/fetch-openapi.mjs",
+    "routes": "node routes.mjs",
+    "filter": "node filter-spec.mjs",
+    "gen": "npm run fetch:openapi && npm run routes && npm run filter",
+    "typecheck": "tsc -b",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0"
+  }
+}

@@ -1,0 +1,140 @@
+using System.Net;
+using System.Net.Http.Json;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Xunit;
+
+namespace LupiraTasksBff.IntegrationTests;
+
+/// <summary>
+/// The proxy is an allowlist: only the VERB+path pairs in packages/api/exposed.json reach the upstream.
+/// The vitest cross-check in that package proves the config files agree; these prove the running app
+/// behaves — that a miss 404s instead of serving the SPA shell, and that the account-less share surface
+/// never carries the member's token.
+/// </summary>
+public sealed class AllowlistTests(BffTestFactory factory) : IClassFixture<BffTestFactory>
+{
+    private HttpClient Client() => factory.CreateClient(new WebApplicationFactoryClientOptions
+    {
+        AllowAutoRedirect = false,
+    });
+
+    [Fact]
+    public async Task Allowlisted_path_proxies_with_the_api_prefix_stripped()
+    {
+        var client = Client();
+        client.DefaultRequestHeaders.Authorization = new("Bearer", BffTestFactory.MintToken());
+
+        var res = await client.GetAsync("/api/lists");
+
+        res.EnsureSuccessStatusCode();
+        var echo = await res.Content.ReadFromJsonAsync<UpstreamEcho>();
+        Assert.Equal("/lists", echo!.Path);
+    }
+
+    [Theory]
+    // Not in the allowlist: the agent/MCP-facing surface the two clients never call.
+    [InlineData("/api/items")]
+    [InlineData("/api/lists/11111111-1111-1111-1111-111111111111/items/22222222-2222-2222-2222-222222222222/relations")]
+    [InlineData("/api/pingz")]
+    // Never a browser surface: these answer to a device key, a service credential or the agent's bearer.
+    [InlineData("/api/dav-backend/u/someone@example.com/collections")]
+    [InlineData("/api/mcp")]
+    [InlineData("/api/.well-known/oauth-protected-resource")]
+    // Upstream infrastructure that has no business behind the family session.
+    [InlineData("/api/openapi/v1.json")]
+    [InlineData("/api/scalar")]
+    public async Task Unlisted_path_is_404_and_never_reaches_the_upstream(string path)
+    {
+        var client = Client();
+        client.DefaultRequestHeaders.Authorization = new("Bearer", BffTestFactory.MintToken());
+        var before = factory.Upstream.Hits;
+
+        var res = await client.GetAsync(path);
+
+        Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        Assert.Equal(before, factory.Upstream.Hits);
+    }
+
+    [Fact]
+    public async Task Wrong_verb_on_an_allowlisted_path_is_404_not_the_spa_shell()
+    {
+        var client = Client();
+        client.DefaultRequestHeaders.Authorization = new("Bearer", BffTestFactory.MintToken());
+        var before = factory.Upstream.Hits;
+
+        // GET and POST /api/lists are allowlisted; PUT is not.
+        var res = await client.PutAsync("/api/lists", new StringContent("{}"));
+
+        Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        Assert.Equal(before, factory.Upstream.Hits);
+        Assert.NotEqual("text/html", res.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Fact]
+    public async Task Share_surface_is_anonymous_and_carries_no_bearer_upstream()
+    {
+        var res = await Client().GetAsync("/api/shared/some-token");
+
+        res.EnsureSuccessStatusCode();
+        var echo = await res.Content.ReadFromJsonAsync<UpstreamEcho>();
+        Assert.Equal("/shared/some-token", echo!.Path);
+        // The share token rides in the path; attaching a member token here would widen it to that member.
+        Assert.Empty(echo.Authorization);
+        Assert.Empty(echo.XDevUser);
+    }
+
+    [Fact]
+    public async Task Redeem_stays_member_authed_despite_sitting_next_to_the_share_surface()
+    {
+        var before = factory.Upstream.Hits;
+
+        var res = await Client().PostAsync("/api/shares/redeem", JsonContent.Create(new { token = "x" }));
+
+        Assert.Equal(HttpStatusCode.Unauthorized, res.StatusCode);
+        Assert.Equal(before, factory.Upstream.Hits);
+    }
+
+    [Fact]
+    public async Task Unauthenticated_member_call_is_401_not_a_redirect_to_authentik()
+    {
+        var res = await Client().GetAsync("/api/lists");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, res.StatusCode);
+        Assert.Null(res.Headers.Location);
+    }
+
+    [Fact]
+    public async Task Caller_bearer_is_forwarded_verbatim()
+    {
+        var token = BffTestFactory.MintToken("mobile@test");
+        var client = Client();
+        client.DefaultRequestHeaders.Authorization = new("Bearer", token);
+
+        var res = await client.GetAsync("/api/me");
+
+        res.EnsureSuccessStatusCode();
+        var echo = await res.Content.ReadFromJsonAsync<UpstreamEcho>();
+        Assert.Equal($"Bearer {token}", echo!.Authorization);
+    }
+
+    [Fact]
+    public async Task Wrong_audience_bearer_is_rejected()
+    {
+        var client = Client();
+        client.DefaultRequestHeaders.Authorization =
+            new("Bearer", BffTestFactory.MintToken(audience: "someone-else"));
+
+        var res = await client.GetAsync("/api/lists");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task Spa_shell_still_serves_non_api_routes()
+    {
+        var res = await Client().GetAsync("/lists/11111111-1111-1111-1111-111111111111");
+
+        res.EnsureSuccessStatusCode();
+        Assert.Equal("text/html", res.Content.Headers.ContentType?.MediaType);
+    }
+}

@@ -116,8 +116,26 @@ app.UseAuthorization();
 app.MapAuthEndpoints(app.Environment);
 app.MapReverseProxy();
 
+// A proxied prefix that matched no route is a 404, not the SPA shell. Without this the fallback
+// answers 200/text-html for anything under an API prefix, so a removed route and a live one look
+// alike from outside. Literal segments outrank this catch-all, so it only fires on a real miss.
+foreach (var prefix in ApiPrefixes(app.Configuration))
+    app.Map($"{prefix}/{{**rest}}", () => Results.NotFound());
+
 // SPA shell — served anonymously so the account-less share surface (/s/:token) loads without a session.
 // The SPA's own guard plus the member proxy route enforce auth for everything else.
 app.MapFallbackToFile("index.html");
 
 app.Run();
+
+// The first segment of every proxy route's path, so the fence can't drift from the route table.
+static string[] ApiPrefixes(IConfiguration config) =>
+    config.GetSection("ReverseProxy:Routes").GetChildren()
+        .Select(route => route["Match:Path"])
+        .Where(path => !string.IsNullOrWhiteSpace(path))
+        .Select(path => $"/{path!.TrimStart('/').Split('/')[0]}")
+        .Distinct()
+        .ToArray();
+
+// Exposes the implicit Program entry point to the integration test assembly (WebApplicationFactory<Program>).
+public partial class Program;

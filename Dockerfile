@@ -9,9 +9,11 @@ COPY package.json package-lock.json .npmrc ./
 COPY apps/web/package.json apps/web/
 COPY packages/domain/package.json packages/domain/
 COPY packages/tokens/package.json packages/tokens/
+COPY packages/api/package.json packages/api/
 COPY apps/mobile/package.json apps/mobile/
 RUN npm i -g npm@12
-# Web workspaces only — the mobile app's Expo tree has no business in this image.
+# Web workspaces only — the mobile Expo tree has no business in this image, and packages/api is
+# generation-time only (the client it feeds is committed under apps/web).
 RUN npm ci -w apps/web -w packages/domain -w packages/tokens --include-workspace-root
 COPY packages/domain/ packages/domain/
 COPY packages/tokens/ packages/tokens/

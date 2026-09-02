@@ -1,7 +1,7 @@
 import { defineConfig } from 'orval';
 
 /**
- * Orval config for the Lupira Tasks backend; `backend-openapi.json` is refreshed by `npm run fetch:openapi`.
+ * Orval config for the Lupira Tasks backend; the allowlist-filtered spec comes from `@lupira/tasks-api`.
  *
  * `client: 'fetch'` rather than react-query: the app reads through the offline SQLite mirror and the sync/outbox
  * layer calls these fetchers directly, so a react-query cache would be a second, mirror-unaware one. The mutator
@@ -9,7 +9,7 @@ import { defineConfig } from 'orval';
  */
 export default defineConfig({
   lupiraTasks: {
-    input: { target: './backend-openapi.json' },
+    input: { target: '../../packages/api/bff-openapi.json' },
     output: {
       mode: 'tags-split',
       target: './src/data/api/generated/api.ts',

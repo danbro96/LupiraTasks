@@ -12,6 +12,8 @@ on:
 jobs:
   tests:
     uses: ./.github/workflows/tests.yml
+    with:
+      run_integration: true
 
   build-push:
     needs: tests
