@@ -41,6 +41,14 @@ public sealed class BffDocumentTransformer(ILogger<BffDocumentTransformer> logge
         foreach (var (name, schema) in source.Components?.Schemas ?? new Dictionary<string, IOpenApiSchema>())
             document.Components.Schemas.TryAdd(name, schema);
 
+        // The merger's requirements reference these; without them they write out as `[{}]`.
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>(StringComparer.Ordinal);
+        foreach (var (name, scheme) in
+                 source.Components?.SecuritySchemes ?? new Dictionary<string, IOpenApiSecurityScheme>())
+        {
+            document.Components.SecuritySchemes.TryAdd(name, scheme);
+        }
+
         if (shadowed.Count > 0)
             logger.LogWarning(
                 "OpenAPI: {Count} proxied path(s) are also declared in C# and can leave exposed.json: {Paths}",

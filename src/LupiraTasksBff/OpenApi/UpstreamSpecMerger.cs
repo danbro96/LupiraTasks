@@ -48,9 +48,15 @@ public static class UpstreamSpecMerger
             foreach (var (path, item) in kept.OrderBy(p => p.Key, StringComparer.Ordinal))
             {
                 var bffPath = ExposedSurface.BffPath(path);
+                var isGuest = bffPath != path;
                 var copy = item?.DeepClone();
-                // The token left the path, so its path parameter must go too.
-                if (copy is JsonObject pathItem && bffPath != path) DropTokenParameter(pathItem);
+                if (copy is JsonObject pathItem)
+                {
+                    // The token left the path, so its path parameter must go too.
+                    if (isGuest) DropTokenParameter(pathItem);
+                    RewriteSecurity(pathItem, isGuest);
+                }
+
                 mergedPaths[prefix + bffPath] = copy;
             }
         }
@@ -68,10 +74,60 @@ public static class UpstreamSpecMerger
                 ["version"] = info?["version"]?.GetValue<string>() ?? "v1",
             },
             ["paths"] = mergedPaths,
-            ["components"] = new JsonObject { ["schemas"] = mergedSchemas },
+            ["components"] = new JsonObject
+            {
+                ["schemas"] = mergedSchemas,
+                ["securitySchemes"] = SecuritySchemes(),
+            },
         };
 
         return new MergeResult(document, notExposed);
+    }
+
+    /// <summary>
+    /// The credential presented to the BFF, not the upstream's own. Uncarried, the requirements dangle
+    /// and Microsoft.OpenApi writes them as <c>[{}]</c> — which reads as "no authentication required".
+    /// </summary>
+    private static JsonObject SecuritySchemes() => new()
+    {
+        ["Cookie"] = new JsonObject
+        {
+            ["type"] = "apiKey",
+            ["in"] = "cookie",
+            ["name"] = "__Host-lupira-tasks",
+            ["description"] = "Member session cookie minted by the BFF's OIDC login.",
+        },
+        ["Bearer"] = new JsonObject
+        {
+            ["type"] = "http",
+            ["scheme"] = "bearer",
+            ["bearerFormat"] = "JWT",
+            ["description"] = "Authentik access token from the mobile app; audience must include lupira-tasks.",
+        },
+        ["GuestCookie"] = new JsonObject
+        {
+            ["type"] = "apiKey",
+            ["in"] = "cookie",
+            ["name"] = "__Host-lupira-tasks-guest",
+            ["description"] = "Account-less share session, minted by POST /auth/guest from a share token.",
+        },
+    };
+
+    /// <summary>The share policy names its own scheme, so no member credential satisfies it.</summary>
+    private static void RewriteSecurity(JsonObject pathItem, bool isGuest)
+    {
+        foreach (var (_, node) in pathItem)
+        {
+            if (node is not JsonObject operation || !operation.ContainsKey("responses")) continue;
+
+            operation["security"] = isGuest
+                ? [new JsonObject { ["GuestCookie"] = new JsonArray() }]
+                : new JsonArray
+                {
+                    new JsonObject { ["Cookie"] = new JsonArray() },
+                    new JsonObject { ["Bearer"] = new JsonArray() },
+                };
+        }
     }
 
     /// <summary>Drops every operation the allowlist does not name, and removes what it consumed from it.</summary>

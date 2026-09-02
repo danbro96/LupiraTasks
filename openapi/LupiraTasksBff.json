@@ -108,7 +108,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       },
       "post": {
@@ -182,7 +187,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       }
     },
@@ -247,7 +257,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       },
       "patch": {
@@ -340,7 +355,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       },
       "delete": {
@@ -405,7 +425,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       }
     },
@@ -479,7 +504,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       }
     },
@@ -585,7 +615,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       },
       "post": {
@@ -678,7 +713,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       }
     },
@@ -782,7 +822,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       },
       "delete": {
@@ -865,7 +910,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       }
     },
@@ -964,7 +1014,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       }
     },
@@ -1068,7 +1123,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       }
     },
@@ -1167,7 +1227,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       }
     },
@@ -1262,7 +1327,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       }
     },
@@ -1375,7 +1445,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       },
       "delete": {
@@ -1469,7 +1544,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       }
     },
@@ -1564,7 +1644,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       }
     },
@@ -1638,7 +1723,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       }
     },
@@ -1733,7 +1823,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       },
       "get": {
@@ -1799,7 +1894,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       }
     },
@@ -1875,7 +1975,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       }
     },
@@ -1949,7 +2054,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       }
     },
@@ -1994,7 +2104,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       }
     },
@@ -2049,7 +2164,9 @@
           }
         },
         "security": [
-          { }
+          {
+            "GuestCookie": [ ]
+          }
         ]
       }
     },
@@ -2144,7 +2261,9 @@
           }
         },
         "security": [
-          { }
+          {
+            "GuestCookie": [ ]
+          }
         ]
       }
     },
@@ -2248,7 +2367,9 @@
           }
         },
         "security": [
-          { }
+          {
+            "GuestCookie": [ ]
+          }
         ]
       },
       "delete": {
@@ -2331,7 +2452,9 @@
           }
         },
         "security": [
-          { }
+          {
+            "GuestCookie": [ ]
+          }
         ]
       }
     },
@@ -2431,7 +2554,9 @@
           }
         },
         "security": [
-          { }
+          {
+            "GuestCookie": [ ]
+          }
         ]
       }
     },
@@ -2535,7 +2660,9 @@
           }
         },
         "security": [
-          { }
+          {
+            "GuestCookie": [ ]
+          }
         ]
       }
     },
@@ -2635,7 +2762,9 @@
           }
         },
         "security": [
-          { }
+          {
+            "GuestCookie": [ ]
+          }
         ]
       }
     },
@@ -2721,7 +2850,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       }
     },
@@ -2775,7 +2909,12 @@
           }
         },
         "security": [
-          { }
+          {
+            "Cookie": [ ]
+          },
+          {
+            "Bearer": [ ]
+          }
         ]
       }
     }
@@ -3878,6 +4017,26 @@
             "type": "boolean"
           }
         }
+      }
+    },
+    "securitySchemes": {
+      "Cookie": {
+        "type": "apiKey",
+        "description": "Member session cookie minted by the BFF's OIDC login.",
+        "name": "__Host-lupira-tasks",
+        "in": "cookie"
+      },
+      "Bearer": {
+        "type": "http",
+        "description": "Authentik access token from the mobile app; audience must include lupira-tasks.",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "GuestCookie": {
+        "type": "apiKey",
+        "description": "Account-less share session, minted by POST /auth/guest from a share token.",
+        "name": "__Host-lupira-tasks-guest",
+        "in": "cookie"
       }
     }
   },
