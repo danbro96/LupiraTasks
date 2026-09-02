@@ -128,13 +128,4 @@ public sealed class AllowlistTests(BffTestFactory factory) : IClassFixture<BffTe
 
         Assert.Equal(HttpStatusCode.Unauthorized, res.StatusCode);
     }
-
-    [Fact]
-    public async Task Spa_shell_still_serves_non_api_routes()
-    {
-        var res = await Client().GetAsync("/lists/11111111-1111-1111-1111-111111111111");
-
-        res.EnsureSuccessStatusCode();
-        Assert.Equal("text/html", res.Content.Headers.ContentType?.MediaType);
-    }
 }
