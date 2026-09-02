@@ -24,6 +24,9 @@ public sealed class StubUpstream : IAsyncDisposable
 
     public int Hits => Volatile.Read(ref _hits);
 
+    /// <summary>Paths the stub answers 401 for, so a test can drive a rejected share token.</summary>
+    public HashSet<string> Reject { get; } = [];
+
     private StubUpstream(WebApplication app, string address)
     {
         _app = app;
@@ -41,6 +44,7 @@ public sealed class StubUpstream : IAsyncDisposable
         app.Map("/{**path}", (HttpContext ctx) =>
         {
             Interlocked.Increment(ref self!._hits);
+            if (self.Reject.Contains(ctx.Request.Path.ToString())) return Results.Unauthorized();
             return Results.Json(new UpstreamEcho(
                 ctx.Request.Path.ToString(),
                 ctx.Request.Headers.Authorization.ToString(),

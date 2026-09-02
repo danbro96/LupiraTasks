@@ -46,7 +46,13 @@ public static class UpstreamSpecMerger
             }
 
             foreach (var (path, item) in kept.OrderBy(p => p.Key, StringComparer.Ordinal))
-                mergedPaths[prefix + path] = item?.DeepClone();
+            {
+                var bffPath = ExposedSurface.BffPath(path);
+                var copy = item?.DeepClone();
+                // The token left the path, so its path parameter must go too.
+                if (copy is JsonObject pathItem && bffPath != path) DropTokenParameter(pathItem);
+                mergedPaths[prefix + bffPath] = copy;
+            }
         }
 
         if (missing.Count > 0)
@@ -100,6 +106,26 @@ public static class UpstreamSpecMerger
         }
 
         return kept;
+    }
+
+    private static void DropTokenParameter(JsonObject pathItem)
+    {
+        foreach (var (_, node) in pathItem)
+        {
+            if (node is not JsonObject holder || holder["parameters"] is not JsonArray parameters) continue;
+
+            for (var i = parameters.Count - 1; i >= 0; i--)
+            {
+                if (parameters[i] is JsonObject p
+                    && p["name"]?.GetValue<string>() == "token"
+                    && p["in"]?.GetValue<string>() == "path")
+                {
+                    parameters.RemoveAt(i);
+                }
+            }
+
+            if (parameters.Count == 0) holder.Remove("parameters");
+        }
     }
 
     /// <summary>Schemas the pruned paths still reach, transitively — so a dropped path drops its DTOs.</summary>

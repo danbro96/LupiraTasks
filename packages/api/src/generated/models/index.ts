@@ -23,6 +23,8 @@ export * from './directoryResponse';
 export * from './directoryResponse';
 export * from './getUserDirectoryParams';
 export * from './getUserDirectoryParams';
+export * from './guestExchangeRequest';
+export * from './guestSessionInfo';
 export * from './itemDto';
 export * from './itemDto';
 export * from './itemStatus';

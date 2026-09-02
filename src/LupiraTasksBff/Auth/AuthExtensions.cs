@@ -42,15 +42,39 @@ internal static class AuthExtensions
             interactiveScheme = DevAuthHandler.SchemeName;
         }
 
+        AddGuestCookie(auth, builder.Environment.IsProduction());
+
         // DefaultPolicy = authenticated via the interactive scheme OR a bearer — referenced by the member
         // YARP route ("Default"). The bearer scheme is added only when an authority is configured.
         var hasBearer = AddBearer(builder, auth);
         var schemes = hasBearer
             ? new[] { interactiveScheme, JwtBearerDefaults.AuthenticationScheme }
             : [interactiveScheme];
-        services.AddAuthorizationBuilder().SetDefaultPolicy(
-            new AuthorizationPolicyBuilder(schemes).RequireAuthenticatedUser().Build());
+        services.AddAuthorizationBuilder()
+            .SetDefaultPolicy(new AuthorizationPolicyBuilder(schemes).RequireAuthenticatedUser().Build())
+            // Names its scheme, so neither cookie can satisfy the other's policy.
+            .AddPolicy(GuestSession.PolicyName, p => p
+                .AddAuthenticationSchemes(GuestSession.SchemeName)
+                .RequireAuthenticatedUser()
+                .RequireClaim(GuestSession.TokenClaim));
     }
+
+    /// <summary>Registered in both environments: DevAuthHandler would otherwise mask the guest path locally.</summary>
+    private static void AddGuestCookie(AuthenticationBuilder auth, bool secure) =>
+        auth.AddCookie(GuestSession.SchemeName, o =>
+        {
+            // The `__Host-` prefix requires Secure, and the dev BFF is plain http — a browser would drop
+            // the cookie. Unlike the member session, dev cannot fall back to DevAuthHandler here.
+            o.Cookie.Name = secure ? "__Host-lupira-tasks-guest" : "lupira-tasks-guest";
+            o.Cookie.HttpOnly = true;
+            o.Cookie.SecurePolicy = secure ? CookieSecurePolicy.Always : CookieSecurePolicy.SameAsRequest;
+            o.Cookie.SameSite = SameSiteMode.Lax;
+            // Fixed, not sliding: the cookie must not outlive the share it was minted from.
+            o.SlidingExpiration = false;
+            o.ExpireTimeSpan = TimeSpan.FromHours(12);
+            o.Events.OnRedirectToLogin = ctx => ApiAware(ctx, StatusCodes.Status401Unauthorized);
+            o.Events.OnRedirectToAccessDenied = ctx => ApiAware(ctx, StatusCodes.Status403Forbidden);
+        });
 
     /// <summary>JWT bearer for native clients (the mobile app's Authentik public client). The token's audience
     /// must include this backend's (<c>lupira-tasks</c>) — the mobile client requests the tasks audience scope,

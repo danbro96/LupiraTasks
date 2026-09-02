@@ -34,7 +34,7 @@ import type {
   UpdateItemRequest
 } from '../../models';
 
-import { sharedApiRequest } from '../../../transport';
+import { apiRequest } from '../../../transport';
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -60,21 +60,21 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   return result;
 };
 
-export const getGetSharedListUrl = (token: string,) => {
+export const getGetSharedListUrl = () => {
 
 
 
 
-  return `/api/shared/${token}`
+  return `/api/share`
 }
 
 /**
  * Returns the list + items, trimmed of all emails. `access` indicates read vs read/write.
  * @summary View a shared list by token (no account needed).
  */
-export const getSharedList = async (token: string, options?: Parameters<typeof sharedApiRequest>[1]): Promise<SharedListResponse> => {
+export const getSharedList = async ( options?: Parameters<typeof apiRequest>[1]): Promise<SharedListResponse> => {
 
-  return sharedApiRequest<SharedListResponse>(getGetSharedListUrl(token),
+  return apiRequest<SharedListResponse>(getGetSharedListUrl(),
   {
     ...options,
     method: 'GET'
@@ -87,29 +87,29 @@ export const getSharedList = async (token: string, options?: Parameters<typeof s
 
 
 
-export const getGetSharedListQueryKey = (token: string,) => {
+export const getGetSharedListQueryKey = () => {
     return [
-    `/api/shared/${token}`
+    `/api/share`
     ] as const;
     }
 
 
-export const getGetSharedListQueryOptions = <TData = Awaited<ReturnType<typeof getSharedList>>, TError = ProblemDetails>(token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSharedList>>, TError, TData>>, request?: SecondParameter<typeof sharedApiRequest>}
+export const getGetSharedListQueryOptions = <TData = Awaited<ReturnType<typeof getSharedList>>, TError = ProblemDetails>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSharedList>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetSharedListQueryKey(token);
+  const queryKey =  queryOptions?.queryKey ?? getGetSharedListQueryKey();
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSharedList>>> = ({ signal }) => getSharedList(token, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSharedList>>> = ({ signal }) => getSharedList({ signal, ...requestOptions });
 
 
 
 
 
-   return  { queryKey, queryFn, enabled: token !== null && token !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSharedList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSharedList>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetSharedListQueryResult = NonNullable<Awaited<ReturnType<typeof getSharedList>>>
@@ -117,27 +117,27 @@ export type GetSharedListQueryError = ProblemDetails
 
 
 export function useGetSharedList<TData = Awaited<ReturnType<typeof getSharedList>>, TError = ProblemDetails>(
- token: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSharedList>>, TError, TData>> & Pick<
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSharedList>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getSharedList>>,
           TError,
           Awaited<ReturnType<typeof getSharedList>>
         > , 'initialData'
-      >, request?: SecondParameter<typeof sharedApiRequest>}
+      >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetSharedList<TData = Awaited<ReturnType<typeof getSharedList>>, TError = ProblemDetails>(
- token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSharedList>>, TError, TData>> & Pick<
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSharedList>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getSharedList>>,
           TError,
           Awaited<ReturnType<typeof getSharedList>>
         > , 'initialData'
-      >, request?: SecondParameter<typeof sharedApiRequest>}
+      >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetSharedList<TData = Awaited<ReturnType<typeof getSharedList>>, TError = ProblemDetails>(
- token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSharedList>>, TError, TData>>, request?: SecondParameter<typeof sharedApiRequest>}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSharedList>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -145,11 +145,11 @@ export function useGetSharedList<TData = Awaited<ReturnType<typeof getSharedList
  */
 
 export function useGetSharedList<TData = Awaited<ReturnType<typeof getSharedList>>, TError = ProblemDetails>(
- token: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSharedList>>, TError, TData>>, request?: SecondParameter<typeof sharedApiRequest>}
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSharedList>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getGetSharedListQueryOptions(token,options)
+  const queryOptions = getGetSharedListQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -161,19 +161,18 @@ export function useGetSharedList<TData = Awaited<ReturnType<typeof getSharedList
 
 
 
-export const getCreateSharedItemUrl = (token: string,) => {
+export const getCreateSharedItemUrl = () => {
 
 
 
 
-  return `/api/shared/${token}/items`
+  return `/api/share/items`
 }
 
 /**
  * @summary Add an item via a read/write share link.
  */
-export const createSharedItem = async (token: string,
-    createItemRequest: CreateItemRequest, options?: Parameters<typeof sharedApiRequest>[1]): Promise<SharedItemDto> => {
+export const createSharedItem = async (createItemRequest: CreateItemRequest, options?: Parameters<typeof apiRequest>[1]): Promise<SharedItemDto> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -181,7 +180,7 @@ export const createSharedItem = async (token: string,
     if (Array.isArray(h)) return Object.fromEntries(h);
     return h;
   };
-return sharedApiRequest<SharedItemDto>(getCreateSharedItemUrl(token),
+return apiRequest<SharedItemDto>(getCreateSharedItemUrl(),
   {
     ...options,
     method: 'POST',
@@ -197,7 +196,7 @@ return sharedApiRequest<SharedItemDto>(getCreateSharedItemUrl(token),
 export const getCreateSharedItemMutationKey = () => ['createSharedItem'] as const;
 
 export const getCreateSharedItemMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSharedItem>>, TError,CreateSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof sharedApiRequest>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSharedItem>>, TError,CreateSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createSharedItem>>, TError,CreateSharedItemMutationVariables, TContext> => {
 
 const mutationKey = getCreateSharedItemMutationKey();
@@ -211,9 +210,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof createSharedItem>>, CreateSharedItemMutationVariables> = (props) => {
-          const {token,data} = props ?? {};
+          const {data} = props ?? {};
 
-          return  createSharedItem(token,data,requestOptions)
+          return  createSharedItem(data,requestOptions)
         }
 
 
@@ -226,13 +225,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateSharedItemMutationResult = NonNullable<Awaited<ReturnType<typeof createSharedItem>>>
     export type CreateSharedItemMutationBody = CreateItemRequest
     export type CreateSharedItemMutationError = ProblemDetails
-    export type CreateSharedItemMutationVariables = {token: string;data: CreateItemRequest}
+    export type CreateSharedItemMutationVariables = {data: CreateItemRequest}
 
     /**
  * @summary Add an item via a read/write share link.
  */
 export const useCreateSharedItem = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSharedItem>>, TError,CreateSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof sharedApiRequest>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSharedItem>>, TError,CreateSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createSharedItem>>,
         TError,
@@ -241,21 +240,19 @@ export const useCreateSharedItem = <TError = ProblemDetails,
       > => {
       return useMutation(getCreateSharedItemMutationOptions(options), queryClient);
     }
-    export const getUpdateSharedItemUrl = (token: string,
-    itemId: string,) => {
+    export const getUpdateSharedItemUrl = (itemId: string,) => {
 
 
 
 
-  return `/api/shared/${token}/items/${itemId}`
+  return `/api/share/items/${itemId}`
 }
 
 /**
  * @summary Edit an item via a read/write share link.
  */
-export const updateSharedItem = async (token: string,
-    itemId: string,
-    updateItemRequest: UpdateItemRequest, options?: Parameters<typeof sharedApiRequest>[1]): Promise<SharedItemDto> => {
+export const updateSharedItem = async (itemId: string,
+    updateItemRequest: UpdateItemRequest, options?: Parameters<typeof apiRequest>[1]): Promise<SharedItemDto> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -263,7 +260,7 @@ export const updateSharedItem = async (token: string,
     if (Array.isArray(h)) return Object.fromEntries(h);
     return h;
   };
-return sharedApiRequest<SharedItemDto>(getUpdateSharedItemUrl(token,itemId),
+return apiRequest<SharedItemDto>(getUpdateSharedItemUrl(itemId),
   {
     ...options,
     method: 'PATCH',
@@ -279,7 +276,7 @@ return sharedApiRequest<SharedItemDto>(getUpdateSharedItemUrl(token,itemId),
 export const getUpdateSharedItemMutationKey = () => ['updateSharedItem'] as const;
 
 export const getUpdateSharedItemMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSharedItem>>, TError,UpdateSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof sharedApiRequest>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSharedItem>>, TError,UpdateSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateSharedItem>>, TError,UpdateSharedItemMutationVariables, TContext> => {
 
 const mutationKey = getUpdateSharedItemMutationKey();
@@ -293,9 +290,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateSharedItem>>, UpdateSharedItemMutationVariables> = (props) => {
-          const {token,itemId,data} = props ?? {};
+          const {itemId,data} = props ?? {};
 
-          return  updateSharedItem(token,itemId,data,requestOptions)
+          return  updateSharedItem(itemId,data,requestOptions)
         }
 
 
@@ -308,13 +305,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type UpdateSharedItemMutationResult = NonNullable<Awaited<ReturnType<typeof updateSharedItem>>>
     export type UpdateSharedItemMutationBody = UpdateItemRequest
     export type UpdateSharedItemMutationError = ProblemDetails
-    export type UpdateSharedItemMutationVariables = {token: string;itemId: string;data: UpdateItemRequest}
+    export type UpdateSharedItemMutationVariables = {itemId: string;data: UpdateItemRequest}
 
     /**
  * @summary Edit an item via a read/write share link.
  */
 export const useUpdateSharedItem = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSharedItem>>, TError,UpdateSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof sharedApiRequest>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSharedItem>>, TError,UpdateSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateSharedItem>>,
         TError,
@@ -323,8 +320,7 @@ export const useUpdateSharedItem = <TError = ProblemDetails,
       > => {
       return useMutation(getUpdateSharedItemMutationOptions(options), queryClient);
     }
-    export const getDeleteSharedItemUrl = (token: string,
-    itemId: string,
+    export const getDeleteSharedItemUrl = (itemId: string,
     params?: DeleteSharedItemParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -337,17 +333,16 @@ export const useUpdateSharedItem = <TError = ProblemDetails,
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/api/shared/${token}/items/${itemId}?${stringifiedParams}` : `/api/shared/${token}/items/${itemId}`
+  return stringifiedParams.length > 0 ? `/api/share/items/${itemId}?${stringifiedParams}` : `/api/share/items/${itemId}`
 }
 
 /**
  * @summary Delete an item via a read/write share link.
  */
-export const deleteSharedItem = async (token: string,
-    itemId: string,
-    params?: DeleteSharedItemParams, options?: Parameters<typeof sharedApiRequest>[1]): Promise<void> => {
+export const deleteSharedItem = async (itemId: string,
+    params?: DeleteSharedItemParams, options?: Parameters<typeof apiRequest>[1]): Promise<void> => {
 
-  return sharedApiRequest<void>(getDeleteSharedItemUrl(token,itemId,params),
+  return apiRequest<void>(getDeleteSharedItemUrl(itemId,params),
   {
     ...options,
     method: 'DELETE'
@@ -363,7 +358,7 @@ export const deleteSharedItem = async (token: string,
 export const getDeleteSharedItemMutationKey = () => ['deleteSharedItem'] as const;
 
 export const getDeleteSharedItemMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSharedItem>>, TError,DeleteSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof sharedApiRequest>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSharedItem>>, TError,DeleteSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteSharedItem>>, TError,DeleteSharedItemMutationVariables, TContext> => {
 
 const mutationKey = getDeleteSharedItemMutationKey();
@@ -377,9 +372,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteSharedItem>>, DeleteSharedItemMutationVariables> = (props) => {
-          const {token,itemId,params} = props ?? {};
+          const {itemId,params} = props ?? {};
 
-          return  deleteSharedItem(token,itemId,params,requestOptions)
+          return  deleteSharedItem(itemId,params,requestOptions)
         }
 
 
@@ -392,13 +387,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DeleteSharedItemMutationResult = NonNullable<Awaited<ReturnType<typeof deleteSharedItem>>>
 
     export type DeleteSharedItemMutationError = ProblemDetails
-    export type DeleteSharedItemMutationVariables = {token: string;itemId: string;params?: DeleteSharedItemParams}
+    export type DeleteSharedItemMutationVariables = {itemId: string;params?: DeleteSharedItemParams}
 
     /**
  * @summary Delete an item via a read/write share link.
  */
 export const useDeleteSharedItem = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSharedItem>>, TError,DeleteSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof sharedApiRequest>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSharedItem>>, TError,DeleteSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteSharedItem>>,
         TError,
@@ -407,21 +402,19 @@ export const useDeleteSharedItem = <TError = ProblemDetails,
       > => {
       return useMutation(getDeleteSharedItemMutationOptions(options), queryClient);
     }
-    export const getCompleteSharedItemUrl = (token: string,
-    itemId: string,) => {
+    export const getCompleteSharedItemUrl = (itemId: string,) => {
 
 
 
 
-  return `/api/shared/${token}/items/${itemId}/complete`
+  return `/api/share/items/${itemId}/complete`
 }
 
 /**
  * @summary Mark an item complete via a read/write share link.
  */
-export const completeSharedItem = async (token: string,
-    itemId: string,
-    nullItemTimestampRequest?: null | ItemTimestampRequest, options?: Parameters<typeof sharedApiRequest>[1]): Promise<SharedItemDto> => {
+export const completeSharedItem = async (itemId: string,
+    nullItemTimestampRequest?: null | ItemTimestampRequest, options?: Parameters<typeof apiRequest>[1]): Promise<SharedItemDto> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -429,7 +422,7 @@ export const completeSharedItem = async (token: string,
     if (Array.isArray(h)) return Object.fromEntries(h);
     return h;
   };
-return sharedApiRequest<SharedItemDto>(getCompleteSharedItemUrl(token,itemId),
+return apiRequest<SharedItemDto>(getCompleteSharedItemUrl(itemId),
   {
     ...options,
     method: 'POST',
@@ -445,7 +438,7 @@ return sharedApiRequest<SharedItemDto>(getCompleteSharedItemUrl(token,itemId),
 export const getCompleteSharedItemMutationKey = () => ['completeSharedItem'] as const;
 
 export const getCompleteSharedItemMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeSharedItem>>, TError,CompleteSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof sharedApiRequest>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeSharedItem>>, TError,CompleteSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
 ): UseMutationOptions<Awaited<ReturnType<typeof completeSharedItem>>, TError,CompleteSharedItemMutationVariables, TContext> => {
 
 const mutationKey = getCompleteSharedItemMutationKey();
@@ -459,9 +452,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof completeSharedItem>>, CompleteSharedItemMutationVariables> = (props) => {
-          const {token,itemId,data} = props ?? {};
+          const {itemId,data} = props ?? {};
 
-          return  completeSharedItem(token,itemId,data,requestOptions)
+          return  completeSharedItem(itemId,data,requestOptions)
         }
 
 
@@ -474,13 +467,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CompleteSharedItemMutationResult = NonNullable<Awaited<ReturnType<typeof completeSharedItem>>>
     export type CompleteSharedItemMutationBody = null | ItemTimestampRequest | undefined
     export type CompleteSharedItemMutationError = ProblemDetails
-    export type CompleteSharedItemMutationVariables = {token: string;itemId: string;data?: null | ItemTimestampRequest}
+    export type CompleteSharedItemMutationVariables = {itemId: string;data?: null | ItemTimestampRequest}
 
     /**
  * @summary Mark an item complete via a read/write share link.
  */
 export const useCompleteSharedItem = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeSharedItem>>, TError,CompleteSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof sharedApiRequest>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeSharedItem>>, TError,CompleteSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof completeSharedItem>>,
         TError,
@@ -489,21 +482,19 @@ export const useCompleteSharedItem = <TError = ProblemDetails,
       > => {
       return useMutation(getCompleteSharedItemMutationOptions(options), queryClient);
     }
-    export const getMoveSharedItemUrl = (token: string,
-    itemId: string,) => {
+    export const getMoveSharedItemUrl = (itemId: string,) => {
 
 
 
 
-  return `/api/shared/${token}/items/${itemId}/move`
+  return `/api/share/items/${itemId}/move`
 }
 
 /**
  * @summary Reparent / reorder an item via a read/write share link.
  */
-export const moveSharedItem = async (token: string,
-    itemId: string,
-    moveItemRequest: MoveItemRequest, options?: Parameters<typeof sharedApiRequest>[1]): Promise<SharedItemDto> => {
+export const moveSharedItem = async (itemId: string,
+    moveItemRequest: MoveItemRequest, options?: Parameters<typeof apiRequest>[1]): Promise<SharedItemDto> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -511,7 +502,7 @@ export const moveSharedItem = async (token: string,
     if (Array.isArray(h)) return Object.fromEntries(h);
     return h;
   };
-return sharedApiRequest<SharedItemDto>(getMoveSharedItemUrl(token,itemId),
+return apiRequest<SharedItemDto>(getMoveSharedItemUrl(itemId),
   {
     ...options,
     method: 'POST',
@@ -527,7 +518,7 @@ return sharedApiRequest<SharedItemDto>(getMoveSharedItemUrl(token,itemId),
 export const getMoveSharedItemMutationKey = () => ['moveSharedItem'] as const;
 
 export const getMoveSharedItemMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveSharedItem>>, TError,MoveSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof sharedApiRequest>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveSharedItem>>, TError,MoveSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
 ): UseMutationOptions<Awaited<ReturnType<typeof moveSharedItem>>, TError,MoveSharedItemMutationVariables, TContext> => {
 
 const mutationKey = getMoveSharedItemMutationKey();
@@ -541,9 +532,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof moveSharedItem>>, MoveSharedItemMutationVariables> = (props) => {
-          const {token,itemId,data} = props ?? {};
+          const {itemId,data} = props ?? {};
 
-          return  moveSharedItem(token,itemId,data,requestOptions)
+          return  moveSharedItem(itemId,data,requestOptions)
         }
 
 
@@ -556,13 +547,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type MoveSharedItemMutationResult = NonNullable<Awaited<ReturnType<typeof moveSharedItem>>>
     export type MoveSharedItemMutationBody = MoveItemRequest
     export type MoveSharedItemMutationError = ProblemDetails
-    export type MoveSharedItemMutationVariables = {token: string;itemId: string;data: MoveItemRequest}
+    export type MoveSharedItemMutationVariables = {itemId: string;data: MoveItemRequest}
 
     /**
  * @summary Reparent / reorder an item via a read/write share link.
  */
 export const useMoveSharedItem = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveSharedItem>>, TError,MoveSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof sharedApiRequest>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveSharedItem>>, TError,MoveSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof moveSharedItem>>,
         TError,
@@ -571,21 +562,19 @@ export const useMoveSharedItem = <TError = ProblemDetails,
       > => {
       return useMutation(getMoveSharedItemMutationOptions(options), queryClient);
     }
-    export const getReopenSharedItemUrl = (token: string,
-    itemId: string,) => {
+    export const getReopenSharedItemUrl = (itemId: string,) => {
 
 
 
 
-  return `/api/shared/${token}/items/${itemId}/reopen`
+  return `/api/share/items/${itemId}/reopen`
 }
 
 /**
  * @summary Reopen a completed item via a read/write share link.
  */
-export const reopenSharedItem = async (token: string,
-    itemId: string,
-    nullItemTimestampRequest?: null | ItemTimestampRequest, options?: Parameters<typeof sharedApiRequest>[1]): Promise<SharedItemDto> => {
+export const reopenSharedItem = async (itemId: string,
+    nullItemTimestampRequest?: null | ItemTimestampRequest, options?: Parameters<typeof apiRequest>[1]): Promise<SharedItemDto> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -593,7 +582,7 @@ export const reopenSharedItem = async (token: string,
     if (Array.isArray(h)) return Object.fromEntries(h);
     return h;
   };
-return sharedApiRequest<SharedItemDto>(getReopenSharedItemUrl(token,itemId),
+return apiRequest<SharedItemDto>(getReopenSharedItemUrl(itemId),
   {
     ...options,
     method: 'POST',
@@ -609,7 +598,7 @@ return sharedApiRequest<SharedItemDto>(getReopenSharedItemUrl(token,itemId),
 export const getReopenSharedItemMutationKey = () => ['reopenSharedItem'] as const;
 
 export const getReopenSharedItemMutationOptions = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reopenSharedItem>>, TError,ReopenSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof sharedApiRequest>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reopenSharedItem>>, TError,ReopenSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
 ): UseMutationOptions<Awaited<ReturnType<typeof reopenSharedItem>>, TError,ReopenSharedItemMutationVariables, TContext> => {
 
 const mutationKey = getReopenSharedItemMutationKey();
@@ -623,9 +612,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof reopenSharedItem>>, ReopenSharedItemMutationVariables> = (props) => {
-          const {token,itemId,data} = props ?? {};
+          const {itemId,data} = props ?? {};
 
-          return  reopenSharedItem(token,itemId,data,requestOptions)
+          return  reopenSharedItem(itemId,data,requestOptions)
         }
 
 
@@ -638,13 +627,13 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type ReopenSharedItemMutationResult = NonNullable<Awaited<ReturnType<typeof reopenSharedItem>>>
     export type ReopenSharedItemMutationBody = null | ItemTimestampRequest | undefined
     export type ReopenSharedItemMutationError = ProblemDetails
-    export type ReopenSharedItemMutationVariables = {token: string;itemId: string;data?: null | ItemTimestampRequest}
+    export type ReopenSharedItemMutationVariables = {itemId: string;data?: null | ItemTimestampRequest}
 
     /**
  * @summary Reopen a completed item via a read/write share link.
  */
 export const useReopenSharedItem = <TError = ProblemDetails,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reopenSharedItem>>, TError,ReopenSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof sharedApiRequest>}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reopenSharedItem>>, TError,ReopenSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof reopenSharedItem>>,
         TError,

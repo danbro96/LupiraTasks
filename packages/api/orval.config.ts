@@ -1,10 +1,9 @@
 import { defineConfig } from 'orval';
 
 // One document — the BFF's own — in three flavours. The split is per call site, not per app:
-// `query` is the member surface read straight off the server, `shared` is the account-less
-// share-link surface (its own target because it needs a transport that never carries the member
-// credential), and `fetch` is for callers that own their caching — the app reads through its SQLite
-// mirror, so a react-query cache there would be a second, mirror-unaware one.
+// `query` is the member surface, `shared` the account-less share-link surface (its own target only
+// because orval filters by tag), and `fetch` is for callers that own their caching — the app reads
+// through its SQLite mirror, so a react-query cache there would be a second, mirror-unaware one.
 //
 // Models are generated once, by the query target, and the others point at the same directory so
 // there is a single set of types. `clean` is off: it would let whichever target runs last delete the
@@ -41,7 +40,7 @@ export default defineConfig({
       mode: 'tags-split',
       clean: false,
       override: {
-        mutator: { path: './src/transport.ts', name: 'sharedApiRequest' },
+        mutator: { path: './src/transport.ts', name: 'apiRequest' },
         query: { signal: true },
         fetch: { includeHttpResponseReturnType: false },
       },

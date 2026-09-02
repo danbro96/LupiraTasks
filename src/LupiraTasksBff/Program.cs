@@ -1,9 +1,11 @@
 using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Text.Json.Serialization;
 using Duende.AccessTokenManagement;
 using Duende.AccessTokenManagement.OpenIdConnect;
 using LupiraTasksBff.Auth;
 using LupiraTasksBff.Endpoints;
+using LupiraTasksBff.Upstream;
 using LupiraTasksBff.OpenApi;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -30,6 +32,7 @@ if (!string.IsNullOrWhiteSpace(keyPath))
         .PersistKeysToFileSystem(new DirectoryInfo(keyPath));
 
 builder.Services.AddAppHealthChecks();
+builder.Services.AddUpstreamClient(builder.Configuration);
 
 // MSBuild runs this same pipeline on build and writes openapi/LupiraTasksBff.json — the file the
 // TypeScript clients generate from.
@@ -44,8 +47,15 @@ builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
     .AddTransforms(ctx => ctx.AddRequestTransform(async transform =>
     {
-        if (transform.HttpContext.Request.Path.StartsWithSegments("/api/shared"))
+        // Guest routes: replay the token from the cookie, never a member credential. Path is set from
+        // the original request so this does not depend on transform ordering.
+        if (transform.HttpContext.Request.Path.StartsWithSegments("/api/share", out var shareRest))
+        {
+            var shareToken = transform.HttpContext.User.FindFirstValue(GuestSession.TokenClaim);
+            if (string.IsNullOrEmpty(shareToken)) return;   // the Guest policy already rejected this
+            transform.Path = $"/shared/{shareToken}{shareRest}";
             return;
+        }
 
         // Native callers already presented a bearer the API accepts — YARP copies it verbatim.
         if (transform.HttpContext.Request.Headers.Authorization.Count > 0)
@@ -126,6 +136,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAuthEndpoints(app.Environment);
+app.MapGuestEndpoints();
 // Authenticated: the document is the whole internal API map, and the clients read the committed
 // file rather than this endpoint.
 app.MapOpenApi("/openapi/{documentName}.json").RequireAuthorization();

@@ -23,7 +23,7 @@ import { descendantIds, nextChildSortOrder, topSortOrder } from '../domain/itemT
 import { useRemoteChanges } from './useRemoteChanges';
 import { useListPollInterval } from './usePollInterval';
 
-// React Query wrapper around the shared-link surface. One cached list per token; every mutation
+// React Query wrapper around the shared-link surface, served from the guest cookie; every mutation
 // updates the cache optimistically (so the UI feels instant), rolls back on error, and refetches
 // on settle (server is the source of truth — no offline/persistence here). Every mutation stamps
 // `occurredAt` (client wall-clock) so concurrent edits converge via last-writer-wins.
@@ -33,9 +33,9 @@ const nowIso = () => new Date().toISOString();
 
 type Ctx = { previous?: SharedListResponse };
 
-export function useSharedList(token: string) {
+export function useSharedList(token: string, enabled: boolean) {
   const qc = useQueryClient();
-  const key = useMemo(() => getGetSharedListQueryKey(token), [token]);
+  const key = useMemo(() => getGetSharedListQueryKey(), []);
 
   const { changes, absorb, emit } = useRemoteChanges<SharedItemDto>(token);
   const refetchInterval = useListPollInterval();
@@ -44,8 +44,9 @@ export function useSharedList(token: string) {
   // may announce a change, and setQueryData never runs queryFn.
   const query = useQuery({
     queryKey: key,
+    enabled,
     queryFn: async () => {
-      const data = await getSharedList(token);
+      const data = await getSharedList();
       emit(data.items);
       return data;
     },
@@ -89,7 +90,7 @@ export function useSharedList(token: string) {
   }
 
   const addMut = useMutation<SharedItemDto, unknown, CreateItemRequest, Ctx>({
-    mutationFn: body => createSharedItem(token, { occurredAt: nowIso(), ...body }),
+    mutationFn: body => createSharedItem({ occurredAt: nowIso(), ...body }),
     ...optimistic<CreateItemRequest>((curr, body) => [
       ...curr,
       {
@@ -110,7 +111,7 @@ export function useSharedList(token: string) {
   });
 
   const updateMut = useMutation<SharedItemDto, unknown, { itemId: string; body: UpdateItemRequest }, Ctx>({
-    mutationFn: ({ itemId, body }) => updateSharedItem(token, itemId, { occurredAt: nowIso(), ...body }),
+    mutationFn: ({ itemId, body }) => updateSharedItem(itemId, { occurredAt: nowIso(), ...body }),
     ...optimistic<{ itemId: string; body: UpdateItemRequest }>((curr, { itemId, body }) =>
       curr.map(it => {
         if (it.id !== itemId) return it;
@@ -133,8 +134,8 @@ export function useSharedList(token: string) {
   const toggleMut = useMutation<SharedItemDto, unknown, SharedItemDto, Ctx>({
     mutationFn: item =>
       item.completed
-        ? reopenSharedItem(token, item.id, { occurredAt: nowIso() })
-        : completeSharedItem(token, item.id, { occurredAt: nowIso() }),
+        ? reopenSharedItem(item.id, { occurredAt: nowIso() })
+        : completeSharedItem(item.id, { occurredAt: nowIso() }),
     ...optimistic<SharedItemDto>((curr, item) =>
       curr.map(it =>
         it.id === item.id ? { ...it, completed: !item.completed, completedAt: item.completed ? null : nowIso() } : it,
@@ -149,7 +150,7 @@ export function useSharedList(token: string) {
     Ctx
   >({
     mutationFn: ({ itemId, sortOrder, parentItemId }) =>
-      moveSharedItem(token, itemId, { sortOrder, parentItemId, occurredAt: nowIso() }),
+      moveSharedItem(itemId, { sortOrder, parentItemId, occurredAt: nowIso() }),
     ...optimistic<{ itemId: string; sortOrder: string; parentItemId: string | null }>((curr, { itemId, sortOrder, parentItemId }) =>
       curr.map(it => (it.id === itemId ? { ...it, sortOrder, parentItemId } : it)),
     ),
@@ -157,7 +158,7 @@ export function useSharedList(token: string) {
 
   const deleteMut = useMutation<void, unknown, { ids: string[] }, Ctx>({
     mutationFn: ({ ids }) =>
-      Promise.all(ids.map(id => deleteSharedItem(token, id, { occurredAt: nowIso() }))).then(() => undefined),
+      Promise.all(ids.map(id => deleteSharedItem(id, { occurredAt: nowIso() }))).then(() => undefined),
     ...optimistic<{ ids: string[] }>((curr, { ids }) => curr.filter(it => !ids.includes(it.id))),
   });
 

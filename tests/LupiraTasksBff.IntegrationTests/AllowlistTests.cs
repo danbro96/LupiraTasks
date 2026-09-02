@@ -13,9 +13,12 @@ namespace LupiraTasksBff.IntegrationTests;
 /// </summary>
 public sealed class AllowlistTests(BffTestFactory factory) : IClassFixture<BffTestFactory>
 {
+    // https, because the session cookies are SecurePolicy.Always and an http client would accept them
+    // but never send them back — and production is https-only anyway.
     private HttpClient Client() => factory.CreateClient(new WebApplicationFactoryClientOptions
     {
         AllowAutoRedirect = false,
+        BaseAddress = new Uri("https://localhost"),
     });
 
     [Fact]
@@ -71,16 +74,64 @@ public sealed class AllowlistTests(BffTestFactory factory) : IClassFixture<BffTe
     }
 
     [Fact]
-    public async Task Share_surface_is_anonymous_and_carries_no_bearer_upstream()
+    public async Task Guest_exchange_replays_the_token_upstream_without_a_member_credential()
     {
-        var res = await Client().GetAsync("/api/shared/some-token");
+        var client = Client();
+
+        var exchange = await client.PostAsync("/auth/guest", JsonContent.Create(new { token = "some-token" }));
+        exchange.EnsureSuccessStatusCode();
+
+        var res = await client.GetAsync("/api/share");
 
         res.EnsureSuccessStatusCode();
         var echo = await res.Content.ReadFromJsonAsync<UpstreamEcho>();
+        // The token left the URL at the exchange and comes back from the cookie here.
         Assert.Equal("/shared/some-token", echo!.Path);
-        // The share token rides in the path; attaching a member token here would widen it to that member.
+        // Attaching a member token would widen the link to that member.
         Assert.Empty(echo.Authorization);
         Assert.Empty(echo.XDevUser);
+    }
+
+    [Fact]
+    public async Task Guest_exchange_is_refused_when_the_upstream_rejects_the_token()
+    {
+        factory.Upstream.Reject.Add("/shared/dead-token");
+        try
+        {
+            var res = await Client().PostAsync("/auth/guest", JsonContent.Create(new { token = "dead-token" }));
+
+            Assert.Equal(HttpStatusCode.Unauthorized, res.StatusCode);
+            res.Headers.TryGetValues("Set-Cookie", out var cookies);
+            Assert.DoesNotContain("__Host-lupira-tasks-guest", string.Join(';', cookies ?? []));
+        }
+        finally
+        {
+            factory.Upstream.Reject.Remove("/shared/dead-token");
+        }
+    }
+
+    [Fact]
+    public async Task Share_surface_is_unreachable_without_the_guest_cookie()
+    {
+        var before = factory.Upstream.Hits;
+
+        var res = await Client().GetAsync("/api/share");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, res.StatusCode);
+        Assert.Equal(before, factory.Upstream.Hits);
+    }
+
+    [Fact]
+    public async Task Guest_cookie_does_not_reach_a_member_route()
+    {
+        var client = Client();
+        (await client.PostAsync("/auth/guest", JsonContent.Create(new { token = "some-token" }))).EnsureSuccessStatusCode();
+
+        var before = factory.Upstream.Hits;
+        var res = await client.GetAsync("/api/lists");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, res.StatusCode);
+        Assert.Equal(before, factory.Upstream.Hits);
     }
 
     [Fact]

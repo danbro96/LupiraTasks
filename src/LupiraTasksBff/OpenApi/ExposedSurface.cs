@@ -19,16 +19,27 @@ public sealed class ExposedSurface
     [JsonPropertyName("operations")]
     public Dictionary<string, List<string>> Operations { get; init; } = [];
 
-    /// <summary>The account-less share-link surface (the Anonymous policy), which never carries a token.</summary>
-    [JsonPropertyName("anonymous")]
-    public Dictionary<string, List<string>> Anonymous { get; init; } = [];
+    /// <summary>The account-less share-link surface, served from the guest cookie.</summary>
+    [JsonPropertyName("guest")]
+    public Dictionary<string, List<string>> Guest { get; init; } = [];
 
     /// <summary>
     /// Every allowlisted operation for a cluster, whichever policy group it sits in. The document
     /// describes both surfaces — only the route table cares which policy each one gets.
     /// </summary>
     public IEnumerable<string> AllFor(string cluster) =>
-        (Operations.GetValueOrDefault(cluster) ?? []).Concat(Anonymous.GetValueOrDefault(cluster) ?? []);
+        (Operations.GetValueOrDefault(cluster) ?? []).Concat(Guest.GetValueOrDefault(cluster) ?? []);
+
+    /// <summary>Guest routes drop the token segment. routes.mjs applies the same rule; exposed.test.ts
+    /// cross-checks them.</summary>
+    public static string BffPath(string upstreamPath) =>
+        upstreamPath.StartsWith(UpstreamGuestPrefix, StringComparison.Ordinal)
+            ? GuestMount + upstreamPath[UpstreamGuestPrefix.Length..]
+            : upstreamPath;
+
+    public const string UpstreamGuestPrefix = "/shared/{token}";
+
+    public const string GuestMount = "/share";
 
     public static ExposedSurface Load()
     {

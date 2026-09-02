@@ -14,9 +14,15 @@ const settingsPath = join(here, '..', '..', 'src/LupiraTasksBff/appsettings.json
 
 const PREFIX = { 'tasks-api': '/api' };
 
-// Each group is a routing class: `anonymous` is the account-less share surface, which must never
-// carry the member's token (Program.cs skips the bearer transform for it by path).
-const POLICY = { operations: 'Default', anonymous: 'Anonymous' };
+// Guest routes drop the token segment; Program.cs replays it. ExposedSurface.BffPath is the same rule.
+const UPSTREAM_GUEST_PREFIX = '/shared/{token}';
+const GUEST_MOUNT = '/share';
+const bffPath = (path) =>
+  path.startsWith(UPSTREAM_GUEST_PREFIX) ? GUEST_MOUNT + path.slice(UPSTREAM_GUEST_PREFIX.length) : path;
+
+// Each group is a routing class. `guest` is the account-less share surface: its own cookie scheme, and
+// Program.cs replays the share token onto the upstream path instead of forwarding a member credential.
+const POLICY = { operations: 'Default', guest: 'Guest' };
 
 const exposed = JSON.parse(readFileSync(join(here, '..', '..', 'src/LupiraTasksBff/exposed.json'), 'utf8'));
 const settings = JSON.parse(readFileSync(settingsPath, 'utf8'));
@@ -31,7 +37,8 @@ for (const [group, policy] of Object.entries(POLICY)) {
 
     const byPath = new Map();
     for (const op of ops) {
-      const [verb, path] = op.split(' ');
+      const [verb, upstream] = op.split(' ');
+      const path = bffPath(upstream);
       if (!byPath.has(path)) byPath.set(path, new Set());
       byPath.get(path).add(verb);
     }

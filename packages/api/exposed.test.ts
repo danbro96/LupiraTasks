@@ -18,12 +18,11 @@ const PREFIX = '/api';
 const isOperation = (op: unknown): boolean =>
   !!op && typeof op === 'object' && 'responses' in (op as object);
 
-// The document now carries the BFF's paths, so a proxied one is already prefixed. An operation the
-// BFF declares itself is tagged with the assembly name instead of an upstream tag — that is how an
-// endpoint leaves the proxy, and it has no allowlist entry or route.
-const BFF_TAG = 'LupiraTasksBff';
+// A proxied operation carries one of the upstream's tags. Anything else the BFF declares itself, so
+// it has no allowlist entry and no route — that is how an endpoint leaves the proxy.
+const UPSTREAM_TAGS = new Set(['Lists', 'Items', 'Shares', 'Sync', 'Me', 'Shared', 'Users']);
 const isProxied = (op: unknown): boolean =>
-  !((op as { tags?: string[] })?.tags ?? []).includes(BFF_TAG);
+  (((op as { tags?: string[] })?.tags ?? []).some((t) => UPSTREAM_TAGS.has(t)));
 
 const specOps = Object.entries(spec.paths).flatMap(([path, item]) =>
   Object.entries(item)
@@ -38,12 +37,19 @@ const bffOwnedOps = Object.entries(spec.paths).flatMap(([path, item]) =>
     .map(([verb]) => `${verb.toUpperCase()} ${path}`),
 );
 
+// The rule the merger and routes.mjs both apply, restated here so this file is the arbiter of the
+// three: guest routes drop the token segment, because it comes from the guest cookie.
+const UPSTREAM_GUEST_PREFIX = '/shared/{token}';
+const GUEST_MOUNT = '/share';
+const bffPath = (path: string) =>
+  path.startsWith(UPSTREAM_GUEST_PREFIX) ? GUEST_MOUNT + path.slice(UPSTREAM_GUEST_PREFIX.length) : path;
+
 const allowlisted = Object.values(exposed).flatMap((group) =>
   Object.values(group)
     .flat()
     .map((op) => {
       const [verb, path] = op.split(' ');
-      return `${verb} ${PREFIX}${path}`;
+      return `${verb} ${PREFIX}${bffPath(path)}`;
     }),
 );
 
@@ -53,7 +59,7 @@ const routedOps = Object.values(routes).flatMap((r) =>
 
 describe('the allowlist', () => {
   it('publishes the BFF\'s own endpoints alongside the proxied ones', () => {
-    expect(bffOwnedOps).toEqual(['GET /auth/user']);
+    expect(bffOwnedOps.sort()).toEqual(['GET /auth/user', 'POST /auth/guest']);
   });
 
   it('is the whole of the published surface — nothing rides along', () => {
@@ -86,12 +92,13 @@ describe('the allowlist', () => {
     expect(Object.values(routes).filter((r) => forbidden.test(r.Match.Path))).toEqual([]);
   });
 
-  // `POST /shares/redeem` is member-authed and one letter from the account-less `/shared/{token}`
-  // surface; a prefix rule instead of exact templates would silently downgrade its auth.
-  it('gives the share-link surface the anonymous policy and nothing else', () => {
+  // `POST /shares/redeem` is member-authed and one letter from the account-less `/share` surface; a
+  // prefix rule instead of exact templates would silently downgrade its auth.
+  it('gives the share-link surface the guest policy and nothing else', () => {
     for (const [name, route] of Object.entries(routes)) {
-      const expected = route.Match.Path.startsWith(`${PREFIX}/shared/`) ? 'Anonymous' : 'Default';
-      expect(route.AuthorizationPolicy, name).toBe(expected);
+      const guest = route.Match.Path === `${PREFIX}/share`
+        || route.Match.Path.startsWith(`${PREFIX}/share/`);
+      expect(route.AuthorizationPolicy, name).toBe(guest ? 'Guest' : 'Default');
     }
     expect(routes['tasks-api-shares-redeem'].AuthorizationPolicy).toBe('Default');
   });

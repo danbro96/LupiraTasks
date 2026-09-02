@@ -5,6 +5,36 @@
     "version": "v1"
   },
   "paths": {
+    "/auth/guest": {
+      "post": {
+        "tags": [
+          "Guest"
+        ],
+        "operationId": "ExchangeShareToken",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuestExchangeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuestSessionInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/user": {
       "get": {
         "tags": [
@@ -1968,7 +1998,7 @@
         ]
       }
     },
-    "/api/shared/{token}": {
+    "/api/share": {
       "get": {
         "tags": [
           "Shared"
@@ -1976,17 +2006,6 @@
         "summary": "View a shared list by token (no account needed).",
         "description": "Returns the list + items, trimmed of all emails. `access` indicates read vs read/write.",
         "operationId": "GetSharedList",
-        "parameters": [
-          {
-            "name": "token",
-            "in": "path",
-            "description": "Opaque share-link token (validated by the ShareToken auth scheme).",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -2034,7 +2053,7 @@
         ]
       }
     },
-    "/api/shared/{token}/items": {
+    "/api/share/items": {
       "post": {
         "tags": [
           "Shared"
@@ -2042,15 +2061,6 @@
         "summary": "Add an item via a read/write share link.",
         "operationId": "CreateSharedItem",
         "parameters": [
-          {
-            "name": "token",
-            "in": "path",
-            "description": "Opaque share-link token (validated by the ShareToken auth scheme).",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "Idempotency-Key",
             "in": "header",
@@ -2138,7 +2148,7 @@
         ]
       }
     },
-    "/api/shared/{token}/items/{itemId}": {
+    "/api/share/items/{itemId}": {
       "patch": {
         "tags": [
           "Shared"
@@ -2153,15 +2163,6 @@
             "schema": {
               "type": "string",
               "format": "uuid"
-            }
-          },
-          {
-            "name": "token",
-            "in": "path",
-            "description": "Opaque share-link token (validated by the ShareToken auth scheme).",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           },
           {
@@ -2275,15 +2276,6 @@
             }
           },
           {
-            "name": "token",
-            "in": "path",
-            "description": "Opaque share-link token (validated by the ShareToken auth scheme).",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "Idempotency-Key",
             "in": "header",
             "description": "Client-generated GUIDv7 command id. A redelivery with the same key is a no-op that returns the prior result (offline-safe retry).",
@@ -2343,7 +2335,7 @@
         ]
       }
     },
-    "/api/shared/{token}/items/{itemId}/complete": {
+    "/api/share/items/{itemId}/complete": {
       "post": {
         "tags": [
           "Shared"
@@ -2358,15 +2350,6 @@
             "schema": {
               "type": "string",
               "format": "uuid"
-            }
-          },
-          {
-            "name": "token",
-            "in": "path",
-            "description": "Opaque share-link token (validated by the ShareToken auth scheme).",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           },
           {
@@ -2452,7 +2435,7 @@
         ]
       }
     },
-    "/api/shared/{token}/items/{itemId}/move": {
+    "/api/share/items/{itemId}/move": {
       "post": {
         "tags": [
           "Shared"
@@ -2467,15 +2450,6 @@
             "schema": {
               "type": "string",
               "format": "uuid"
-            }
-          },
-          {
-            "name": "token",
-            "in": "path",
-            "description": "Opaque share-link token (validated by the ShareToken auth scheme).",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           },
           {
@@ -2565,7 +2539,7 @@
         ]
       }
     },
-    "/api/shared/{token}/items/{itemId}/reopen": {
+    "/api/share/items/{itemId}/reopen": {
       "post": {
         "tags": [
           "Shared"
@@ -2580,15 +2554,6 @@
             "schema": {
               "type": "string",
               "format": "uuid"
-            }
-          },
-          {
-            "name": "token",
-            "in": "path",
-            "description": "Opaque share-link token (validated by the ShareToken auth scheme).",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           },
           {
@@ -3006,6 +2971,28 @@
           }
         },
         "description": "The distinct people across the caller's lists, for member-add autocomplete."
+      },
+      "GuestExchangeRequest": {
+        "required": [
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "GuestSessionInfo": {
+        "required": [
+          "active"
+        ],
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "boolean"
+          }
+        }
       },
       "ItemDto": {
         "required": [
@@ -3895,6 +3882,9 @@
     }
   },
   "tags": [
+    {
+      "name": "Guest"
+    },
     {
       "name": "LupiraTasksBff"
     }

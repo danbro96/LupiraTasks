@@ -1,12 +1,9 @@
-import { setApiTransport, setSharedApiTransport } from '@lupira/tasks-api/transport';
+import { setApiTransport } from '@lupira/tasks-api/transport';
 import { API_BASE_URL } from '../../config';
 
 /**
- * Mutators for every orval-generated request. Two of them, because the API serves two auth models:
- * `customFetch` is the member surface — auth rides the BFF's HttpOnly cookie session (same-origin), so
- * a 401 means the session expired → bounce to sign-in. `customFetchShared` is the account-less
- * `/shared/{token}` surface, where the token rides in the path and a 401 means the link was revoked or
- * expired; that screen reports it instead of redirecting.
+ * The mutator for every orval-generated request. Auth rides a BFF cookie session either way — the
+ * member's, or the guest session minted from a share token — so one transport serves both surfaces.
  */
 export class ApiError extends Error {
   status: number;
@@ -18,13 +15,17 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(url: string, init: RequestInit | undefined, credentialed: boolean): Promise<T> {
+/** A dead guest cookie must surface on the share screen, not bounce the visitor into Authentik. */
+let guestSession = false;
+
+export function markGuestSession(active: boolean): void {
+  guestSession = active;
+}
+
+async function request<T>(url: string, init?: RequestInit): Promise<T> {
   let res: Response;
   try {
-    res = await fetch(`${API_BASE_URL}${url}`, {
-      ...(credentialed ? { credentials: 'include' as const } : {}),
-      ...init,
-    });
+    res = await fetch(`${API_BASE_URL}${url}`, { credentials: 'include', ...init });
   } catch {
     throw new ApiError(0, 'Network error — check your connection and try again.');
   }
@@ -46,9 +47,9 @@ async function request<T>(url: string, init: RequestInit | undefined, credential
 
 export async function customFetch<T>(url: string, init?: RequestInit): Promise<T> {
   try {
-    return await request<T>(url, init, true);
+    return await request<T>(url, init);
   } catch (e) {
-    if (e instanceof ApiError && e.status === 401) {
+    if (e instanceof ApiError && e.status === 401 && !guestSession) {
       const returnUrl = window.location.pathname + window.location.search;
       window.location.assign(`/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
     }
@@ -56,14 +57,9 @@ export async function customFetch<T>(url: string, init?: RequestInit): Promise<T
   }
 }
 
-export function customFetchShared<T>(url: string, init?: RequestInit): Promise<T> {
-  return request<T>(url, init, false);
-}
-
-/** Hands both mutators to the generated clients. Called once, before anything issues a request. */
+/** Hands the mutator to the generated clients. Called once, before anything issues a request. */
 export function installApiTransports(): void {
   setApiTransport(customFetch);
-  setSharedApiTransport(customFetchShared);
 }
 
 export default customFetch;

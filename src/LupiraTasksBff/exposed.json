@@ -28,7 +28,7 @@
       "GET /users/directory"
     ]
   },
-  "anonymous": {
+  "guest": {
     "tasks-api": [
       "GET /shared/{token}",
       "POST /shared/{token}/items",
