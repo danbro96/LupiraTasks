@@ -2,11 +2,30 @@
   "openapi": "3.1.1",
   "info": {
     "title": "LupiraTasks BFF",
-    "description": "Task and command processing backend for Lupira. Authenticate with a Bearer token issued by the OIDC provider (Authentik).",
     "version": "v1"
   },
   "paths": {
-    "/lists": {
+    "/auth/user": {
+      "get": {
+        "tags": [
+          "LupiraTasksBff"
+        ],
+        "operationId": "GetSession",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/lists": {
       "get": {
         "tags": [
           "Lists"
@@ -59,9 +78,7 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       },
       "post": {
@@ -135,13 +152,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/lists/{listId}": {
+    "/api/lists/{listId}": {
       "get": {
         "tags": [
           "Lists"
@@ -202,9 +217,7 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       },
       "patch": {
@@ -297,9 +310,7 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       },
       "delete": {
@@ -364,13 +375,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/lists/{listId}/archive": {
+    "/api/lists/{listId}/archive": {
       "post": {
         "tags": [
           "Lists"
@@ -440,13 +449,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/lists/{listId}/items": {
+    "/api/lists/{listId}/items": {
       "get": {
         "tags": [
           "Items"
@@ -548,9 +555,7 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       },
       "post": {
@@ -643,13 +648,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/lists/{listId}/items/{itemId}": {
+    "/api/lists/{listId}/items/{itemId}": {
       "patch": {
         "tags": [
           "Items"
@@ -749,9 +752,7 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       },
       "delete": {
@@ -834,13 +835,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/lists/{listId}/items/{itemId}/complete": {
+    "/api/lists/{listId}/items/{itemId}/complete": {
       "post": {
         "tags": [
           "Items"
@@ -935,13 +934,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/lists/{listId}/items/{itemId}/move": {
+    "/api/lists/{listId}/items/{itemId}/move": {
       "post": {
         "tags": [
           "Items"
@@ -1041,13 +1038,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/lists/{listId}/items/{itemId}/reopen": {
+    "/api/lists/{listId}/items/{itemId}/reopen": {
       "post": {
         "tags": [
           "Items"
@@ -1142,13 +1137,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/lists/{listId}/members": {
+    "/api/lists/{listId}/members": {
       "post": {
         "tags": [
           "Lists"
@@ -1239,13 +1232,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/lists/{listId}/members/{principalId}": {
+    "/api/lists/{listId}/members/{principalId}": {
       "patch": {
         "tags": [
           "Lists"
@@ -1354,9 +1345,7 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       },
       "delete": {
@@ -1450,13 +1439,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/lists/{listId}/order": {
+    "/api/lists/{listId}/order": {
       "post": {
         "tags": [
           "Lists"
@@ -1547,13 +1534,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/lists/{listId}/restore": {
+    "/api/lists/{listId}/restore": {
       "post": {
         "tags": [
           "Lists"
@@ -1623,13 +1608,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/lists/{listId}/shares": {
+    "/api/lists/{listId}/shares": {
       "post": {
         "tags": [
           "Shares"
@@ -1720,9 +1703,7 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       },
       "get": {
@@ -1788,13 +1769,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/lists/{listId}/shares/{shareId}": {
+    "/api/lists/{listId}/shares/{shareId}": {
       "delete": {
         "tags": [
           "Shares"
@@ -1866,13 +1845,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/lists/{listId}/sync": {
+    "/api/lists/{listId}/sync": {
       "get": {
         "tags": [
           "Sync"
@@ -1942,13 +1919,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/me": {
+    "/api/me": {
       "get": {
         "tags": [
           "Me"
@@ -1989,13 +1964,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/shared/{token}": {
+    "/api/shared/{token}": {
       "get": {
         "tags": [
           "Shared"
@@ -2057,13 +2030,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/shared/{token}/items": {
+    "/api/shared/{token}/items": {
       "post": {
         "tags": [
           "Shared"
@@ -2163,13 +2134,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/shared/{token}/items/{itemId}": {
+    "/api/shared/{token}/items/{itemId}": {
       "patch": {
         "tags": [
           "Shared"
@@ -2278,9 +2247,7 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       },
       "delete": {
@@ -2372,13 +2339,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/shared/{token}/items/{itemId}/complete": {
+    "/api/shared/{token}/items/{itemId}/complete": {
       "post": {
         "tags": [
           "Shared"
@@ -2483,13 +2448,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/shared/{token}/items/{itemId}/move": {
+    "/api/shared/{token}/items/{itemId}/move": {
       "post": {
         "tags": [
           "Shared"
@@ -2598,13 +2561,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/shared/{token}/items/{itemId}/reopen": {
+    "/api/shared/{token}/items/{itemId}/reopen": {
       "post": {
         "tags": [
           "Shared"
@@ -2709,13 +2670,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/shares/redeem": {
+    "/api/shares/redeem": {
       "post": {
         "tags": [
           "Shares"
@@ -2797,13 +2756,11 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     },
-    "/users/directory": {
+    "/api/users/directory": {
       "get": {
         "tags": [
           "Users"
@@ -2853,9 +2810,7 @@
           }
         },
         "security": [
-          {
-            "Bearer": []
-          }
+          { }
         ]
       }
     }
@@ -3225,7 +3180,7 @@
         },
         "description": "Body for complete/reopen/delete. Carries only the LWW timestamp; the item id is in\nthe route. DateTimeOffset? ItemTimestampRequest.OccurredAt defaults to server now when omitted."
       },
-      "JsonNode": {},
+      "JsonNode": { },
       "ListDto": {
         "required": [
           "id",
@@ -3908,7 +3863,40 @@
           }
         },
         "description": "Change a member's role on a list (Owner only)."
+      },
+      "UserInfo": {
+        "required": [
+          "email",
+          "groups",
+          "isAdmin"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isAdmin": {
+            "type": "boolean"
+          }
+        }
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "LupiraTasksBff"
+    }
+  ]
 }

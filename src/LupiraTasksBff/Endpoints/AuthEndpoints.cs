@@ -23,7 +23,8 @@ public static class AuthEndpoints
                         [OpenIdConnectDefaults.AuthenticationScheme])
                     : Results.Redirect(target);
             })
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .ExcludeFromDescription();
 
         group.MapPost("/logout", () =>
                 env.IsProduction()
@@ -31,7 +32,8 @@ public static class AuthEndpoints
                         new AuthenticationProperties { RedirectUri = "/" },
                         [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme])
                     : Results.Redirect("/"))
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .ExcludeFromDescription();
 
         group.MapGet("/user", Results<Ok<UserInfo>, UnauthorizedHttpResult> (ClaimsPrincipal user) =>
             {
@@ -47,6 +49,8 @@ public static class AuthEndpoints
                     IsAdmin = groups.Intersect(AuthExtensions.AdminGroups, StringComparer.OrdinalIgnoreCase).Any(),
                 });
             })
+            // Named so the generated clients\' symbol is stable rather than derived from the path.
+            .WithName("GetSession")
             .AllowAnonymous();
 
         return app;

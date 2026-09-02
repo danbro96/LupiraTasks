@@ -4,8 +4,10 @@ using Duende.AccessTokenManagement;
 using Duende.AccessTokenManagement.OpenIdConnect;
 using LupiraTasksBff.Auth;
 using LupiraTasksBff.Endpoints;
+using LupiraTasksBff.OpenApi;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
+using Scalar.AspNetCore;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -29,6 +31,10 @@ if (!string.IsNullOrWhiteSpace(keyPath))
 
 builder.Services.AddAppHealthChecks();
 
+// MSBuild runs this same pipeline on build and writes openapi/LupiraTasksBff.json — the file the
+// TypeScript clients generate from.
+builder.Services.AddOpenApi(options => options.AddDocumentTransformer<BffDocumentTransformer>());
+
 // Reverse proxy to LupiraTasksApi. The member route (default policy) carries the signed-in user's
 // access token; /api/shared/* is anonymous and never gets a bearer (account-less surface). Dev forwards
 // X-Dev-User instead of a token so the stack runs without Authentik.
@@ -47,6 +53,10 @@ builder.Services.AddReverseProxy()
 
         if (isDev)
         {
+            // Replace, never append: StringValues joins duplicates with a comma and the upstream's dev
+            // handler derives its principal from the value, so a caller-supplied header would other-
+            // wise change who the request runs as.
+            transform.ProxyRequest.Headers.Remove("X-Dev-User");
             transform.ProxyRequest.Headers.TryAddWithoutValidation("X-Dev-User", devUser);
         }
         else if (transform.HttpContext.User.Identity?.IsAuthenticated == true)
@@ -116,6 +126,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAuthEndpoints(app.Environment);
+// Authenticated: the document is the whole internal API map, and the clients read the committed
+// file rather than this endpoint.
+app.MapOpenApi("/openapi/{documentName}.json").RequireAuthorization();
+app.MapScalarApiReference("/scalar").RequireAuthorization();
+
 app.MapReverseProxy();
 
 // A proxied prefix that matched no route is a 404, not the SPA shell. Without this the fallback

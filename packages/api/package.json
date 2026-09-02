@@ -4,14 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "fetch:openapi": "node scripts/fetch-openapi.mjs",
     "routes": "node routes.mjs",
-    "filter": "node filter-spec.mjs",
-    "gen": "npm run fetch:openapi && npm run routes && npm run filter",
+    "gen": "npm run spec && npm run routes",
     "typecheck": "tsc -b",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "spec": "dotnet build ../../src/LupiraTasksBff/LupiraTasksBff.csproj -v q --nologo"
   },
   "devDependencies": {
     "@types/node": "^24.0.0"

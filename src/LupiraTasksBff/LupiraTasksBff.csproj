@@ -2,6 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+
+    <!-- The BFF's own contract is a build output: every build writes openapi/LupiraTasksBff.json,
+         which is what the TypeScript clients generate from. -->
+    <OpenApiGenerateDocuments>true</OpenApiGenerateDocuments>
+    <OpenApiGenerateDocumentsOnBuild>true</OpenApiGenerateDocumentsOnBuild>
+    <OpenApiDocumentsDirectory>$(MSBuildThisFileDirectory)..\..\openapi</OpenApiDocumentsDirectory>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
@@ -11,12 +17,26 @@
     <PackageReference Include="Duende.AccessTokenManagement.OpenIdConnect" Version="4.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
+    <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.10">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Scalar.AspNetCore" Version="2.10.0" />
     <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.16.0" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.16.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.2" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.15.1" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Embedded so the filter reads them identically during build-time generation, at runtime and
+         under test — no dependency on the working directory. -->
+    <EmbeddedResource Include="upstream\*.json" />
+    <EmbeddedResource Include="exposed.json" />
   </ItemGroup>
 
 </Project>

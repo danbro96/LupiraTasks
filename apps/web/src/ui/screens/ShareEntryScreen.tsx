@@ -10,6 +10,7 @@ import { ApiError } from '../../data/api/fetcher';
 import { useSession } from '../../state/useSession';
 import { Centered } from '../components/Centered';
 import { SharedListView } from '../components/SharedListView';
+import { getListListsQueryKey } from '../../data/api/member/lists/lists';
 
 /** Entry for `/s/:token` (public). Logged out → the account-less shared view + a "sign in to join"
  *  prompt. Logged in → automatically "cash in" the link via POST /shares/redeem, then go to the list. */
@@ -25,7 +26,7 @@ export function ShareEntryScreen() {
   const redeem = useMutation({
     mutationFn: (t: string) => redeemShare({ token: t }),
     onSuccess: res => {
-      void qc.invalidateQueries({ queryKey: ['/lists'] });
+      void qc.invalidateQueries({ queryKey: getListListsQueryKey() });
       navigate(`/lists/${res.listId}`, { replace: true });
     },
   });

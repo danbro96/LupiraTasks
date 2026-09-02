@@ -9,7 +9,7 @@ import { defineConfig } from 'orval';
  */
 export default defineConfig({
   lupiraTasks: {
-    input: { target: '../../packages/api/bff-openapi.json' },
+    input: { target: '../../openapi/LupiraTasksBff.json' },
     output: {
       mode: 'tags-split',
       target: './src/data/api/generated/api.ts',

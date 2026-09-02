@@ -22,11 +22,11 @@ const output = (dir: string, mutator: string) => ({
 
 export default defineConfig({
   memberApi: {
-    input: { target: "../../packages/api/bff-openapi.json", filters: { mode: "exclude", tags: ["Shared"] } },
+    input: { target: "../../openapi/LupiraTasksBff.json", filters: { mode: "exclude", tags: ["Shared"] } },
     output: output("member", "customFetch"),
   },
   sharedApi: {
-    input: { target: "../../packages/api/bff-openapi.json", filters: { tags: ["Shared"] } },
+    input: { target: "../../openapi/LupiraTasksBff.json", filters: { tags: ["Shared"] } },
     output: output("shared", "customFetchShared"),
   },
 });

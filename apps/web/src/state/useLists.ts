@@ -29,7 +29,7 @@ export function useLists(archived = false) {
   // Wraps the generated call to mint the client-side id (the API's idempotency key).
   const create = useMutation({
     mutationFn: (body: Omit<CreateListRequest, 'id'>) => createList({ id: newId(), ...body }),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ['/lists'] }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: getListListsQueryKey() }),
   });
 
   const lists = query.data ?? [];
@@ -51,7 +51,7 @@ export function useLists(archived = false) {
       qc.setQueryData<ListDto[]>(key, prev =>
         prev?.map(l => (keys.has(l.id) ? { ...l, sortOrder: keys.get(l.id)! } : l)));
     },
-    onSettled: () => void qc.invalidateQueries({ queryKey: ['/lists'] }),
+    onSettled: () => void qc.invalidateQueries({ queryKey: getListListsQueryKey() }),
   });
 
   return { query, lists: sorted, create, reorder };

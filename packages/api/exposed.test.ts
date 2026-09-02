@@ -6,8 +6,8 @@ import { describe, expect, it } from 'vitest';
 // The `/api` prefix is re-derived here rather than imported, so the check isn't circular.
 const read = (p: string) => JSON.parse(readFileSync(new URL(p, import.meta.url), 'utf8'));
 
-const exposed: Record<string, Record<string, string[]>> = read('./exposed.json');
-const spec: { paths: Record<string, Record<string, unknown>> } = read('./bff-openapi.json');
+const exposed: Record<string, Record<string, string[]>> = read('../../src/LupiraTasksBff/exposed.json');
+const spec: { paths: Record<string, Record<string, unknown>> } = read('../../openapi/LupiraTasksBff.json');
 const routes: Record<string, {
   ClusterId: string;
   AuthorizationPolicy: string;
@@ -18,10 +18,24 @@ const PREFIX = '/api';
 const isOperation = (op: unknown): boolean =>
   !!op && typeof op === 'object' && 'responses' in (op as object);
 
+// The document now carries the BFF's paths, so a proxied one is already prefixed. An operation the
+// BFF declares itself is tagged with the assembly name instead of an upstream tag — that is how an
+// endpoint leaves the proxy, and it has no allowlist entry or route.
+const BFF_TAG = 'LupiraTasksBff';
+const isProxied = (op: unknown): boolean =>
+  !((op as { tags?: string[] })?.tags ?? []).includes(BFF_TAG);
+
 const specOps = Object.entries(spec.paths).flatMap(([path, item]) =>
   Object.entries(item)
-    .filter(([, op]) => isOperation(op))
-    .map(([verb]) => `${verb.toUpperCase()} ${PREFIX}${path}`),
+    .filter(([, op]) => isOperation(op) && isProxied(op))
+    .map(([verb]) => `${verb.toUpperCase()} ${path}`),
+);
+
+/** Paths the BFF answers itself — asserted separately, since nothing proxies them. */
+const bffOwnedOps = Object.entries(spec.paths).flatMap(([path, item]) =>
+  Object.entries(item)
+    .filter(([, op]) => isOperation(op) && !isProxied(op))
+    .map(([verb]) => `${verb.toUpperCase()} ${path}`),
 );
 
 const allowlisted = Object.values(exposed).flatMap((group) =>
@@ -38,6 +52,10 @@ const routedOps = Object.values(routes).flatMap((r) =>
 );
 
 describe('the allowlist', () => {
+  it('publishes the BFF\'s own endpoints alongside the proxied ones', () => {
+    expect(bffOwnedOps).toEqual(['GET /auth/user']);
+  });
+
   it('is the whole of the published surface — nothing rides along', () => {
     const allowed = new Set(allowlisted);
     expect(specOps.filter((op) => !allowed.has(op))).toEqual([]);

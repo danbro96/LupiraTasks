@@ -18,7 +18,7 @@ const PREFIX = { 'tasks-api': '/api' };
 // carry the member's token (Program.cs skips the bearer transform for it by path).
 const POLICY = { operations: 'Default', anonymous: 'Anonymous' };
 
-const exposed = JSON.parse(readFileSync(join(here, 'exposed.json'), 'utf8'));
+const exposed = JSON.parse(readFileSync(join(here, '..', '..', 'src/LupiraTasksBff/exposed.json'), 'utf8'));
 const settings = JSON.parse(readFileSync(settingsPath, 'utf8'));
 
 const routes = {};
