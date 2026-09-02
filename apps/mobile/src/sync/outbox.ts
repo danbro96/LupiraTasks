@@ -10,7 +10,7 @@ import {
 } from '../data/db';
 import { type ClientOp, opToEvents } from '../domain/ops';
 import { applyListOp } from '../domain/listDoc';
-import type { ListDto, PersonRef } from '../data/api/generated/models';
+import type { ListDto, PersonRef } from '@lupira/tasks-api/models';
 import { useSyncStatus, bumpMirror } from './syncStatus';
 import { logDebug } from '../debug/log';
 

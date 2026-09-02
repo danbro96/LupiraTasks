@@ -1,4 +1,4 @@
-import type { ListDto, MemberDto, PersonRef } from '../data/api/generated/models';
+import type { ListDto, MemberDto, PersonRef } from '@lupira/tasks-api/models';
 import type { ClientOp } from './ops';
 
 // Pure optimistic patch of a mirrored list doc for `list.*` ops — the list equivalent of the

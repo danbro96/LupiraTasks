@@ -12,11 +12,12 @@ COPY packages/tokens/package.json packages/tokens/
 COPY packages/api/package.json packages/api/
 COPY apps/mobile/package.json apps/mobile/
 RUN npm i -g npm@12
-# Web workspaces only — the mobile Expo tree has no business in this image, and packages/api is
-# generation-time only (the client it feeds is committed under apps/web).
-RUN npm ci -w apps/web -w packages/domain -w packages/tokens --include-workspace-root
+# Web workspaces only — the mobile Expo tree has no business in this image. packages/api is needed
+# now: the SPA imports the generated client from it rather than carrying its own copy.
+RUN npm ci -w apps/web -w packages/domain -w packages/tokens -w packages/api --include-workspace-root
 COPY packages/domain/ packages/domain/
 COPY packages/tokens/ packages/tokens/
+COPY packages/api/ packages/api/
 COPY apps/web/ apps/web/
 RUN npm run build -w apps/web -- --outDir dist --emptyOutDir
 

@@ -5,7 +5,7 @@
 // registers a concrete provider at startup via setAuthPort, and consumers read it through
 // authPort(). The interface is exactly the auth capabilities the lower layers depend on.
 
-import type { PersonRef } from './generated/models';
+import type { PersonRef } from '@lupira/tasks-api/models';
 
 export interface AuthPort {
   getApiUrl: () => string;

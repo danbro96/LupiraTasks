@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 import { createFakeDb } from '../test/fakeExpoSqlite';
 import { emptyItemState } from '../domain/itemState';
 import type { ClientOp } from '../domain/ops';
-import type { PersonRef } from '../data/api/generated/models';
+import type { PersonRef } from '@lupira/tasks-api/models';
 
 // Enqueue/drain tests over a real in-memory SQLite (node:sqlite behind the expo-sqlite surface)
 // with replayOp mocked. One module graph for the whole file — enqueue kicks fire-and-forget

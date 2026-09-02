@@ -1,4 +1,4 @@
-import { ListRole } from '../../data/api/generated/models';
+import { ListRole } from '@lupira/tasks-api/models';
 import { useAuth } from '../../state/auth-store';
 import { useLists } from './useMirror';
 

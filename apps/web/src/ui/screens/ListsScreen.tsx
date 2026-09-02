@@ -32,7 +32,7 @@ import { useLists } from '../../state/useLists';
 import { useMe } from '../../state/useMe';
 import { logout } from '../../data/api/session';
 import { ApiError } from '../../data/api/fetcher';
-import type { ListKind, ListDto } from '../../data/api/member/models';
+import type { ListKind, ListDto } from '@lupira/tasks-api/models';
 import { listColorOptions } from '@lupira/tasks-tokens/color';
 import { Centered } from '../components/Centered';
 import { DragIcon } from '../icons';

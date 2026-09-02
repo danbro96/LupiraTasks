@@ -19,14 +19,14 @@ import {
   getGetListQueryKey,
   updateListMember,
   addListMember,
-} from '../../data/api/member/lists/lists';
+} from '@lupira/tasks-api/query/lists';
 import {
   deleteShare,
   getListSharesQueryKey,
   listShares,
   createShare,
-} from '../../data/api/member/shares/shares';
-import type { ListRole, MemberDto, ShareAccess } from '../../data/api/member/models';
+} from '@lupira/tasks-api/query/shares';
+import type { ListRole, MemberDto, ShareAccess } from '@lupira/tasks-api/models';
 
 const ROLES: ListRole[] = ['Owner', 'Editor', 'Viewer'];
 

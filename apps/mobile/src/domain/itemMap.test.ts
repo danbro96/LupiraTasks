@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import type { ItemDto } from '../data/api/generated/models';
-import { ItemStatus } from '../data/api/generated/models';
+import type { ItemDto } from '@lupira/tasks-api/models';
+import { ItemStatus } from '@lupira/tasks-api/models';
 import { itemResponseToState } from './itemMap';
 import { ZERO_GUID } from './itemState';
 

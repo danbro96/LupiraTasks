@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { create } from 'zustand';
-import type { DirectoryPerson } from '../../data/api/generated/models';
-import { getUserDirectory } from '../../data/api/generated/users/users';
+import type { DirectoryPerson } from '@lupira/tasks-api/models';
+import { getUserDirectory } from '@lupira/tasks-api/fetch/users';
 
 // Best-effort cache of the org directory (principal id → person), fetched once. Used to render
 // provenance (created/completed-by) names instead of raw principal ids. Offline or on failure,

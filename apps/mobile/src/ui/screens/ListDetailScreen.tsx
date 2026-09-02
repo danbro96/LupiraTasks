@@ -10,7 +10,7 @@ import ReorderableList, { useReorderableDrag, useIsActive, reorderItems } from '
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { LinearTransition, runOnJS, SlideOutLeft, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { hapticImpact, hapticSuccess } from '../../feedback/haptics';
-import { ListKind } from '../../data/api/generated/models';
+import { ListKind } from '@lupira/tasks-api/models';
 import type { RootStackParamList } from '../navigation/types';
 import type { ItemState } from '../../domain/itemState';
 import { Button } from '../components/Button';

@@ -5,14 +5,26 @@
   "type": "module",
   "scripts": {
     "routes": "node routes.mjs",
-    "gen": "npm run spec && npm run routes",
+    "gen": "npm run spec && npm run routes && orval && npm run postgen",
     "typecheck": "tsc -b",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "spec": "dotnet build ../../src/LupiraTasksBff/LupiraTasksBff.csproj -v q --nologo"
+    "spec": "dotnet build ../../src/LupiraTasksBff/LupiraTasksBff.csproj -v q --nologo",
+    "postgen": "node postgen.mjs"
   },
   "devDependencies": {
-    "@types/node": "^24.0.0"
+    "@types/node": "^24.0.0",
+    "orval": "^8.23.0"
+  },
+  "exports": {
+    "./transport": "./src/transport.ts",
+    "./models": "./src/generated/models/index.ts",
+    "./query/*": "./src/generated/query/*/*.ts",
+    "./shared/*": "./src/generated/shared/*/*.ts",
+    "./fetch/*": "./src/generated/fetch/*/*.ts"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.90.2"
   }
 }

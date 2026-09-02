@@ -9,7 +9,7 @@ import {
   type DragEndEvent,
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import type { SharedItemDto, SharedTagDto } from '../../data/api/shared/models';
+import type { SharedItemDto, SharedTagDto } from '@lupira/tasks-api/models';
 import { rowsForMode, siblingReorder, type CompletedMode } from '../../domain/itemTree';
 import type { ItemChange } from '../../domain/itemChange';
 import { TaskRow } from './TaskRow';

@@ -4,7 +4,7 @@ import { itemResponseToState } from '../domain/itemMap';
 import { applyItemEvent } from '../domain/itemLww';
 import type { ClientOp } from '../domain/ops';
 import type { AuthPort } from '../data/api/authProvider';
-import type { ItemDto, ListDto, PersonRef } from '../data/api/generated/models';
+import type { ItemDto, ListDto, PersonRef } from '@lupira/tasks-api/models';
 
 // Pull-path tests over a real in-memory SQLite (node:sqlite behind the expo-sqlite surface) with
 // the generated API mocked. Each test re-imports the module graph: getDb memoizes a connection
@@ -17,9 +17,9 @@ vi.mock('@react-native-community/netinfo', () => ({ default: { addEventListener:
 vi.mock('@sentry/react-native', () => ({ captureException: vi.fn(), captureMessage: vi.fn(), setUser: vi.fn(), addBreadcrumb: vi.fn() }));
 vi.mock('../debug/log', () => ({ logDebug: vi.fn() }));
 vi.mock('./replayOp', () => ({ replayOp: vi.fn() }));
-vi.mock('../data/api/generated/sync/sync', () => ({ syncList: vi.fn() }));
-vi.mock('../data/api/generated/lists/lists', () => ({ listLists: vi.fn() }));
-vi.mock('../data/api/generated/me/me', () => ({ getMe: vi.fn() }));
+vi.mock('@lupira/tasks-api/fetch/sync', () => ({ syncList: vi.fn() }));
+vi.mock('@lupira/tasks-api/fetch/lists', () => ({ listLists: vi.fn() }));
+vi.mock('@lupira/tasks-api/fetch/me', () => ({ getMe: vi.fn() }));
 
 const ME: PersonRef = { principalId: 'me-p', email: 'me@x', displayName: 'Me' };
 const T0 = '2026-01-01T00:00:00.000Z';
@@ -64,9 +64,9 @@ async function load() {
   const { useSyncStatus } = await import('./syncStatus');
   // instanceof checks (isNetworkError) must see the same class the fresh module graph uses.
   const { ApiError } = await import('../domain/apiError');
-  const { listLists } = await import('../data/api/generated/lists/lists');
-  const { syncList } = await import('../data/api/generated/sync/sync');
-  const { getMe } = await import('../data/api/generated/me/me');
+  const { listLists } = await import('@lupira/tasks-api/fetch/lists');
+  const { syncList } = await import('@lupira/tasks-api/fetch/sync');
+  const { getMe } = await import('@lupira/tasks-api/fetch/me');
   const db = await dbm.getDb();
   return {
     sync, dbm, db, useSyncStatus, ApiError,

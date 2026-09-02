@@ -2,8 +2,8 @@ import {
   createShare,
   listShares,
   deleteShare,
-} from './api/generated/shares/shares';
-import type { ShareAccess, ShareDto } from './api/generated/models';
+} from '@lupira/tasks-api/fetch/shares';
+import type { ShareAccess, ShareDto } from '@lupira/tasks-api/models';
 import { ApiError } from '../domain/apiError';
 
 // Public share links for a list (Owner-only). These are immediate online calls, not

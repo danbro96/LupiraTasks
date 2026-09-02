@@ -10,10 +10,10 @@ import {
   completeItem,
   moveItem,
   reopenItem,
-} from '../data/api/member/items/items';
-import { getGetListQueryKey, useGetList } from '../data/api/member/lists/lists';
-import { ItemStatus } from '../data/api/member/models';
-import type { CreateItemRequest, ItemDto, ListDto, TagDto, UpdateItemRequest } from '../data/api/member/models';
+} from '@lupira/tasks-api/query/items';
+import { getGetListQueryKey, useGetList } from '@lupira/tasks-api/query/lists';
+import { ItemStatus } from '@lupira/tasks-api/models';
+import type { CreateItemRequest, ItemDto, ListDto, TagDto, UpdateItemRequest } from '@lupira/tasks-api/models';
 import { newId } from '../domain/ids';
 import { descendantIds, nextChildSortOrder, topSortOrder } from '../domain/itemTree';
 import { useRemoteChanges } from './useRemoteChanges';

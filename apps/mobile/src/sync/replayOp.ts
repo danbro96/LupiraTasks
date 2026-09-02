@@ -6,7 +6,7 @@ import {
   reopenItem,
   moveItem,
   deleteListItem,
-} from '../data/api/generated/items/items';
+} from '@lupira/tasks-api/fetch/items';
 import {
   createList,
   updateList,
@@ -17,7 +17,7 @@ import {
   addListMember,
   updateListMember,
   removeListMember,
-} from '../data/api/generated/lists/lists';
+} from '@lupira/tasks-api/fetch/lists';
 
 /** Replay an op against the API. The generated fns inject the bearer + throw ApiError on non-2xx. */
 export async function replayOp(op: ClientOp): Promise<void> {

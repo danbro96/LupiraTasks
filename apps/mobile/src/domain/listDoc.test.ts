@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { applyListOp, applyListOps } from './listDoc';
-import type { ListDto, MemberDto, PersonRef } from '../data/api/generated/models';
-import { ListRole } from '../data/api/generated/models';
+import type { ListDto, MemberDto, PersonRef } from '@lupira/tasks-api/models';
+import { ListRole } from '@lupira/tasks-api/models';
 import type { ClientOp } from './ops';
 
 const LIST = '11111111-1111-1111-1111-111111111111';

@@ -4,13 +4,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Button from '@mui/material/Button';
 import MuiLink from '@mui/material/Link';
 import Box from '@mui/material/Box';
-import { redeemShare } from '../../data/api/member/shares/shares';
+import { redeemShare } from '@lupira/tasks-api/query/shares';
 import { login } from '../../data/api/session';
 import { ApiError } from '../../data/api/fetcher';
 import { useSession } from '../../state/useSession';
 import { Centered } from '../components/Centered';
 import { SharedListView } from '../components/SharedListView';
-import { getListListsQueryKey } from '../../data/api/member/lists/lists';
+import { getListListsQueryKey } from '@lupira/tasks-api/query/lists';
 
 /** Entry for `/s/:token` (public). Logged out → the account-less shared view + a "sign in to join"
  *  prompt. Logged in → automatically "cash in" the link via POST /shares/redeem, then go to the list. */

@@ -10,8 +10,7 @@
     "typecheck": "tsc -b",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "gen:api": "orval"
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@lupira/tasks-domain": "*",
@@ -29,7 +28,8 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.85.0",
     "react-router-dom": "^7.1.0",
-    "uuid": "^14.0.1"
+    "uuid": "^14.0.1",
+    "@lupira/tasks-api": "*"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.3.3",
@@ -38,7 +38,6 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^6.0.2",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "orval": "^8.23.0",
     "tailwindcss": "4.3.3",
     "vite": "^8.0.16"
   }

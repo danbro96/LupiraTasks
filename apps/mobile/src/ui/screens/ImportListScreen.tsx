@@ -4,7 +4,7 @@ import { Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { generateKeyBetween } from 'fractional-indexing';
-import { ListKind } from '../../data/api/generated/models';
+import { ListKind } from '@lupira/tasks-api/models';
 import type { RootStackParamList } from '../navigation/types';
 import { Button } from '../components/Button';
 import { SegmentedPicker } from '../components/SegmentedPicker';

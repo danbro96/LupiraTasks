@@ -1,9 +1,9 @@
 import { AppState } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { authPort } from '../data/api/authProvider';
-import { syncList } from '../data/api/generated/sync/sync';
-import { listLists } from '../data/api/generated/lists/lists';
-import { getMe } from '../data/api/generated/me/me';
+import { syncList } from '@lupira/tasks-api/fetch/sync';
+import { listLists } from '@lupira/tasks-api/fetch/lists';
+import { getMe } from '@lupira/tasks-api/fetch/me';
 import {
   getDb, getItemState, putItemState, putListDoc, pendingOutbox, pendingOutboxForList,
   getListIds, deleteListLocal, deleteItemsNotIn, withWriteTxn, type OutboxRow,

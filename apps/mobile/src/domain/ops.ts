@@ -1,6 +1,6 @@
 import { v7 as uuidv7 } from 'uuid';
 import type { Guid, Iso, ItemEvent } from './events';
-import type { ListKind, ListRole } from '../data/api/generated/models';
+import type { ListKind, ListRole } from '@lupira/tasks-api/models';
 
 // A ClientOp is one user action. It is the unit the outbox persists and optimistically applies to
 // the local mirror (via opToEvents → the LWW reducer); it is replayed to the API on reconnect by

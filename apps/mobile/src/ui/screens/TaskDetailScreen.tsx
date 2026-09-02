@@ -5,7 +5,7 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import RNDateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import { ListKind } from '../../data/api/generated/models';
+import { ListKind } from '@lupira/tasks-api/models';
 import type { RootStackParamList } from '../navigation/types';
 import { Button } from '../components/Button';
 import { Checkbox } from '../components/Checkbox';

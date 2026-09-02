@@ -1,4 +1,4 @@
-import type { ItemDto } from '../data/api/generated/models';
+import type { ItemDto } from '@lupira/tasks-api/models';
 import { type ItemState, ZERO_GUID } from './itemState';
 
 // Server snapshot → mirror ItemState mapping. Pure (no SQLite/API), so the seeding rules are

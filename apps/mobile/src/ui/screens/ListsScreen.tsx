@@ -7,7 +7,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import ReorderableList, { useReorderableDrag, useIsActive, reorderItems } from 'react-native-reorderable-list';
 import { Gesture } from 'react-native-gesture-handler';
 import { LinearTransition, runOnJS } from 'react-native-reanimated';
-import type { ListDto } from '../../data/api/generated/models';
+import type { ListDto } from '@lupira/tasks-api/models';
 import type { RootStackParamList } from '../navigation/types';
 import { SyncBanner } from '../components/SyncBanner';
 import { SyncDot } from '../components/SyncDot';

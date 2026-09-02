@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import type { SharedItemDto, SharedTagDto } from '../../data/api/shared/models';
+import type { SharedItemDto, SharedTagDto } from '@lupira/tasks-api/models';
 import type { VisibleRow } from '../../domain/itemTree';
 import { changeLabel, type ActorRef, type ItemChangeKind } from '../../domain/itemChange';
 import { formatDue } from '@lupira/tasks-domain/dueDate';

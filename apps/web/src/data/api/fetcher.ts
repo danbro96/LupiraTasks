@@ -1,3 +1,4 @@
+import { setApiTransport, setSharedApiTransport } from '@lupira/tasks-api/transport';
 import { API_BASE_URL } from '../../config';
 
 /**
@@ -57,6 +58,12 @@ export async function customFetch<T>(url: string, init?: RequestInit): Promise<T
 
 export function customFetchShared<T>(url: string, init?: RequestInit): Promise<T> {
   return request<T>(url, init, false);
+}
+
+/** Hands both mutators to the generated clients. Called once, before anything issues a request. */
+export function installApiTransports(): void {
+  setApiTransport(customFetch);
+  setSharedApiTransport(customFetchShared);
 }
 
 export default customFetch;

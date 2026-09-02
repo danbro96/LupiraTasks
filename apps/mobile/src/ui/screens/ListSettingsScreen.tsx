@@ -3,7 +3,7 @@ import { Text } from 'react-native-paper';
 import { KeyboardAvoidingView, Platform, ScrollView, Share, StyleSheet, View } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ListRole } from '../../data/api/generated/models';
+import { ListRole } from '@lupira/tasks-api/models';
 import type { RootStackParamList } from '../navigation/types';
 import { Button } from '../components/Button';
 import { SegmentedPicker } from '../components/SegmentedPicker';

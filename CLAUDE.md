@@ -14,7 +14,9 @@ and the react `overrides` (RN pins exact versions). Workspaces:
   stay per-app — the app's are offline/LWW-aware and the web's are not; they are not drift.
 - `packages/tokens` (`@lupira/tasks-tokens`) — the color palette both clients render. Spacing/radii stay
   per-app (the scales genuinely differ).
-- `packages/api` (`@lupira/tasks-api`) — the route generator and the cross-artifact checks. The spec and the allowlist live with the BFF; see below.
+- `packages/api` (`@lupira/tasks-api`) — **the generated client, once**, in three flavours over one set of
+  models, plus the route generator and the cross-artifact checks. The spec and the allowlist live with
+  the BFF; see below.
 - `apps/web` — the SPA. `apps/mobile` — the Expo app.
 
 **New workspaces must also be added to the Dockerfile's COPY + `npm ci -w` lines.** Root scripts fan
@@ -89,9 +91,16 @@ grips and the flash overlay stay plain DOM** — dnd-kit writes inline transform
 `domain → data → state → ui`
 - `domain/` pure logic · `data/` generated API client + mutators + session helpers (`api/`) · `state/`
   React Query hooks · `ui/` `components/`, `screens/`, `navigation/`, `theme/`.
-- `data/api/{member,shared}/` are **orval-generated** (`clean: true` — never hand-edit). Refresh with
-  `npm run gen:api` after an API change (which rebuilds the BFF to re-emit the document first). Two targets because the two auth models
-  need different 401 handling: member → redirect to sign-in, share-link → surface the error.
+- The generated client comes from `@lupira/tasks-api` — `query/*` (member, react-query), `shared/*`
+  (the account-less surface) and `fetch/*` (what the app's sync layer calls). Never hand-edit it;
+  refresh with `npm run gen:api`, which rebuilds the BFF to re-emit the document first.
+- **Both mutators are installed, not imported.** `packages/api/src/transport.ts` holds two slots and
+  `installApiTransports()` in `data/api/fetcher.ts` fills them from `main.tsx` before the first
+  render — `customFetch` for the member surface (401 → sign-in) and `customFetchShared` for the
+  share-link surface (401 → surface it). The app installs only the member slot, from
+  `src/data/api/installTransport.ts`, imported as a side effect in `index.ts` because ES imports hoist.
+- **No `baseUrl` in the orval config.** The document's paths already carry `/api`; setting it again
+  would double the prefix.
 
 ## Surfaces
 - **Member (SSO):** `/` list of lists, `/lists/:listId` its tasks. Calls same-origin `/api/*`.

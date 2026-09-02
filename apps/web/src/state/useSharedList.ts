@@ -10,14 +10,14 @@ import {
   completeSharedItem,
   moveSharedItem,
   reopenSharedItem,
-} from '../data/api/shared/shared/shared';
+} from '@lupira/tasks-api/shared/shared';
 import type {
   CreateItemRequest,
   SharedItemDto,
   SharedListResponse,
   SharedTagDto,
   UpdateItemRequest,
-} from '../data/api/shared/models';
+} from '@lupira/tasks-api/models';
 import { newId } from '../domain/ids';
 import { descendantIds, nextChildSortOrder, topSortOrder } from '../domain/itemTree';
 import { useRemoteChanges } from './useRemoteChanges';

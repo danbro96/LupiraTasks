@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { ListDto } from '../../data/api/generated/models';
+import type { ListDto } from '@lupira/tasks-api/models';
 import type { ItemState } from '../../domain/itemState';
 import { diffItems, type ItemChange } from '../../domain/itemChange';
 import { sortActiveLists, sortArchivedLists } from '@lupira/tasks-domain/listOrder';

@@ -4,6 +4,9 @@ import './src/polyfills/crypto';
 // gesture-handler must be imported once, before any react-native rendering, in the entry file.
 import 'react-native-gesture-handler';
 
+// Before anything issues a request; the generated clients resolve their transport at call time.
+import './src/data/api/installTransport';
+
 import { registerRootComponent } from 'expo';
 
 import App from './App';

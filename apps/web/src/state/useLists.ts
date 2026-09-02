@@ -5,8 +5,8 @@ import {
   createList,
   reorderListItems,
   useListLists,
-} from '../data/api/member/lists/lists';
-import type { CreateListRequest, ListDto } from '../data/api/member/models';
+} from '@lupira/tasks-api/query/lists';
+import type { CreateListRequest, ListDto } from '@lupira/tasks-api/models';
 import { newId } from '../domain/ids';
 import { planListReorder, sortActiveLists, sortArchivedLists } from '@lupira/tasks-domain/listOrder';
 
