@@ -42,6 +42,11 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
     throw new ApiError(res.status, message);
   }
   if (res.status === 204) return undefined as T;
+  // A 200 of HTML means the SPA fallback answered a dead route; parsing it fails obscurely.
+  if ((res.headers.get('content-type') ?? '').includes('text/html')) {
+    throw new ApiError(res.status, `Expected data from ${url} but received the app shell.`);
+  }
+
   return (await res.json()) as T;
 }
 
