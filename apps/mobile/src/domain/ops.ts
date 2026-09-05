@@ -1,4 +1,4 @@
-import { v7 as uuidv7 } from 'uuid';
+import { newId } from '@lupira/tasks-domain/ids';
 import type { Guid, Iso, ItemEvent } from './events';
 import type { ListKind, ListRole } from '@lupira/tasks-api/models';
 
@@ -42,12 +42,7 @@ export type ClientOp =
 
 /** Stamp a fresh command id + client wall-clock for a new op. */
 export function stamp(): Base {
-  return { commandId: uuidv7(), occurredAt: new Date().toISOString() };
-}
-
-/** GUIDv7 helper for client-generated aggregate ids. */
-export function newId(): Guid {
-  return uuidv7();
+  return { commandId: newId(), occurredAt: new Date().toISOString() };
 }
 
 /**

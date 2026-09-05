@@ -6,7 +6,7 @@ import MuiLink from '@mui/material/Link';
 import Box from '@mui/material/Box';
 import { redeemShare } from '@lupira/tasks-api/query/shares';
 import { login } from '../../data/api/session';
-import { ApiError } from '../../data/api/fetcher';
+import { ApiError } from '@lupira/tasks-api/apiError';
 import { useSession } from '../../state/useSession';
 import { Centered } from '../components/Centered';
 import { SharedListView } from '../components/SharedListView';

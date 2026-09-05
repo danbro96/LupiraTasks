@@ -22,9 +22,11 @@ import { useMyRole, canEditWithRole } from '../hooks/useMyRole';
 import { useOutboxStatus } from '../hooks/useOutboxStatus';
 import { useDirectory } from '../hooks/useDirectory';
 import { requestItemDeleteMany } from '../state/pendingDeletes';
-import { childrenOf, nextChildSortOrder, descendantIds } from '../../domain/itemTree';
+import { childrenOf, nextChildSortOrder, descendantIds } from '@lupira/tasks-domain/itemTree';
+import { priorityLabel } from '@lupira/tasks-domain/itemFormat';
 import { enqueue } from '../../sync/outbox';
-import { newId, stamp } from '../../domain/ops';
+import { newId } from '@lupira/tasks-domain/ids';
+import { stamp } from '../../domain/ops';
 import { oneLine } from '@lupira/tasks-domain/text';
 import { dueInDays, dueNextWeekend, dueOnDate, formatDue } from '@lupira/tasks-domain/dueDate';
 import { radii, spacing, useColors, type Palette } from '../theme';
@@ -321,9 +323,7 @@ export function TaskDetailScreen() {
             onChange={p => void setPriority(p)}
           />
           <Text variant="bodyLarge" style={styles.priorityHint}>
-            {(list?.simplePriority ?? true)
-              ? item.priority > 0 ? 'Starred' : 'Not starred'
-              : `Level ${item.priority}`}
+            {priorityLabel(list?.simplePriority ?? true, item.priority)}
           </Text>
         </View>
 

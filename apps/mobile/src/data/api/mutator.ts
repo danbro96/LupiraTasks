@@ -1,12 +1,7 @@
 import { authPort } from './authProvider';
-import { DEV_USER } from '../../config';
-import { ApiError, isNetworkError, REQUEST_TIMEOUT_MS } from '../../domain/apiError';
+import { ApiError } from '@lupira/tasks-api/apiError';
+import { DEV_USER, REQUEST_TIMEOUT_MS } from '../../config';
 import { MAX_RETRIES, isRetriableRequest, isTransientStatus, retryDelayMs } from '../../domain/retryPolicy';
-
-// Error primitives live in ./apiError (dependency-free, so pure consumers can import them
-// without pulling in native modules). Re-exported here so existing `from '../api/mutator'`
-// importers keep working.
-export { ApiError, isNetworkError, REQUEST_TIMEOUT_MS };
 
 const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 

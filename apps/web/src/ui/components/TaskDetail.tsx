@@ -15,13 +15,13 @@ import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
 import CloseIcon from '@mui/icons-material/Close';
 import type { ListActions, ListItem, ListViewModel } from '../listController';
-import { childrenOf } from '../../domain/itemTree';
+import { childrenOf } from '@lupira/tasks-domain/itemTree';
 import { dueInDays, dueNextWeekend, dueOnDate, formatDue, toDateInputValue } from '@lupira/tasks-domain/dueDate';
 import { oneLine } from '@lupira/tasks-domain/text';
 import { Checkbox } from './Checkbox';
 import { AddTaskBar } from './AddTaskBar';
 import { PriorityControl } from './PriorityControl';
-import { priorityLabel } from '../../domain/priority';
+import { priorityLabel } from '@lupira/tasks-domain/itemFormat';
 
 const DUE_QUICK: { label: string; iso: () => string }[] = [
   { label: 'Today', iso: () => dueInDays(0) },

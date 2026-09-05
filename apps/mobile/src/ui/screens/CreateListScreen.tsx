@@ -12,7 +12,8 @@ import { ColorSwatches } from '../components/ColorSwatches';
 import { SyncBanner } from '../components/SyncBanner';
 import { toastError } from '../../feedback/toast';
 import { enqueue } from '../../sync/outbox';
-import { newId, stamp } from '../../domain/ops';
+import { newId } from '@lupira/tasks-domain/ids';
+import { stamp } from '../../domain/ops';
 import { logDebug } from '../../debug/log';
 import { spacing, useColors, type Palette } from '../theme';
 

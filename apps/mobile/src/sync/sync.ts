@@ -18,7 +18,7 @@ import { bumpMirror, useSyncStatus } from './syncStatus';
 import { drainOutbox, refreshPending, refreshFailed } from './outbox';
 import { listsToPrune } from '../domain/pruneLists';
 import { logDebug } from '../debug/log';
-import { isNetworkError } from '../data/api/mutator';
+import { isNetworkError } from '@lupira/tasks-api/apiError';
 
 /** Provision + cache the caller's `/me` profile (best-effort; non-fatal on failure). */
 export async function pullMe(): Promise<void> {

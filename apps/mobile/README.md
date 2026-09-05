@@ -56,8 +56,8 @@ npm run gen:api
 ```
 
 `src/data/api/mutator.ts` (`apiFetch`) owns the base URL, bearer-token injection + reactive
-refresh on 401, JSON handling, bounded transient retries, and error normalisation (`ApiError`
-carries `.status`).
+refresh on 401, JSON handling, bounded transient retries, and error normalisation (`ApiError` from
+`@lupira/tasks-api`, carries `.status`).
 
 ## Configuration
 

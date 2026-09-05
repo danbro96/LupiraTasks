@@ -1,6 +1,6 @@
 // What changed about an item when someone else edited it, so the list can say so instead of
-// silently redrawing the row. Ported from the mobile app (src/domain/itemChange.ts) and made
-// generic over the item shape — the web's item type lives in data/, which domain can't import.
+// silently redrawing the row. The actor is whatever the caller's item records — a principal id in
+// the app's mirror, a PersonRef from the API — the diff only carries it through.
 
 export type ItemChangeKind = 'added' | 'completed' | 'reopened' | 'renamed' | 'updated';
 
@@ -22,19 +22,25 @@ export interface ChangeableItem {
   quantity?: number | null;
   unit?: string | null;
   parentItemId?: string | null;
+  assignedTo?: string | null;
   tags: string[];
-  completedBy?: ActorRef | null;
-  createdBy?: ActorRef | null;
+  completedBy?: unknown;
+  createdBy?: unknown;
 }
 
-export interface ItemChange {
+/** The item's own actor type — `string` for the mirror, `PersonRef` for the DTO. */
+export type ActorOf<T extends ChangeableItem> = NonNullable<T['completedBy']>;
+
+export interface ItemChange<A> {
   itemId: string;
   kind: ItemChangeKind;
   /** Who did it, when the item records one (completions and adds), else null. */
-  actor: ActorRef | null;
+  actor: A | null;
 }
 
-const SCALARS = ['notes', 'dueAt', 'priority', 'quantity', 'unit', 'parentItemId'] as const;
+// Everything the row renders. sortOrder is excluded: a remote reorder is self-evident, and
+// highlighting every moved row would drown the real edits.
+const SCALARS = ['notes', 'dueAt', 'priority', 'quantity', 'unit', 'parentItemId', 'assignedTo'] as const;
 
 function visiblyDiffers(a: ChangeableItem, b: ChangeableItem): boolean {
   if (SCALARS.some(k => a[k] !== b[k])) return true;
@@ -42,28 +48,27 @@ function visiblyDiffers(a: ChangeableItem, b: ChangeableItem): boolean {
   return [...a.tags].sort().join() !== [...b.tags].sort().join();
 }
 
-/**
- * Diff a fresh read of a list's items against the previous one. Empty `prev` yields nothing — a
- * first load is not a set of changes. sortOrder is excluded: a remote reorder is self-evident, and
- * highlighting every moved row would drown the real edits.
- */
+/** Diff a fresh read of a list's items against the previous one. Empty `prev` yields nothing — a
+ *  first load is not a set of changes. */
 export function diffItems<T extends ChangeableItem>(
   prev: Map<string, T>,
   next: readonly T[],
-): ItemChange[] {
+): ItemChange<ActorOf<T>>[] {
+  type A = ActorOf<T>;
+  const actor = (who: unknown) => (who ?? null) as A | null;
   if (prev.size === 0) return [];
-  const out: ItemChange[] = [];
+  const out: ItemChange<A>[] = [];
   for (const item of next) {
     const before = prev.get(item.id);
     if (!before) {
-      out.push({ itemId: item.id, kind: 'added', actor: item.createdBy ?? null });
+      out.push({ itemId: item.id, kind: 'added', actor: actor(item.createdBy) });
       continue;
     }
     if (before.completed !== item.completed) {
       out.push({
         itemId: item.id,
         kind: item.completed ? 'completed' : 'reopened',
-        actor: (item.completed ? item.completedBy : before.completedBy) ?? null,
+        actor: actor(item.completed ? item.completedBy : before.completedBy),
       });
     } else if (before.title !== item.title) {
       out.push({ itemId: item.id, kind: 'renamed', actor: null });
@@ -83,13 +88,13 @@ const VERB: Record<ItemChangeKind, string> = {
 };
 
 /** First name only — a full name or an email fallback won't fit beside the title. */
-function firstName(who: ActorRef): string {
-  const raw = who.displayName ?? who.email ?? '';
+function firstName(who: string | ActorRef): string {
+  const raw = typeof who === 'string' ? who : (who.displayName ?? who.email ?? '');
   return raw.trim().split(/\s+/)[0].split('@')[0];
 }
 
 /** Two words at most — the label shares the title's line, so anything longer ellipsises. */
-export function changeLabel(kind: ItemChangeKind, who: ActorRef | null): string {
+export function changeLabel(kind: ItemChangeKind, who: string | ActorRef | null): string {
   const verb = VERB[kind];
   const name = who ? firstName(who) : '';
   return name ? `${name} ${verb}` : `${verb[0].toUpperCase()}${verb.slice(1)} elsewhere`;

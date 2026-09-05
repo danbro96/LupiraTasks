@@ -1,5 +1,5 @@
 import Button from '@mui/material/Button';
-import { ApiError } from '../../data/api/fetcher';
+import { ApiError } from '@lupira/tasks-api/apiError';
 import { useGuestSession } from '../../state/useGuestSession';
 import { useSharedList } from '../../state/useSharedList';
 import { Centered } from './Centered';

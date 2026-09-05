@@ -39,7 +39,7 @@ async function load() {
   const outbox = await import('./outbox');
   const dbm = await import('../data/db');
   const { useSyncStatus } = await import('./syncStatus');
-  const { ApiError } = await import('../domain/apiError');
+  const { ApiError } = await import('@lupira/tasks-api/apiError');
   const { replayOp } = await import('./replayOp');
   const db = await dbm.getDb();
   return { outbox, dbm, db, useSyncStatus, ApiError, replayOp: vi.mocked(replayOp) };

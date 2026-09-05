@@ -1,3 +1,4 @@
+import { ApiError } from '@lupira/tasks-api/apiError';
 import { setApiTransport } from '@lupira/tasks-api/transport';
 import { API_BASE_URL } from '../../config';
 
@@ -5,16 +6,6 @@ import { API_BASE_URL } from '../../config';
  * The mutator for every orval-generated request. Auth rides a BFF cookie session either way — the
  * member's, or the guest session minted from a share token — so one transport serves both surfaces.
  */
-export class ApiError extends Error {
-  status: number;
-
-  constructor(status: number, message: string) {
-    super(message);
-    this.status = status;
-    this.name = 'ApiError';
-  }
-}
-
 /** A dead guest cookie must surface on the share screen, not bounce the visitor into Authentik. */
 let guestSession = false;
 

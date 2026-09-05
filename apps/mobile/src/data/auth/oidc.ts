@@ -1,6 +1,6 @@
 import * as AuthSession from 'expo-auth-session';
 import { OIDC_CLIENT_ID, OIDC_ISSUER } from './oidcConfig';
-import { REQUEST_TIMEOUT_MS } from '../../domain/apiError';
+import { REQUEST_TIMEOUT_MS } from '../../config';
 import { logAuth } from './authDebug';
 
 // Non-hook OIDC helpers (the interactive login itself lives in LoginScreen via

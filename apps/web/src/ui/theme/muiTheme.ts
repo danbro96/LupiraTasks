@@ -1,7 +1,7 @@
 import { createTheme } from '@mui/material/styles';
 import { darkColors, lightColors, type Palette as ColorScheme } from '@lupira/tasks-tokens/color';
-import { RADII, SPACING } from './tokens/spacing';
-import { FONT_FAMILY } from './tokens/typography';
+import { RADII, SPACING } from '@lupira/tasks-tokens/spacing';
+import { FONT_FAMILY } from '@lupira/tasks-tokens/typography';
 
 declare module '@mui/material/styles' {
   interface Palette {

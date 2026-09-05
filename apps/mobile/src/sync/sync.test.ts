@@ -63,7 +63,7 @@ async function load() {
   const dbm = await import('../data/db');
   const { useSyncStatus } = await import('./syncStatus');
   // instanceof checks (isNetworkError) must see the same class the fresh module graph uses.
-  const { ApiError } = await import('../domain/apiError');
+  const { ApiError } = await import('@lupira/tasks-api/apiError');
   const { listLists } = await import('@lupira/tasks-api/fetch/lists');
   const { syncList } = await import('@lupira/tasks-api/fetch/sync');
   const { getMe } = await import('@lupira/tasks-api/fetch/me');

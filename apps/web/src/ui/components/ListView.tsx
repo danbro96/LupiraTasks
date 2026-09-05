@@ -5,8 +5,8 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import type { SharedTagDto } from '@lupira/tasks-api/models';
-import { collapseDescendants, type CompletedMode } from '../../domain/itemTree';
-import type { ItemChange } from '../../domain/itemChange';
+import { collapseDescendants, type CompletedMode } from '@lupira/tasks-domain/itemTree';
+import type { ActorRef, ItemChange } from '@lupira/tasks-domain/itemChange';
 import type { RemoteChanges } from '../../state/useRemoteChanges';
 import { useListPollPaused } from '../../state/usePollInterval';
 import type { ListActions, ListItem, ListViewModel } from '../listController';
@@ -47,7 +47,7 @@ export function ListView({ list, items, canEdit, tagsById, actions, members, hea
 
   // Each batch owns its expiry timer — a change arriving mid-flash must not cancel the previous
   // batch's cleanup and leave those rows highlighted for good.
-  const [flashes, setFlashes] = useState<Map<string, ItemChange>>(new Map());
+  const [flashes, setFlashes] = useState<Map<string, ItemChange<ActorRef>>>(new Map());
   const flashTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   useEffect(() => () => flashTimers.current.forEach(clearTimeout), []);
   useEffect(() => {

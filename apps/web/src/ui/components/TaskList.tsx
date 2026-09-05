@@ -10,8 +10,8 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import type { SharedItemDto, SharedTagDto } from '@lupira/tasks-api/models';
-import { rowsForMode, siblingReorder, type CompletedMode } from '../../domain/itemTree';
-import type { ItemChange } from '../../domain/itemChange';
+import { rowsForMode, siblingReorder, type CompletedMode } from '@lupira/tasks-domain/itemTree';
+import type { ActorRef, ItemChange } from '@lupira/tasks-domain/itemChange';
 import { TaskRow } from './TaskRow';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -25,7 +25,7 @@ interface Props {
   expanded: Set<string>;
   tagsById: Map<string, SharedTagDto>;
   /** Rows currently announcing someone else's edit. */
-  flashes: Map<string, ItemChange>;
+  flashes: Map<string, ItemChange<ActorRef>>;
   /** Completed rows to leave where they are while their flash runs. */
   held: ReadonlySet<string>;
   onToggle: (item: SharedItemDto) => void;

@@ -36,7 +36,8 @@
   MCI default is overridden by `settings={paperSettings}` in `App.tsx`, so every `icon=` string must
   be an `ICONS.x` value; a wrong name renders nothing rather than failing the build. Inline glyphs
   inside `<Text>` use `Glyph`. Confirms use `useConfirm()` (`ui/components/ConfirmDialog.tsx`).
-  Colors come from `@lupira/tasks-tokens` (shared with the web client); spacing/radii stay local.
+  Colors, spacing, radii and hit-slop come from `@lupira/tasks-tokens`; `ui/theme/spacing.ts` is a
+  one-line re-export under the app's lowercase names.
 - **Stay in step with the sibling Lupira frontends.** Same components, theme wiring and layout;
   match what they already do rather than inventing a local shape. Shared files stay byte-identical.
 - **Row components take `styles`/`palette` as props and are `memo`'d — no Paper components inside

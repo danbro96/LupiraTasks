@@ -1,12 +1,20 @@
 import { generateKeyBetween } from 'fractional-indexing';
-import type { ItemState } from './itemState';
 
-// Pure helpers for the nested task tree: build the visible (flattened) rows for rendering, the
-// cascade-collapse of a node, and the sibling-only reorder target. Framework-free so it can be
-// unit-tested in the node env (see itemTree.test.ts).
+// Pure helpers for the nested task tree: the visible (flattened) rows, cascade-collapse, and the
+// sibling-only reorder target. Generic over any item with id/parent/sortOrder/completed, so it
+// serves the API DTOs and the app's mirror alike.
 
-export interface VisibleRow {
-  item: ItemState;
+export interface TreeItem {
+  id: string;
+  parentItemId?: string | null;
+  sortOrder: string;
+  completed: boolean;
+  completedAt?: string | null;
+  updatedAt?: string | null;
+}
+
+export interface VisibleRow<T extends TreeItem> {
+  item: T;
   depth: number;
   hasChildren: boolean;
 }
@@ -14,13 +22,13 @@ export interface VisibleRow {
 /** Per-list display of completed tasks: in place, in a section below the open tasks, or hidden. */
 export type CompletedMode = 'inline' | 'below' | 'hidden';
 
-const bySort = (a: ItemState, b: ItemState) => (a.sortOrder < b.sortOrder ? -1 : a.sortOrder > b.sortOrder ? 1 : 0);
+const bySort = (a: TreeItem, b: TreeItem) => (a.sortOrder < b.sortOrder ? -1 : a.sortOrder > b.sortOrder ? 1 : 0);
 
 /** Group items by effective parent (a parent that isn't present → the item is treated as a root,
  *  so nothing disappears if a parent is missing). Each group is sorted by sortOrder. */
-function byParent(items: ItemState[]): Map<string | null, ItemState[]> {
+function byParent<T extends TreeItem>(items: T[]): Map<string | null, T[]> {
   const ids = new Set(items.map(i => i.id));
-  const map = new Map<string | null, ItemState[]>();
+  const map = new Map<string | null, T[]>();
   for (const it of items) {
     const parent = it.parentItemId && ids.has(it.parentItemId) ? it.parentItemId : null;
     const arr = map.get(parent);
@@ -32,18 +40,18 @@ function byParent(items: ItemState[]): Map<string | null, ItemState[]> {
 }
 
 /** Flatten the item forest to visible rows (depth-first), descending only into expanded ids.
- *  When hideCompleted is true, completed items are skipped (their incomplete children, if any,
- *  surface as roots) — except ids in `keep`, so a task someone else just ticked off can be seen
- *  being ticked off instead of vanishing. */
-export function buildVisibleRows(
-  items: ItemState[],
+ *  When hideCompleted is true, completed items are skipped (their incomplete children surface as
+ *  roots) — except ids in `keep`, so a task someone else just ticked off can be seen being ticked
+ *  off instead of vanishing. */
+export function buildVisibleRows<T extends TreeItem>(
+  items: T[],
   expanded: Set<string>,
   hideCompleted: boolean,
   keep: ReadonlySet<string> = new Set(),
-): VisibleRow[] {
+): VisibleRow<T>[] {
   const src = hideCompleted ? items.filter(i => !i.completed || keep.has(i.id)) : items;
   const children = byParent(src);
-  const rows: VisibleRow[] = [];
+  const rows: VisibleRow<T>[] = [];
   const walk = (parentId: string | null, depth: number) => {
     for (const it of children.get(parentId) ?? []) {
       const kids = children.get(it.id) ?? [];
@@ -55,8 +63,27 @@ export function buildVisibleRows(
   return rows;
 }
 
+/** Rendered rows for a completed-display mode. `below` keeps the open-task tree, then gathers the
+ *  completed items flat underneath, newest first. */
+export function rowsForMode<T extends TreeItem>(
+  items: T[],
+  expanded: Set<string>,
+  mode: CompletedMode,
+  keep: ReadonlySet<string> = new Set(),
+): VisibleRow<T>[] {
+  if (mode !== 'below') return buildVisibleRows(items, expanded, mode === 'hidden', keep);
+  const open = buildVisibleRows(items, expanded, true, keep);
+  // A mirror row completed offline may not carry completedAt yet; its last edit is the next best key.
+  const doneKey = (i: T) => i.completedAt ?? i.updatedAt ?? '';
+  const done = items
+    .filter(i => i.completed && !keep.has(i.id))
+    .sort((a, b) => (doneKey(b) < doneKey(a) ? -1 : doneKey(b) > doneKey(a) ? 1 : 0))
+    .map(item => ({ item, depth: 0, hasChildren: false }));
+  return [...open, ...done];
+}
+
 /** Collapse `itemId` and all of its descendants (cascade), so re-expanding shows sublevels collapsed. */
-export function collapseDescendants(expanded: Set<string>, itemId: string, items: ItemState[]): Set<string> {
+export function collapseDescendants<T extends TreeItem>(expanded: Set<string>, itemId: string, items: T[]): Set<string> {
   const children = byParent(items);
   const next = new Set(expanded);
   const remove = (id: string) => {
@@ -68,7 +95,7 @@ export function collapseDescendants(expanded: Set<string>, itemId: string, items
 }
 
 /** All descendant ids of `itemId` (children, grandchildren, …) — used to delete a whole subtree. */
-export function descendantIds(items: ItemState[], itemId: string): string[] {
+export function descendantIds<T extends TreeItem>(items: T[], itemId: string): string[] {
   const children = byParent(items);
   const out: string[] = [];
   const walk = (id: string) => {
@@ -86,8 +113,8 @@ export function descendantIds(items: ItemState[], itemId: string): string[] {
  * siblings (same raw parent) in their new order and return the fractional key between its new
  * neighbors, keeping its parent unchanged. Returns null if it can't produce a valid key.
  */
-export function siblingReorder(
-  rows: VisibleRow[],
+export function siblingReorder<T extends TreeItem>(
+  rows: VisibleRow<T>[],
   draggedId: string,
 ): { sortOrder: string; parentItemId: string | null } | null {
   // Rows can carry holes when a sync pull shortens the list mid-drag; skip them rather than throw.
@@ -109,12 +136,18 @@ export function siblingReorder(
 }
 
 /** A parent's direct children, in sort order. */
-export function childrenOf(items: ItemState[], parentId: string): ItemState[] {
+export function childrenOf<T extends TreeItem>(items: T[], parentId: string): T[] {
   return items.filter(i => i.parentItemId === parentId).sort(bySort);
 }
 
 /** sortOrder for a new child appended after a parent's existing children. */
-export function nextChildSortOrder(items: ItemState[], parentId: string): string {
+export function nextChildSortOrder<T extends TreeItem>(items: T[], parentId: string): string {
   const kids = childrenOf(items, parentId);
   return generateKeyBetween(kids.length ? kids[kids.length - 1].sortOrder : null, null);
+}
+
+/** sortOrder for a new top-level task inserted at the top (before the first root). */
+export function topSortOrder<T extends TreeItem>(items: T[]): string {
+  const topKeys = items.filter(i => (i.parentItemId ?? null) === null).map(i => i.sortOrder).sort();
+  return generateKeyBetween(null, topKeys.length ? topKeys[0] : null);
 }

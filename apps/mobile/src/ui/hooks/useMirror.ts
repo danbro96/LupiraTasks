@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ListDto } from '@lupira/tasks-api/models';
 import type { ItemState } from '../../domain/itemState';
-import { diffItems, type ItemChange } from '../../domain/itemChange';
+import { diffItems, type ItemChange } from '@lupira/tasks-domain/itemChange';
 import { sortActiveLists, sortArchivedLists } from '@lupira/tasks-domain/listOrder';
 import { getDb, getItemsByList, getListDocs, getArchivedListDocs } from '../../data/db';
 import { useSyncStatus } from '../../sync/syncStatus';
@@ -78,12 +78,12 @@ export function useArchivedLists(): { lists: ListDto[] } {
 export function useItems(listId: string): {
   items: ItemState[];
   loading: boolean;
-  changes: { nonce: number; list: ItemChange[] };
+  changes: { nonce: number; list: ItemChange<string>[] };
 } {
   const rev = useSyncStatus(s => s.mirrorRevision);
   const [items, setItems] = useState<ItemState[]>([]);
   const [loading, setLoading] = useState(true);
-  const [changes, setChanges] = useState<{ nonce: number; list: ItemChange[] }>({ nonce: 0, list: [] });
+  const [changes, setChanges] = useState<{ nonce: number; list: ItemChange<string>[] }>({ nonce: 0, list: [] });
   // Keyed by list: diffing against another list's read would report every row as added.
   const prev = useRef<{ listId: string; rows: Map<string, ItemState> }>({ listId, rows: new Map() });
   const publish = useUnchangedGuard<ItemState>();

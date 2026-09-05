@@ -31,7 +31,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useLists } from '../../state/useLists';
 import { useMe } from '../../state/useMe';
 import { logout } from '../../data/api/session';
-import { ApiError } from '../../data/api/fetcher';
+import { ApiError } from '@lupira/tasks-api/apiError';
 import type { ListKind, ListDto } from '@lupira/tasks-api/models';
 import { listColorOptions } from '@lupira/tasks-tokens/color';
 import { Centered } from '../components/Centered';

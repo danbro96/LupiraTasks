@@ -9,21 +9,15 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import type { SharedItemDto, SharedTagDto } from '@lupira/tasks-api/models';
-import type { VisibleRow } from '../../domain/itemTree';
-import { changeLabel, type ActorRef, type ItemChangeKind } from '../../domain/itemChange';
+import type { VisibleRow } from '@lupira/tasks-domain/itemTree';
+import { changeLabel, type ActorRef, type ItemChangeKind } from '@lupira/tasks-domain/itemChange';
+import { qtyLabel } from '@lupira/tasks-domain/itemFormat';
 import { formatDue } from '@lupira/tasks-domain/dueDate';
 import { Checkbox } from './Checkbox';
 import { PriorityControl } from './PriorityControl';
 import { DragIcon } from '../icons';
 
 const INDENT = 18; // px per nesting level
-
-/** "2 kg"-style label for shopping items, or null when there's nothing to show. */
-function qtyLabel(it: SharedItemDto): string | null {
-  if (it.quantity == null && !it.unit) return null;
-  const q = it.quantity != null ? String(it.quantity) : '';
-  return `${q}${q && it.unit ? ' ' : ''}${it.unit ?? ''}`.trim() || null;
-}
 
 interface Props {
   row: VisibleRow<SharedItemDto>;

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ApiError } from '../data/api/fetcher';
+import { ApiError } from '@lupira/tasks-api/apiError';
 import {
   deleteListItem,
   getListListItemsQueryKey,
@@ -14,8 +14,8 @@ import {
 import { getGetListQueryKey, useGetList } from '@lupira/tasks-api/query/lists';
 import { ItemStatus } from '@lupira/tasks-api/models';
 import type { CreateItemRequest, ItemDto, ListDto, TagDto, UpdateItemRequest } from '@lupira/tasks-api/models';
-import { newId } from '../domain/ids';
-import { descendantIds, nextChildSortOrder, topSortOrder } from '../domain/itemTree';
+import { newId } from '@lupira/tasks-domain/ids';
+import { descendantIds, nextChildSortOrder, topSortOrder } from '@lupira/tasks-domain/itemTree';
 import { useRemoteChanges } from './useRemoteChanges';
 import { useListPollInterval } from './usePollInterval';
 

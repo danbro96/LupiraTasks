@@ -1,4 +1,4 @@
-import { ApiError } from './apiError';
+import { ApiError } from '@lupira/tasks-api/apiError';
 
 // Pure decision table for "an outbox op's replay threw — now what?". Extracted from
 // runDrain (outbox.ts) so the branch matrix is named, documented, and unit-testable without

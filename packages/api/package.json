@@ -17,6 +17,7 @@
   },
   "exports": {
     "./transport": "./src/transport.ts",
+    "./apiError": "./src/apiError.ts",
     "./models": "./src/generated/models/index.ts",
     "./query/*": "./src/generated/query/*/*.ts",
     "./shared/*": "./src/generated/shared/*/*.ts",
@@ -24,5 +25,10 @@
   },
   "peerDependencies": {
     "@tanstack/react-query": "^5.90.2"
+  },
+  "peerDependenciesMeta": {
+    "@tanstack/react-query": {
+      "optional": true
+    }
   }
 }

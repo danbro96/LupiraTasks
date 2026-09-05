@@ -9,14 +9,20 @@ Check `apps/mobile/src/ui/screens` before adding or changing web UI. The web is 
 Root `package.json` hoists the toolchain (eslint/typescript/vitest) and owns `engines`, `allowScripts`
 and the react `overrides` (RN pins exact versions). Workspaces:
 - `packages/domain` (`@lupira/tasks-domain`) — pure shared logic, consumed as TS source. Purity is
-  eslint-enforced: no generated DTO types, no platform APIs; `fractional-indexing` is the one allowed
-  dependency. Holds what both clients agree on (`dueDate`, `listOrder`, `text`). `itemChange`/`itemTree`
-  stay per-app — the app's are offline/LWW-aware and the web's are not; they are not drift.
-- `packages/tokens` (`@lupira/tasks-tokens`) — the color palette both clients render. Spacing/radii stay
-  per-app (the scales genuinely differ).
+  eslint-enforced: no generated DTO types, no platform APIs; `fractional-indexing` and `uuid` are the
+  only allowed dependencies. Holds every rule both clients must agree on: `dueDate`, `listOrder`,
+  `text`, `itemTree` (visible rows, reorder target), `itemChange` (what a remote edit changed —
+  generic over the actor, a principal id in the mirror and a `PersonRef` from the API), `ids`,
+  `itemFormat` (quantity and priority labels). Modules declare structural types the DTOs and the
+  mirror's `ItemState` satisfy by shape. The mirror's own machinery (`itemState`, `itemLww`, `ops`,
+  `listDoc`, `outboxScope`, …) stays in the app: it types against generated DTOs and has no second
+  consumer.
+- `packages/tokens` (`@lupira/tasks-tokens`) — colors, spacing, radii, hit-slop and typography: the
+  estate scale, byte-identical with cal-web's. Each app has a one-line theme adapter over it.
 - `packages/api` (`@lupira/tasks-api`) — **the generated client, once**, in three flavours over one set of
-  models, plus the route generator and the cross-artifact checks. The spec and the allowlist live with
-  the BFF; see below.
+  models, plus `transport` (the seam each app installs its HTTP concerns into) and `apiError` (the
+  error both transports throw and both apps branch on). The spec and the allowlist live with the BFF;
+  see below.
 - `apps/web` — the SPA. `apps/mobile` — the Expo app.
 
 **New workspaces must also be added to the Dockerfile's COPY + `npm ci -w` lines.** Root scripts fan
@@ -117,9 +123,9 @@ grips and the flash overlay stay plain DOM** — dnd-kit writes inline transform
   no tokens in JS); auth is the session cookie (`credentials: 'include'`, 401 → `/auth/login`).
 
 ## SPA layering (downward-only, `eslint-plugin-boundaries`)
-`domain → data → state → ui`
-- `domain/` pure logic · `data/` generated API client + mutators + session helpers (`api/`) · `state/`
-  React Query hooks · `ui/` `components/`, `screens/`, `navigation/`, `theme/`.
+`data → state → ui`
+- `data/` transport + session helpers (`api/`) · `state/` React Query hooks · `ui/` `components/`,
+  `screens/`, `navigation/`, `theme/`. Pure logic lives in `@lupira/tasks-domain`, not in the app.
 - The generated client comes from `@lupira/tasks-api` — `query/*` (member, react-query), `shared/*`
   (the account-less surface) and `fetch/*` (what the app's sync layer calls). Never hand-edit it;
   refresh with `npm run gen:api`, which rebuilds the BFF to re-emit the document first.

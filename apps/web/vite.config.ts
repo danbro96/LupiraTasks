@@ -31,5 +31,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
+    // The SPA's pure logic lives in @lupira/tasks-domain and is tested there.
+    passWithNoTests: true,
   },
 });

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
-import type { CompletedMode } from '../domain/itemTree';
+import type { CompletedMode } from '@lupira/tasks-domain/itemTree';
 
 // Lightweight, persisted UI preferences (not secret — SecureStore is just the available
 // key/value store; no AsyncStorage in this project).

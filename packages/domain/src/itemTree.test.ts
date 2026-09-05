@@ -94,6 +94,16 @@ describe('rowsForMode', () => {
     expect(rows.map(r => r.item.id)).toContain('a');
   });
 
+  it('below orders completed items by completedAt, falling back to updatedAt', () => {
+    const list = fixture().map(i =>
+      i.id === 'a' ? { ...i, completed: true, completedAt: null, updatedAt: '2026-01-03T00:00:00Z' }
+      : i.id === 'c' ? { ...i, completed: true, completedAt: '2026-01-02T00:00:00Z' }
+      : i,
+    );
+    const rows = rowsForMode(list, new Set(), 'below');
+    expect(rows.map(r => r.item.id)).toEqual(['b', 'a', 'c']);
+  });
+
   it('a held completed item keeps its tree position in below mode, not the COMPLETED block', () => {
     const rows = rowsForMode(items, new Set(), 'below', new Set(['a']));
     // 'a' sorts first among the roots — held, it stays there instead of moving to the end.
@@ -157,5 +167,17 @@ describe('siblingReorder', () => {
     const target = siblingReorder(reordered, 'c2');
     expect(target!.parentItemId).toBe('p');
     expect(target!.sortOrder < a).toBe(true); // c2 moved before c1
+  });
+
+  it('skips holes left by a mid-drag reload rather than throwing', () => {
+    const rows = [
+      { item: item({ id: 'a', sortOrder: K0 }), depth: 0, hasChildren: false },
+      { item: item({ id: 'b', sortOrder: K1 }), depth: 0, hasChildren: false },
+      { item: item({ id: 'c', sortOrder: K2 }), depth: 0, hasChildren: false },
+    ];
+    rows.splice(1, 1, undefined as unknown as (typeof rows)[number]);
+    const target = siblingReorder(rows, 'c');
+    expect(target).not.toBeNull();
+    expect(target!.parentItemId).toBeNull();
   });
 });

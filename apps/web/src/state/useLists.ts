@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ApiError } from '../data/api/fetcher';
+import { ApiError } from '@lupira/tasks-api/apiError';
 import {
   getListListsQueryKey,
   createList,
@@ -7,7 +7,7 @@ import {
   useListLists,
 } from '@lupira/tasks-api/query/lists';
 import type { CreateListRequest, ListDto } from '@lupira/tasks-api/models';
-import { newId } from '../domain/ids';
+import { newId } from '@lupira/tasks-domain/ids';
 import { planListReorder, sortActiveLists, sortArchivedLists } from '@lupira/tasks-domain/listOrder';
 
 const TERMINAL = new Set([400, 401, 403, 404]); // not worth retrying

@@ -17,6 +17,9 @@ export const API_PRESETS: ApiPreset[] = [
   { key: 'emulator', label: 'Emulator dev', urls: { api: 'http://10.0.2.2:5180' }, authMode: 'dev' },
 ];
 
+/** Requests abort after this long so a dead or slow server fails fast instead of hanging. */
+export const REQUEST_TIMEOUT_MS = 10_000;
+
 /** The BFF and tasks-api trust X-Dev-User only in Development. */
 export const DEV_USER = 'daniel.brostrom@hotmail.se';
 

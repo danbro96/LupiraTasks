@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { generateKeyBetween } from 'fractional-indexing';
 import ReorderableList, { useReorderableDrag, useIsActive, reorderItems } from 'react-native-reorderable-list';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { LinearTransition, runOnJS, SlideOutLeft, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming } from 'react-native-reanimated';
@@ -28,12 +27,14 @@ import { useOutboxStatus } from '../hooks/useOutboxStatus';
 import { useMyRole, canEditWithRole } from '../hooks/useMyRole';
 import { usePendingDeletes, requestItemDeleteMany } from '../state/pendingDeletes';
 import { ROW_SPACING_PAD, TEXT_SIZE_SCALE, usePrefs } from '../../state/prefs-store';
-import { buildVisibleRows, collapseDescendants, descendantIds, siblingReorder, type VisibleRow } from '../../domain/itemTree';
-import { changeLabel, type ItemChange, type ItemChangeKind } from '../../domain/itemChange';
+import { collapseDescendants, descendantIds, rowsForMode, siblingReorder, topSortOrder, type VisibleRow } from '@lupira/tasks-domain/itemTree';
+import { changeLabel, type ItemChange, type ItemChangeKind } from '@lupira/tasks-domain/itemChange';
+import { qtyLabel } from '@lupira/tasks-domain/itemFormat';
 import { oneLine } from '@lupira/tasks-domain/text';
 import { enqueue } from '../../sync/outbox';
 import { pullList } from '../../sync/sync';
-import { newId, stamp } from '../../domain/ops';
+import { newId } from '@lupira/tasks-domain/ids';
+import { stamp } from '../../domain/ops';
 import { formatDue } from '@lupira/tasks-domain/dueDate';
 import { spacing, useColors, type Palette } from '../theme';
 import { ICONS } from '../icons';
@@ -45,15 +46,8 @@ const REMOTE_FLASH_MS = 4000;
 const FLASH_IN_MS = 180;
 const FLASH_OUT_MS = 1200;
 
-/** "2 kg"-style quantity label for shopping items, or null when there's nothing to show. */
-function qtyLabel(it: ItemState): string | null {
-  if (it.quantity == null && !it.unit) return null;
-  const q = it.quantity != null ? String(it.quantity) : '';
-  return `${q}${q && it.unit ? ' ' : ''}${it.unit ?? ''}`.trim() || null;
-}
-
 interface RowProps {
-  row: VisibleRow;
+  row: VisibleRow<ItemState>;
   canEdit: boolean;
   /** Long-press drag handle — off for completed rows when they live in their own section. */
   draggable: boolean;
@@ -232,7 +226,7 @@ export function ListDetailScreen() {
 
   // Each batch owns its expiry timer — a change arriving mid-flash must not cancel the previous
   // batch's cleanup and leave those rows highlighted for good.
-  const [flashes, setFlashes] = useState<Map<string, ItemChange>>(new Map());
+  const [flashes, setFlashes] = useState<Map<string, ItemChange<string>>>(new Map());
   const flashTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   useEffect(() => () => flashTimers.current.forEach(clearTimeout), []);
   useEffect(() => {
@@ -260,17 +254,10 @@ export function ListDetailScreen() {
   );
 
   const visibleItems = useMemo(() => items.filter(i => !pendingDeletes.has(i.id)), [items, pendingDeletes]);
-  const rows = useMemo(() => {
-    if (completedMode !== 'below') return buildVisibleRows(visibleItems, expanded, completedMode === 'hidden', heldCompleted);
-    // 'below': open tasks keep their tree; completed ones gather flat underneath, newest first.
-    const open = buildVisibleRows(visibleItems, expanded, true, heldCompleted);
-    const doneKey = (i: ItemState) => i.completedAt ?? i.updatedAt;
-    const done = visibleItems
-      .filter(i => i.completed && !heldCompleted.has(i.id))
-      .sort((a, b) => (doneKey(b) < doneKey(a) ? -1 : doneKey(b) > doneKey(a) ? 1 : 0))
-      .map(item => ({ item, depth: 0, hasChildren: false }));
-    return [...open, ...done];
-  }, [visibleItems, expanded, completedMode, heldCompleted]);
+  const rows = useMemo(
+    () => rowsForMode(visibleItems, expanded, completedMode, heldCompleted),
+    [visibleItems, expanded, completedMode, heldCompleted],
+  );
 
   // Freeze the rendered data while a drag is active: a mirror reload landing mid-gesture (a sync
   // pull or another device's edit) would otherwise swap the rows under the drag and snap it.
@@ -305,9 +292,8 @@ export function ListDetailScreen() {
     const t = oneLine(title).trim();
     if (!t) return;
     setTitle('');
-    // New tasks from the list view are always top-level and go to the top: key before the first root.
-    const topKeys = items.filter(i => i.parentItemId == null).map(i => i.sortOrder).sort();
-    const sortOrder = generateKeyBetween(null, topKeys.length ? topKeys[0] : null);
+    // New tasks from the list view are always top-level and go to the top.
+    const sortOrder = topSortOrder(items);
     try {
       await enqueue({ ...stamp(), kind: 'item.create', listId, itemId: newId(), title: t, sortOrder, parentItemId: null });
     } catch {

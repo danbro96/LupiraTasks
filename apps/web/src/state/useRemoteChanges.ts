@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { diffItems, type ChangeableItem, type ItemChange } from '../domain/itemChange';
+import { diffItems, type ActorRef, type ChangeableItem, type ItemChange } from '@lupira/tasks-domain/itemChange';
 
 // Which edits came from someone else — something React Query can't tell you on its own, because a
 // local mutation and a poll both write the same cache.
@@ -11,10 +11,10 @@ import { diffItems, type ChangeableItem, type ItemChange } from '../domain/itemC
 export interface RemoteChanges {
   /** Bumps per emitted batch, so an identical repeat still reads as a new event. */
   nonce: number;
-  list: ItemChange[];
+  list: ItemChange<ActorRef>[];
 }
 
-export function useRemoteChanges<T extends ChangeableItem>(scope: string) {
+export function useRemoteChanges<T extends ChangeableItem & { completedBy?: ActorRef | null }>(scope: string) {
   const snapshot = useRef<{ scope: string; rows: Map<string, T> }>({ scope, rows: new Map() });
   const [changes, setChanges] = useState<RemoteChanges>({ nonce: 0, list: [] });
 

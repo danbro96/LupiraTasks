@@ -20,7 +20,7 @@ import { usePrefs } from '../../state/prefs-store';
 import { enqueue } from '../../sync/outbox';
 import { stamp } from '../../domain/ops';
 import { tasksToJson } from '../../domain/exportTasks';
-import type { CompletedMode } from '../../domain/itemTree';
+import type { CompletedMode } from '@lupira/tasks-domain/itemTree';
 import { spacing, useColors, type Palette } from '../theme';
 
 const ROLES: ListRole[] = [ListRole.Owner, ListRole.Editor, ListRole.Viewer];
