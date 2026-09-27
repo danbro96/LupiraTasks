@@ -147,13 +147,13 @@ const TaskRow = memo(function TaskRow({ item, depth, hasChildren, canEdit, dragg
           </View>
         ) : null}
       </View>
+      <SyncDot status={status} />
       <PriorityControl
         simple={simplePriority}
         value={item.priority}
         editable={canEdit}
         onChange={p => onSetPriority(item, p)}
       />
-      <SyncDot status={status} />
       {hasChildren ? (
         <IconButton
           name={expanded ? ICONS.expand : ICONS.chevronRight}
