@@ -195,7 +195,8 @@ export function ListDetailScreen() {
   );
   const opStatus = useOutboxStatus();
   const pendingDeletes = usePendingDeletes();
-  const canEdit = canEditWithRole(useMyRole(listId));
+  const role = useMyRole(listId);
+  const canEdit = canEditWithRole(role);
   const completedMode = usePrefs(s => s.completedMode[listId] ?? 'inline');
   const textSize = usePrefs(s => s.textSize);
   const rowSpacing = usePrefs(s => s.rowSpacing);
@@ -375,7 +376,7 @@ export function ListDetailScreen() {
           />
           <Button title="Add" onPress={addItem} disabled={!title.trim()} />
         </View>
-      ) : (
+      ) : role === null ? null : (
         <Text style={styles.readonly}>You have view-only access to this list.</Text>
       )}
       <ReorderableList

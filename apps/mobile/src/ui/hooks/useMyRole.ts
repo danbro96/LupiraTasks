@@ -1,12 +1,16 @@
 import { ListRole } from '@lupira/tasks-api/models';
 import { useAuth } from '../../state/auth-store';
-import { useLists } from './useMirror';
+import { useListsState } from '../../state/lists-store';
 
-/** The current user's role on a list, or undefined if not a member / list not in the mirror. */
-export function useMyRole(listId: string): ListRole | undefined {
-  const { lists } = useLists();
+/**
+ * The current user's role on a list: `undefined` if not a member / list not in the mirror,
+ * `null` while the mirror hasn't been read yet — callers must not render "view-only" for that.
+ */
+export function useMyRole(listId: string): ListRole | undefined | null {
+  const loaded = useListsState(s => s.loaded);
+  const list = useListsState(s => s.active.find(l => l.id === listId));
   const me = useAuth(s => s.user?.principalId);
-  const list = lists.find(l => l.id === listId);
+  if (!loaded) return null;
   if (!list || !me) return undefined;
   // Server-authoritative role (`list.access`), gated on membership so an optimistic self-leave —
   // the mirror lingers minus-me until the next pull — correctly drops edit rights.
@@ -14,6 +18,6 @@ export function useMyRole(listId: string): ListRole | undefined {
 }
 
 /** Whether a role may modify list contents (add/edit/complete/delete items). Viewers cannot. */
-export function canEditWithRole(role: ListRole | undefined): boolean {
+export function canEditWithRole(role: ListRole | undefined | null): boolean {
   return role === ListRole.Owner || role === ListRole.Editor;
 }

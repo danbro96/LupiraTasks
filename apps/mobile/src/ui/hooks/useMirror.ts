@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { ListDto } from '@lupira/tasks-api/models';
 import type { ItemState } from '../../domain/itemState';
 import { diffItems, type ItemChange } from '@lupira/tasks-domain/itemChange';
-import { sortActiveLists, sortArchivedLists } from '@lupira/tasks-domain/listOrder';
-import { getDb, getItemsByList, getListDocs, getArchivedListDocs } from '../../data/db';
+import { getDb, getItemsByList } from '../../data/db';
+import { useListsState } from '../../state/lists-store';
 import { useSyncStatus } from '../../sync/syncStatus';
 import { logDebug } from '../../debug/log';
 
@@ -35,40 +35,11 @@ function useUnchangedGuard<T>(): (rows: T[], apply: (rows: T[]) => void) => void
 }
 
 export function useLists(): { lists: ListDto[] } {
-  const rev = useSyncStatus(s => s.mirrorRevision);
-  const [lists, setLists] = useState<ListDto[]>([]);
-  const publish = useUnchangedGuard<ListDto>();
-
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      const db = await getDb();
-      const docs = sortActiveLists(await getListDocs<ListDto>(db));
-      logDebug('useLists', `count=${docs.length}`); // diagnostic: is the optimistic list in the mirror?
-      if (!cancelled) publish(docs, setLists);
-    })().catch(e => logReadError('useLists', e));
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- publish is a stable ref-backed closure
-  }, [rev]);
-  return { lists };
+  return { lists: useListsState(s => s.active) };
 }
 
 export function useArchivedLists(): { lists: ListDto[] } {
-  const rev = useSyncStatus(s => s.mirrorRevision);
-  const [lists, setLists] = useState<ListDto[]>([]);
-  const publish = useUnchangedGuard<ListDto>();
-
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      const db = await getDb();
-      const docs = sortArchivedLists(await getArchivedListDocs<ListDto>(db));
-      if (!cancelled) publish(docs, setLists);
-    })().catch(e => logReadError('useArchivedLists', e));
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- publish is a stable ref-backed closure
-  }, [rev]);
-  return { lists };
+  return { lists: useListsState(s => s.archived) };
 }
 
 /**

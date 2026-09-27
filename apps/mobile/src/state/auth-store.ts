@@ -5,6 +5,7 @@ import * as Sentry from '@sentry/react-native';
 import { API_PRESETS, DEFAULT_API_URL, DEFAULT_AUTH_MODE, type AuthMode } from '../config';
 import { setAuthPort } from '../data/api/authProvider';
 import { adoptDbOwner } from '../data/db';
+import { bumpMirror } from '../sync/syncStatus';
 import { refreshTokens, RefreshError } from '../data/auth/oidc';
 import { useSyncStatus } from '../sync/syncStatus';
 import { toast } from '../feedback/toast';
@@ -139,6 +140,7 @@ export const useAuth = create<AuthState & AuthActions>((set, get) => ({
     if (get().user?.sub !== user.sub) {
       try {
         await adoptDbOwner(user.sub);
+        bumpMirror(); // a wipe must drop the previous account's lists from the in-memory store
       } catch (e) {
         // The sign-in itself must not be blocked by a local-DB failure — record it loudly.
         logDebug('auth:adopt-db-error', e instanceof Error ? e.message : String(e));
