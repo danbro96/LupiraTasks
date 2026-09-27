@@ -19,7 +19,7 @@ import { toastError } from '../../feedback/toast';
 import { hapticSuccess } from '../../feedback/haptics';
 import { useItems, useLists } from '../hooks/useMirror';
 import { useMyRole, canEditWithRole } from '../hooks/useMyRole';
-import { useOutboxStatus } from '../hooks/useOutboxStatus';
+import { useOpStatus } from '../hooks/useOutboxStatus';
 import { useDirectory } from '../hooks/useDirectory';
 import { requestItemDeleteMany } from '../state/pendingDeletes';
 import { childrenOf, nextChildSortOrder, descendantIds } from '@lupira/tasks-domain/itemTree';
@@ -50,7 +50,7 @@ export function TaskDetailScreen() {
   const list = lists.find(l => l.id === listId);
   const canEdit = canEditWithRole(useMyRole(listId));
   const isShopping = list?.kind === ListKind.Shopping;
-  const status = useOutboxStatus().get(itemId);
+  const status = useOpStatus(itemId);
   const name = useDirectory();
 
   const [title, setTitle] = useState(item?.title ?? '');

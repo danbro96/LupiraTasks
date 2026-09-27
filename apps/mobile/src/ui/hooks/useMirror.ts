@@ -18,20 +18,23 @@ function logReadError(stage: string, e: unknown): void {
 }
 
 /**
- * Gate on the read's content, not on the fact a reload ran — a polled pull rewrites the same rows
- * every few seconds, and fresh objects would re-render every task row for nothing.
+ * Keep the previous object for every unchanged row, and the previous array when nothing changed:
+ * each read parses fresh objects, and a polled pull rewrites the same rows every few seconds —
+ * new identities would re-render every memoized TaskRow for nothing.
  *
  * Serializes rather than trusting a version field: the comparison then can't miss a change and
  * leave the screen stale, the one failure mode that matters here.
  */
-function useUnchangedGuard<T>(): (rows: T[], apply: (rows: T[]) => void) => void {
-  const last = useRef<string | null>(null);
-  return (rows, apply) => {
-    const fp = JSON.stringify(rows);
-    if (fp === last.current) return;
-    last.current = fp;
-    apply(rows);
-  };
+function reuseUnchanged(rows: ItemState[], previous: ItemState[]): ItemState[] {
+  const byId = new Map(previous.map(r => [r.id, r]));
+  let changed = rows.length !== previous.length;
+  const next = rows.map((r, i) => {
+    const old = byId.get(r.id);
+    const kept = old && JSON.stringify(old) === JSON.stringify(r) ? old : r;
+    if (kept !== previous[i]) changed = true;
+    return kept;
+  });
+  return changed ? next : previous;
 }
 
 export function useLists(): { lists: ListDto[] } {
@@ -57,7 +60,6 @@ export function useItems(listId: string): {
   const [changes, setChanges] = useState<{ nonce: number; list: ItemChange<string>[] }>({ nonce: 0, list: [] });
   // Keyed by list: diffing against another list's read would report every row as added.
   const prev = useRef<{ listId: string; rows: Map<string, ItemState> }>({ listId, rows: new Map() });
-  const publish = useUnchangedGuard<ItemState>();
 
   useEffect(() => {
     let cancelled = false;
@@ -70,7 +72,7 @@ export function useItems(listId: string): {
       const same = prev.current.listId === listId;
       const diff = remote && same ? diffItems(prev.current.rows, rows) : [];
       prev.current = { listId, rows: new Map(rows.map(r => [r.id, r])) };
-      publish(rows, setItems);
+      setItems(current => reuseUnchanged(rows, current));
       if (diff.length > 0) setChanges(c => ({ nonce: c.nonce + 1, list: diff }));
       setLoading(false);
     })().catch(e => {
@@ -78,7 +80,6 @@ export function useItems(listId: string): {
       if (!cancelled) setLoading(false); // never leave the screen on its initial-load spinner
     });
     return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- publish is a stable ref-backed closure
   }, [rev, listId]);
   return { items, loading, changes };
 }

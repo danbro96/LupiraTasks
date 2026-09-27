@@ -1,5 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
@@ -19,15 +19,14 @@ import { PriorityControl } from '../components/PriorityControl';
 import { TextField } from '../components/TextField';
 import { SyncBanner } from '../components/SyncBanner';
 import { SyncDot } from '../components/SyncDot';
-import type { OpStatus } from '../hooks/useOutboxStatus';
 import { toastError } from '../../feedback/toast';
 import { useItems, useLists } from '../hooks/useMirror';
 import { useListPolling } from '../hooks/useListPolling';
-import { useOutboxStatus } from '../hooks/useOutboxStatus';
+import { useOpStatus } from '../hooks/useOutboxStatus';
 import { useMyRole, canEditWithRole } from '../hooks/useMyRole';
 import { usePendingDeletes, requestItemDeleteMany } from '../state/pendingDeletes';
 import { ROW_SPACING_PAD, TEXT_SIZE_SCALE, usePrefs } from '../../state/prefs-store';
-import { collapseDescendants, descendantIds, rowsForMode, siblingReorder, topSortOrder, type VisibleRow } from '@lupira/tasks-domain/itemTree';
+import { collapseDescendants, descendantIds, rowsForMode, siblingReorder, topSortOrder } from '@lupira/tasks-domain/itemTree';
 import { changeLabel, type ItemChange, type ItemChangeKind } from '@lupira/tasks-domain/itemChange';
 import { qtyLabel } from '@lupira/tasks-domain/itemFormat';
 import { oneLine } from '@lupira/tasks-domain/text';
@@ -47,7 +46,11 @@ const FLASH_IN_MS = 180;
 const FLASH_OUT_MS = 1200;
 
 interface RowProps {
-  row: VisibleRow<ItemState>;
+  // Spread from the row wrapper rather than passed whole: the wrapper is rebuilt on every rowsForMode
+  // run, and would defeat the memo even when the item itself is unchanged.
+  item: ItemState;
+  depth: number;
+  hasChildren: boolean;
   canEdit: boolean;
   /** Long-press drag handle — off for completed rows when they live in their own section. */
   draggable: boolean;
@@ -60,7 +63,6 @@ interface RowProps {
    *  bails out. */
   changeKind?: ItemChangeKind;
   changeWho?: string | null;
-  status?: OpStatus;
   expanded: boolean;
   styles: ReturnType<typeof makeStyles>;
   palette: Palette;
@@ -73,25 +75,45 @@ interface RowProps {
 
 // Memoized: rows must not re-render on unrelated screen state (e.g. each keystroke in the
 // add-task field) — with stable callbacks below, only rows whose props changed re-render.
-const TaskRow = memo(function TaskRow({ row, canEdit, draggable, isShopping, assigneeName, simplePriority, changeKind, changeWho, status, expanded, styles, palette, onToggle, onOpen, onToggleExpand, onSetPriority, onDelete }: RowProps) {
-  const drag = useReorderableDrag();
-  const isActive = useIsActive();
-  const translateX = useSharedValue(0);
-  const rowStyle = useAnimatedStyle(() => ({ transform: [{ translateX: translateX.value }] }));
+/** Its own component so only a flashing row pays for the shared value and animated style. */
+function RemoteHighlight({ style, flashKey }: { style: StyleProp<ViewStyle>; flashKey: string }) {
   // Tint in fast, hold, fade out slowly — the slow tail is what stops it reading as a UI glitch.
   const highlight = useSharedValue(0);
   const highlightStyle = useAnimatedStyle(() => ({ opacity: highlight.value }));
   useEffect(() => {
-    if (!changeKind) return;
     highlight.value = withSequence(
       withTiming(1, { duration: FLASH_IN_MS }),
       withDelay(Math.max(0, REMOTE_FLASH_MS - FLASH_IN_MS - FLASH_OUT_MS), withTiming(0, { duration: FLASH_OUT_MS })),
     );
-  }, [changeKind, changeWho, highlight]);
+  }, [flashKey, highlight]);
+  return <Animated.View style={[style, highlightStyle]} pointerEvents="none" />;
+}
+
+const TaskRow = memo(function TaskRow({ item, depth, hasChildren, canEdit, draggable, isShopping, assigneeName, simplePriority, changeKind, changeWho, expanded, styles, palette, onToggle, onOpen, onToggleExpand, onSetPriority, onDelete }: RowProps) {
+  const drag = useReorderableDrag();
+  const status = useOpStatus(item.id);
+  const isActive = useIsActive();
+  const translateX = useSharedValue(0);
+  const rowStyle = useAnimatedStyle(() => ({ transform: [{ translateX: translateX.value }] }));
   // Red delete backdrop is invisible until the row is actually swiped — so it never shows at rest
   // or while the row is picked up for reordering.
   const deleteBgStyle = useAnimatedStyle(() => ({ opacity: translateX.value < -1 ? 1 : 0 }));
-  const { item, depth, hasChildren } = row;
+  // Memoized: a fresh gesture object makes GestureDetector re-attach its native handler every render.
+  const swipe = useMemo(() => Gesture.Pan()
+    .activeOffsetX(-15)
+    .failOffsetY([-12, 12])
+    .onUpdate(e => {
+      translateX.value = Math.min(0, e.translationX);
+    })
+    .onEnd(e => {
+      if (e.translationX < SWIPE_DELETE_THRESHOLD) {
+        // Remove it — the row's `exiting` animation slides it the rest of the way out and the
+        // neighbors close the gap via the list's itemLayoutAnimation.
+        runOnJS(onDelete)(item);
+      } else {
+        translateX.value = withSpring(0);
+      }
+    }), [item, onDelete, translateX]);
   const due = formatDue(item.dueAt);
   const qty = isShopping ? qtyLabel(item) : null;
 
@@ -105,7 +127,7 @@ const TaskRow = memo(function TaskRow({ row, canEdit, draggable, isShopping, ass
       accessibilityLabel={`${qty ? qty + ' ' : ''}${item.title}${due ? `, due ${due.label}` : ''}`}
       accessibilityHint="Opens task details. Long-press to reorder."
     >
-      {changeKind ? <Animated.View style={[styles.remoteHighlight, highlightStyle]} pointerEvents="none" /> : null}
+      {changeKind ? <RemoteHighlight style={styles.remoteHighlight} flashKey={`${changeKind}:${changeWho ?? ''}`} /> : null}
       <Checkbox checked={item.completed} disabled={!canEdit} onPress={() => onToggle(item)} />
       <View style={styles.rowBody}>
         {/* Notice shares the title's line: its own line would grow rows that have no meta line. */}
@@ -151,22 +173,6 @@ const TaskRow = memo(function TaskRow({ row, canEdit, draggable, isShopping, ass
   // own the release handler and call onDelete via runOnJS. activeOffsetX claims only leftward drags;
   // failOffsetY yields vertical gestures to scroll. The reorder drag is gated behind a long-press
   // (list `panGesture`, below) so it doesn't steal these quick horizontal swipes.
-  const swipe = Gesture.Pan()
-    .activeOffsetX(-15)
-    .failOffsetY([-12, 12])
-    .onUpdate(e => {
-      translateX.value = Math.min(0, e.translationX);
-    })
-    .onEnd(e => {
-      if (e.translationX < SWIPE_DELETE_THRESHOLD) {
-        // Remove it — the row's `exiting` animation slides it the rest of the way out and the
-        // neighbors close the gap via the list's itemLayoutAnimation.
-        runOnJS(onDelete)(item);
-      } else {
-        translateX.value = withSpring(0);
-      }
-    });
-
   return (
     <View style={styles.swipeContainer}>
       <Animated.View style={[styles.swipeDelete, deleteBgStyle]} pointerEvents="none">
@@ -178,6 +184,9 @@ const TaskRow = memo(function TaskRow({ row, canEdit, draggable, isShopping, ass
     </View>
   );
 });
+
+const listLayoutAnimation = LinearTransition.duration(200);
+const rowKey = (r: { item: ItemState } | undefined) => r?.item.id ?? '';
 
 export function ListDetailScreen() {
   const { params } = useRoute<RouteProp<RootStackParamList, 'ListDetail'>>();
@@ -193,7 +202,6 @@ export function ListDetailScreen() {
     () => new Map((list?.members ?? []).map(m => [m.principalId, m.displayName ?? m.email] as const)),
     [list],
   );
-  const opStatus = useOutboxStatus();
   const pendingDeletes = usePendingDeletes();
   const role = useMyRole(listId);
   const canEdit = canEditWithRole(role);
@@ -278,7 +286,7 @@ export function ListDetailScreen() {
     [completedMode, listData, heldCompleted],
   );
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     setRefreshing(true);
     try {
       await pullList(listId);
@@ -287,7 +295,7 @@ export function ListDetailScreen() {
     } finally {
       setRefreshing(false);
     }
-  }
+  }, [listId]);
 
   async function addItem() {
     const t = oneLine(title).trim();
@@ -312,14 +320,18 @@ export function ListDetailScreen() {
     }
   }, [listId]);
 
+  // Read through a ref: depending on `items` would hand every row a new callback on each change.
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+
   const toggleExpand = useCallback((id: string) => {
-    setExpanded(prev => (prev.has(id) ? collapseDescendants(prev, id, items) : new Set(prev).add(id)));
-  }, [items]);
+    setExpanded(prev => (prev.has(id) ? collapseDescendants(prev, id, itemsRef.current) : new Set(prev).add(id)));
+  }, []);
 
   const onDelete = useCallback((it: ItemState) => {
     hapticImpact();
-    requestItemDeleteMany(listId, [it.id, ...descendantIds(items, it.id)]);
-  }, [listId, items]);
+    requestItemDeleteMany(listId, [it.id, ...descendantIds(itemsRef.current, it.id)]);
+  }, [listId]);
 
   const openTask = useCallback((it: ItemState) => {
     nav.navigate('TaskDetail', { listId, itemId: it.id });
@@ -334,7 +346,7 @@ export function ListDetailScreen() {
     }
   }, [listId]);
 
-  function onReorder({ from, to }: { from: number; to: number }) {
+  const onReorder = useCallback(({ from, to }: { from: number; to: number }) => {
     setDragging(false);
     // Indices refer to the data the list was rendered with — the frozen rows during a drag.
     const dragRows = frozenRows.current;
@@ -358,7 +370,55 @@ export function ListDetailScreen() {
       setSettling(true);
       void enqueue({ ...stamp(), kind: 'item.move', listId, itemId: draggedId, ...target }).catch(() => toastError("Couldn't move item"));
     }
-  }
+  }, [completedMode, heldCompleted, listId]);
+
+  // Every prop the list gets is kept stable: a new one re-renders each cell, and a cell re-render
+  // re-runs its Reanimated hooks — ~300ms for a long list, several times per tick.
+  const onDragStart = useCallback(() => {
+    'worklet';
+    runOnJS(hapticImpact)(); // "pickup" thunk when a row is grabbed to reorder
+    runOnJS(setDragging)(true);
+  }, []);
+  const onDragEnd = useCallback(() => {
+    'worklet';
+    runOnJS(setDragging)(false);
+  }, []);
+  const contentContainerStyle = useMemo(() => ({ paddingBottom: insets.bottom + spacing.md }), [insets.bottom]);
+  const refreshControl = useMemo(
+    () => <RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} />,
+    [refreshing, refresh],
+  );
+  const listEmpty = useMemo(
+    () => (pulled ? <Text style={styles.empty}>No tasks yet.</Text> : <ActivityIndicator style={styles.loading} color={c.textSubtle} />),
+    [pulled, styles, c],
+  );
+  const renderItem = useCallback(({ item: row, index }: { item: (typeof listData)[number]; index: number }) =>
+    !row?.item ? null : (
+      <>
+        {index === firstCompletedIndex ? <Text style={styles.completedHeader}>COMPLETED</Text> : null}
+        <TaskRow
+          item={row.item}
+          depth={row.depth}
+          hasChildren={row.hasChildren}
+          canEdit={canEdit}
+          draggable={canEdit && !(completedMode === 'below' && row.item.completed)}
+          isShopping={isShopping}
+          assigneeName={row.item.assignedTo ? (assigneeNames.get(row.item.assignedTo) ?? '') : ''}
+          simplePriority={simplePriority}
+          changeKind={flashes.get(row.item.id)?.kind}
+          changeWho={flashes.get(row.item.id)?.actor ? assigneeNames.get(flashes.get(row.item.id)!.actor!) ?? null : null}
+          expanded={expanded.has(row.item.id)}
+          styles={styles}
+          palette={c}
+          onToggle={toggle}
+          onOpen={openTask}
+          onToggleExpand={toggleExpand}
+          onSetPriority={setPriority}
+          onDelete={onDelete}
+        />
+      </>
+    ),
+  [firstCompletedIndex, canEdit, completedMode, isShopping, assigneeNames, simplePriority, flashes, expanded, styles, c, toggle, openTask, toggleExpand, setPriority, onDelete]);
 
   return (
     <View style={styles.fill}>
@@ -381,56 +441,23 @@ export function ListDetailScreen() {
       )}
       <ReorderableList
         data={listData}
-        keyExtractor={r => r?.item.id ?? ''}
+        keyExtractor={rowKey}
         dragEnabled={canEdit}
         panGesture={dragGesture}
         shouldUpdateActiveItem
-        itemLayoutAnimation={LinearTransition.duration(200)}
-        contentContainerStyle={{ paddingBottom: insets.bottom + spacing.md }}
-        onDragStart={() => {
-          'worklet';
-          runOnJS(hapticImpact)(); // "pickup" thunk when a row is grabbed to reorder
-          runOnJS(setDragging)(true);
-        }}
-        onDragEnd={() => {
-          'worklet';
-          runOnJS(setDragging)(false);
-        }}
+        // Rows are heavy (gesture + animated styles each); FlatList's default window mounts ~21
+        // screens, i.e. every row of a long list.
+        initialNumToRender={15}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        itemLayoutAnimation={listLayoutAnimation}
+        contentContainerStyle={contentContainerStyle}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
         onReorder={onReorder}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
-        ListEmptyComponent={
-          pulled ? (
-            <Text style={styles.empty}>No tasks yet.</Text>
-          ) : (
-            <ActivityIndicator style={styles.loading} color={c.textSubtle} />
-          )
-        }
-        renderItem={({ item: row, index }) =>
-          !row?.item ? null : (
-          <>
-            {index === firstCompletedIndex ? <Text style={styles.completedHeader}>COMPLETED</Text> : null}
-            <TaskRow
-              row={row}
-              canEdit={canEdit}
-              draggable={canEdit && !(completedMode === 'below' && row.item.completed)}
-              isShopping={isShopping}
-              assigneeName={row.item.assignedTo ? (assigneeNames.get(row.item.assignedTo) ?? '') : ''}
-              simplePriority={simplePriority}
-              changeKind={flashes.get(row.item.id)?.kind}
-              changeWho={flashes.get(row.item.id)?.actor ? assigneeNames.get(flashes.get(row.item.id)!.actor!) ?? null : null}
-              status={opStatus.get(row.item.id)}
-              expanded={expanded.has(row.item.id)}
-              styles={styles}
-              palette={c}
-              onToggle={toggle}
-              onOpen={openTask}
-              onToggleExpand={toggleExpand}
-              onSetPriority={setPriority}
-              onDelete={onDelete}
-            />
-          </>
-          )
-        }
+        refreshControl={refreshControl}
+        ListEmptyComponent={listEmpty}
+        renderItem={renderItem}
       />
     </View>
   );
