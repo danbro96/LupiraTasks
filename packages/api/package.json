@@ -12,7 +12,7 @@
     "spec": "dotnet build ../../src/LupiraTasksBff/LupiraTasksBff.csproj -v q --nologo"
   },
   "devDependencies": {
-    "@types/node": "^24.0.0",
+    "@types/node": "^26.6.2",
     "orval": "^8.23.0"
   },
   "exports": {
