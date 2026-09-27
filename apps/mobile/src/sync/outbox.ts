@@ -12,6 +12,7 @@ import { type ClientOp, opToEvents } from '../domain/ops';
 import { applyListOp } from '../domain/listDoc';
 import type { ListDto, PersonRef } from '@lupira/tasks-api/models';
 import { useSyncStatus, bumpMirror } from './syncStatus';
+import { replayOp } from './replayOp';
 import { logDebug } from '../debug/log';
 
 export async function refreshPending(): Promise<void> {
@@ -191,7 +192,6 @@ async function runDrain(): Promise<void> {
       const op = JSON.parse(row.op_json) as ClientOp;
 
       try {
-        const { replayOp } = await import('./replayOp');
         await replayOp(op);
         await deleteOutbox(db, row.seq);
         logDebug('replay:ok', op.kind);
