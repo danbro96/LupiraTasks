@@ -87,6 +87,43 @@ async function seedOp(c: Ctx, op: ClientOp) {
 }
 
 describe('pullList', () => {
+  it('an unchanged payload writes nothing and does not bump the mirror', async () => {
+    const c = await load();
+    c.getSync.mockResolvedValue(ok({ list: list('L1'), items: [item('X'), item('Y')], nextCursor: 1 }));
+    await c.sync.pullList('L1');
+    const rev = c.useSyncStatus.getState().mirrorRevision;
+
+    await c.sync.pullList('L1');
+
+    expect(c.useSyncStatus.getState().mirrorRevision).toBe(rev);
+  });
+
+  it('a changed item bumps the mirror and is written', async () => {
+    const c = await load();
+    c.getSync.mockResolvedValue(ok({ list: list('L1'), items: [item('X')], nextCursor: 1 }));
+    await c.sync.pullList('L1');
+    const rev = c.useSyncStatus.getState().mirrorRevision;
+    c.getSync.mockResolvedValue(ok({ list: list('L1'), items: [item('X', { title: 'Edited', updatedAt: T1 })], nextCursor: 1 }));
+
+    await c.sync.pullList('L1');
+
+    expect(c.useSyncStatus.getState().mirrorRevision).toBe(rev + 1);
+    expect((await c.dbm.getItemState(c.db, 'X'))?.title).toBe('Edited');
+  });
+
+  it('a server-side deletion alone bumps the mirror', async () => {
+    const c = await load();
+    c.getSync.mockResolvedValue(ok({ list: list('L1'), items: [item('X'), item('Y')], nextCursor: 1 }));
+    await c.sync.pullList('L1');
+    const rev = c.useSyncStatus.getState().mirrorRevision;
+    c.getSync.mockResolvedValue(ok({ list: list('L1'), items: [item('X')], nextCursor: 1 }));
+
+    await c.sync.pullList('L1');
+
+    expect(c.useSyncStatus.getState().mirrorRevision).toBe(rev + 1);
+    expect(await c.dbm.getItemState(c.db, 'Y')).toBeNull();
+  });
+
   it('removes items that disappeared server-side', async () => {
     const c = await load();
     await seedList(c, 'L1');

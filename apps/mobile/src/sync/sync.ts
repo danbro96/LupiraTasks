@@ -6,7 +6,7 @@ import { listLists } from '@lupira/tasks-api/fetch/lists';
 import { getMe } from '@lupira/tasks-api/fetch/me';
 import {
   getDb, getItemState, putItemState, putListDoc, pendingOutbox, pendingOutboxForList,
-  getListIds, deleteListLocal, deleteItemsNotIn, withWriteTxn, type OutboxRow,
+  getListIds, deleteListLocal, deleteItemsNotIn, withWriteTxn, getItemJsonByList, getListDocJson, type OutboxRow,
 } from '../data/db';
 import { listIdsOf, rowsForList } from '../domain/outboxScope';
 import { itemResponseToState } from '../domain/itemMap';
@@ -67,22 +67,26 @@ export async function pullLists(): Promise<string[]> {
   logDebug('pullLists', `server=${serverIds.length} mirror=${mirrorIds.length} protected=${protectedIds.size} prune=${toPrune.length}`);
 
   const self = authPort().getSelf();
+  let changed = false;
   await withWriteTxn(async tx => {
+    const stored = await getListDocJson(tx);
     for (const list of serverLists) {
       // Re-apply the list's pending list.* ops so a not-yet-pushed rename/archive isn't visually
       // reverted by the server doc; null = a pending local delete — don't resurrect.
       const ops = rowsForList(pendingRows, list.id).map(r => JSON.parse(r.op_json) as ClientOp);
       const doc = applyListOps(list, ops, self);
-      if (doc === null) continue;
+      if (doc === null || stored.get(doc.id) === JSON.stringify(doc)) continue;
       await putListDoc(tx, { id: doc.id, archived: doc.isArchived, updatedAt: doc.updatedAt, doc });
+      changed = true;
     }
     for (const id of toPrune) {
       await deleteListLocal(tx, id);
       logDebug('prune', id);
+      changed = true;
     }
   });
 
-  bumpMirror('pull');
+  if (changed) bumpMirror('pull');
   return active.data.map(l => l.id);
 }
 
@@ -104,6 +108,9 @@ export async function pullList(listId: string): Promise<void> {
   const sync = r.data;
   const who = authPort().getActor();
   const self = authPort().getSelf();
+  // An open list polls every few seconds and the payload is usually identical: skip unchanged rows
+  // and the mirror bump, or every tick rewrites every item and re-renders the screen.
+  let changed = false;
 
   await withWriteTxn(async tx => {
     const rows = unionBySeq(preRows, await pendingOutboxForList(tx, listId));
@@ -114,15 +121,27 @@ export async function pullList(listId: string): Promise<void> {
     const doc = applyListOps(sync.list, ops, self);
     if (doc === null) {
       await deleteListLocal(tx, listId);
+      changed = true;
       return;
     }
-    await putListDoc(tx, { id: doc.id, archived: doc.isArchived, updatedAt: doc.updatedAt, doc });
+    if ((await getListDocJson(tx)).get(doc.id) !== JSON.stringify(doc)) {
+      await putListDoc(tx, { id: doc.id, archived: doc.isArchived, updatedAt: doc.updatedAt, doc });
+      changed = true;
+    }
 
     // Deletion pass, then upserts. Locally-created items (pending item.create) are removed here
     // and recreated by the rebase below.
-    await deleteItemsNotIn(tx, listId, sync.items.map(i => i.id));
+    const stored = await getItemJsonByList(tx, listId);
+    const serverIds = new Set(sync.items.map(i => i.id));
+    if ([...stored.keys()].some(id => !serverIds.has(id))) {
+      await deleteItemsNotIn(tx, listId, [...serverIds]);
+      changed = true;
+    }
     for (const it of sync.items) {
-      await putItemState(tx, itemResponseToState(it));
+      const state = itemResponseToState(it);
+      if (stored.get(state.id) === JSON.stringify(state)) continue;
+      await putItemState(tx, state);
+      changed = true;
     }
 
     // Rebase: re-apply this list's not-yet-acked local ops on top of the server base. Scoped to
@@ -135,11 +154,12 @@ export async function pullList(listId: string): Promise<void> {
         // the item stays deleted and the op parks on replay (404) for the Sync Issues view.
         if (!prev && ev.type !== 'ItemAdded') continue;
         await putItemState(tx, applyItemEvent(prev ?? emptyItemState(), ev, who));
+        changed = true;
       }
     }
   });
 
-  bumpMirror('pull');
+  if (changed) bumpMirror('pull');
 }
 
 // Coalesce overlapping full-syncs (foreground + reconnect can fire together).

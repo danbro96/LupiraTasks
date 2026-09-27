@@ -188,6 +188,14 @@ export async function getItemsByList(db: Sql, listId: string): Promise<ItemState
   return rows.map(r => JSON.parse(r.state_json) as ItemState);
 }
 
+/** Stored `state_json` per item id — lets a pull skip rows the server sent back unchanged. */
+export async function getItemJsonByList(db: Sql, listId: string): Promise<Map<string, string>> {
+  const rows = await db.getAllAsync<{ id: string; state_json: string }>(
+    `SELECT id, state_json FROM items WHERE list_id = ?`, [listId],
+  );
+  return new Map(rows.map(r => [r.id, r.state_json]));
+}
+
 /** Hard-delete a list's item rows absent from the server payload (server-side deletions). */
 export async function deleteItemsNotIn(db: Sql, listId: string, keepIds: string[]): Promise<void> {
   if (keepIds.length === 0) {
@@ -232,6 +240,12 @@ export async function getListDoc<T = unknown>(db: Sql, id: string): Promise<T | 
     `SELECT doc_json FROM lists WHERE id = ?`, [id],
   );
   return row ? (JSON.parse(row.doc_json) as T) : null;
+}
+
+/** Stored `doc_json` per list id — lets a pull skip docs the server sent back unchanged. */
+export async function getListDocJson(db: Sql): Promise<Map<string, string>> {
+  const rows = await db.getAllAsync<{ id: string; doc_json: string }>(`SELECT id, doc_json FROM lists`);
+  return new Map(rows.map(r => [r.id, r.doc_json]));
 }
 
 export async function getListIds(db: Sql): Promise<string[]> {
