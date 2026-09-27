@@ -5,5 +5,5 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["index.ts", "App.tsx", "src", "orval.config.ts", "vitest.config.ts"]
+  "include": ["index.ts", "App.tsx", "src", "orval.config.ts", "vitest.config.mts"]
 }
