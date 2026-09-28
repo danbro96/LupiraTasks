@@ -25,6 +25,7 @@ public sealed class BffTestFactory : WebApplicationFactory<Program>, IAsyncLifet
 {
     public const string Issuer = "https://auth.test/";
     public const string Audience = "lupira-tasks";
+    public const string ProbeKey = "test-probe-key";
 
     private static readonly SymmetricSecurityKey SigningKey =
         new(Encoding.UTF8.GetBytes("lupira-tasks-bff-integration-test-signing-key-0123456789"));
@@ -49,6 +50,7 @@ public sealed class BffTestFactory : WebApplicationFactory<Program>, IAsyncLifet
         builder.UseSetting("Auth:Oidc:Authority", Issuer);
         builder.UseSetting("Auth:Oidc:ClientId", "lupira-tasks");
         builder.UseSetting("DataProtection:KeyPath", "");
+        builder.UseSetting("Depz:ProbeKey", ProbeKey);
         builder.ConfigureTestServices(services =>
         {
             // Local signing key instead of Authentik discovery.

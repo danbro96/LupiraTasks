@@ -43,6 +43,7 @@ client (`dev|build|gen:api`). The image builds the web workspaces only.
 
 The BFF proxies `/api/{**}` → LupiraTasksApi (member routes carry the forwarded token; `/api/shared/*`
 is anonymous) and owns `/auth/login`, `/auth/logout`, `/auth/user`.
+`/depz` reports upstream availability (non-gating; `X-Probe-Key` = `Depz__ProbeKey`, blank = off).
 
 ## Develop
 
