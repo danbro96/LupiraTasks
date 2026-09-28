@@ -21,6 +21,7 @@ setAuthPort({
 });
 
 // Keep the real retry predicates but zero the backoff so the 5xx regression test is instant.
+vi.mock('expo-constants', () => ({ default: { expoConfig: { version: '0.0.0' } } }));
 vi.mock('../../domain/retryPolicy', async importOriginal => {
   const actual = await importOriginal<typeof import('../../domain/retryPolicy')>();
   return { ...actual, retryDelayMs: () => 0 };

@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // The store touches native modules that don't load in the node test env — mock them down to the
 // behaviour under test. RefreshError is re-created here (same shape) so the store's `instanceof`
 // check still discriminates definitive vs transient failures.
+vi.mock('expo-constants', () => ({ default: { expoConfig: { version: '0.0.0' } } }));
 vi.mock('expo-secure-store', () => ({
   getItemAsync: vi.fn().mockResolvedValue(null),
   setItemAsync: vi.fn().mockResolvedValue(undefined),
