@@ -4,7 +4,7 @@ services:
     container_name: lupira-tasks-web
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      Auth__Oidc__Authority: ${AUTH_AUTHORITY:-https://auth.lupira.com/application/o/tasks/}
+      Auth__Oidc__Authority: ${AUTH_AUTHORITY:-https://auth.lupira.com/application/o/lupira-tasks/}
       Auth__Oidc__ClientId: ${AUTH_CLIENT_ID:-lupira-tasks}
       ReverseProxy__Clusters__tasks-api__Destinations__primary__Address: ${TASKS_API_BASE_URL:?required}
       DataProtection__KeyPath: /keys
