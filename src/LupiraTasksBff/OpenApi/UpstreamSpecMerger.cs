@@ -7,10 +7,10 @@ namespace LupiraTasksBff.OpenApi;
 /// with the route the upstream is mounted on, and keeps only the allowlisted operations.
 /// </summary>
 /// <remarks>
-/// On the JSON DOM rather than <c>OpenApiDocument</c>, matching LupiraCalWeb: the typed model exposes
+/// On the JSON DOM rather than <c>OpenApiDocument</c>, matching LupiraCal: the typed model exposes
 /// referenced nodes read-only, and the result is handed to it once, in <see cref="BffDocumentTransformer"/>.
 ///
-/// Unlike LupiraCalWeb this does NOT retag operations. There is one upstream, so a tag is not needed to
+/// Unlike LupiraCal this does NOT retag operations. There is one upstream, so a tag is not needed to
 /// separate them — and the tags carry meaning here: apps/web splits its two generated clients on
 /// `Shared`, the account-less share-link surface, which retagging would fold into the member client.
 /// </remarks>
