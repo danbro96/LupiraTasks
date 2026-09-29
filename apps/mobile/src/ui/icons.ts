@@ -20,6 +20,7 @@ export const ICONS = {
   cleaning: 'cleaning-services',
   clear: 'clear',
   close: 'close',
+  cloudOff: 'cloud-off',
   contacts: 'contacts',
   delete: 'delete',
   email: 'email',
