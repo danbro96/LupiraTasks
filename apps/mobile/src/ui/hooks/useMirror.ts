@@ -5,7 +5,7 @@ import { diffItems, type ItemChange } from '@lupira/tasks-domain/itemChange';
 import { getDb, getItemsByList } from '../../data/db';
 import { useListsState } from '../../state/lists-store';
 import { useSyncStatus } from '../../sync/syncStatus';
-import { logDebug } from '../../debug/log';
+import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
 
 // Read hooks over the offline SQLite mirror. They reload whenever `mirrorRevision` bumps
 // (after any enqueue or pull). Each effect drops its result if a newer bump superseded it —

@@ -18,11 +18,11 @@ vi.mock('../../sync/outbox', () => ({ enqueue: vi.fn().mockResolvedValue(undefin
 vi.mock('../../domain/ops', () => ({
   stamp: vi.fn(() => ({ commandId: `cmd-${++stampCount.n}`, occurredAt: '2026-06-07T00:00:00.000Z' })),
 }));
-vi.mock('../../feedback/toast', () => ({ toast: vi.fn() }));
+vi.mock('@danbro96/lupira-expo-feedback/toast', () => ({ toast: vi.fn() }));
 
 import { enqueue } from '../../sync/outbox';
 import { stamp } from '../../domain/ops';
-import { toast } from '../../feedback/toast';
+import { toast } from '@danbro96/lupira-expo-feedback/toast';
 import { requestItemDelete } from './pendingDeletes';
 
 const enqueueMock = enqueue as unknown as ReturnType<typeof vi.fn>;

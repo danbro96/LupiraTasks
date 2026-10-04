@@ -5,10 +5,10 @@ import Button from '@mui/material/Button';
 import MuiLink from '@mui/material/Link';
 import Box from '@mui/material/Box';
 import { redeemShare } from '@lupira/tasks-api/query/shares';
-import { login } from '../../data/api/session';
-import { ApiError } from '@lupira/tasks-api/apiError';
-import { useSession } from '../../state/useSession';
-import { Centered } from '../components/Centered';
+import { login } from '@danbro96/lupira-web-session/session';
+import { ApiError } from '@danbro96/lupira-http/apiError';
+import { useSession } from '@danbro96/lupira-web-session/useSession';
+import { Centered } from '@danbro96/lupira-web-mui/Centered';
 import { SharedListView } from '../components/SharedListView';
 import { getListListsQueryKey } from '@lupira/tasks-api/query/lists';
 

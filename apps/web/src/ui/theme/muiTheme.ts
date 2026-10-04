@@ -1,66 +1,23 @@
-import { createTheme } from '@mui/material/styles';
-import { darkColors, lightColors, type Palette as ColorScheme } from '@lupira/tasks-tokens/color';
-import { RADII, SPACING } from '@lupira/tasks-tokens/spacing';
-import { FONT_FAMILY } from '@lupira/tasks-tokens/typography';
+import { createLupiraMuiTheme, cssVars } from '@danbro96/lupira-web-mui/theme';
+import { spacing } from '@danbro96/lupira-tokens-core/spacing';
+import { darkColors, lightColors } from '@lupira/tasks-tokens/color';
 
 declare module '@mui/material/styles' {
   interface Palette {
-    border: string;
     remoteChange: string;
   }
   interface PaletteOptions {
-    border?: string;
     remoteChange?: string;
   }
-  interface TypeText {
-    subtle: string;
-  }
 }
 
-function palette(c: ColorScheme) {
-  return {
-    background: { default: c.bg, paper: c.surface },
-    primary: { main: c.primary, contrastText: c.onPrimary },
-    divider: c.divider,
-    border: c.border,
-    remoteChange: c.remoteChange,
-    text: { primary: c.text, secondary: c.textMuted, disabled: c.textDisabled, subtle: c.textSubtle },
-    error: { main: c.danger },
-  };
-}
-
-// Custom props must carry units — Emotion serializes them verbatim.
-const px = (o: Record<string, number>, prefix: string) =>
-  Object.fromEntries(Object.entries(o).map(([k, v]) => [`--${prefix}-${k}`, `${v}px`]));
-
-export const theme = createTheme({
-  cssVariables: { colorSchemeSelector: 'media' },
-  // Emotion injects unlayered, which outranks every layer — utilities would silently lose.
-  // Order matches CalWeb; 'bespoke' is index.css.
-  colorSchemes: {
-    light: { palette: palette(lightColors) },
-    dark: { palette: palette(darkColors) },
-  },
-  // No webfont is loaded; without this MUI assumes Roboto.
-  typography: { fontFamily: FONT_FAMILY },
-  shape: { borderRadius: RADII.md },
-  spacing: SPACING.sm,
+export const theme = createLupiraMuiTheme({ light: lightColors, dark: darkColors }, {
+  palette: (c) => ({ remoteChange: c.remoteChange }),
+  // The dnd-kit rows in index.css are plain DOM and can't read theme.spacing().
+  rootVars: { light: cssVars(spacing, 'sp', 'px') },
+  // Must live here: MUI is unlayered, so CssBaseline's own body rule outranks the bespoke layer.
+  baseline: { body: { backgroundColor: 'var(--mui-palette-background-paper)' } },
   components: {
-    MuiCssBaseline: {
-      styleOverrides: {
-        // The dnd-kit rows in index.css are plain DOM and can't read theme.spacing().
-        ':root': px(SPACING, 'sp'),
-        // Must live here: MUI is unlayered, so CssBaseline's own body rule outranks the bespoke layer.
-        body: { backgroundColor: 'var(--mui-palette-background-paper)' },
-      },
-    },
-    // The app is uniformly compact; opt out per-instance rather than repeating size="small".
-    MuiButton: { defaultProps: { size: 'small' } },
-    MuiIconButton: { defaultProps: { size: 'small' } },
-    MuiTextField: { defaultProps: { size: 'small' } },
-    MuiChip: { defaultProps: { size: 'small' } },
-    MuiToggleButtonGroup: { defaultProps: { size: 'small' } },
-    MuiLink: { defaultProps: { underline: 'hover' } },
     MuiDialogTitle: {
       styleOverrides: { root: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 } },
     },

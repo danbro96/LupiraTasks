@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useDebugLog, clearDebugLog } from '../../debug/log';
+import { useDebugLog, clearDebugLog } from '@danbro96/lupira-expo-diagnostics/log';
 
 /** Collapsible on-device debug log (dev-only). Renders the shared debug buffer newest-first. */
 export function DebugPanel() {

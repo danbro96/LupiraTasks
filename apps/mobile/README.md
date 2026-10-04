@@ -29,13 +29,11 @@ Layered, downward-only imports, enforced by `eslint-plugin-boundaries` (`eslint.
 
 ```
 src/
-  domain/     pure logic: ops/events, LWW reducer, item tree, import/export, retry policy
-  data/       SQLite (db.ts), API client (api/mutator.ts + api/generated/), OIDC helpers
+  domain/     pure logic: ops/events, LWW reducer, item tree, import/export
+  data/       SQLite (db.ts), API client (api/installTransport.ts + api/generated/), OIDC client
   sync/       outbox enqueue/drain, pull/rebase (sync.ts), replayOp, sync status store
   state/      auth + prefs stores (register the AuthPort the lower layers read)
   ui/         screens, components, hooks, navigation, theme
-  feedback/   toast + haptics (leaf, importable by anyone)
-  debug/      shared debug log buffer
   config.ts   defaults (API URL, version, Sentry DSN)
 ```
 
@@ -55,9 +53,12 @@ npm run fetch:openapi -- https://tasks-api.lupira.com/openapi/v1.json
 npm run gen:api
 ```
 
-`src/data/api/mutator.ts` (`apiFetch`) owns the base URL, bearer-token injection + reactive
-refresh on 401, JSON handling, bounded transient retries, and error normalisation (`ApiError` from
-`@lupira/tasks-api`, carries `.status`).
+`src/data/api/installTransport.ts` installs `@danbro96/lupira-http`'s bearer mutator: base URL and
+bearer read through the AuthPort, reactive refresh on 401, bounded transient retries, and `ApiError`
+(carries `.status`). The dev auth mode sends `X-Dev-User` instead of a bearer.
+
+Toasts, haptics, the debug log, OIDC, the Paper UI kit and the developer screens come from the
+`@danbro96/lupira-expo-*` packages (`~/Nextcloud/Familj/DevOps/Guides/platform-packages.md`).
 
 ## Configuration
 

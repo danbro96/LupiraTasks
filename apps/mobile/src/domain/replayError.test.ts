@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ApiError } from '@lupira/tasks-api/apiError';
+import { ApiError } from '@danbro96/lupira-http/apiError';
 import { classifyReplayError } from './replayError';
 
 describe('classifyReplayError', () => {
@@ -41,7 +41,7 @@ describe('classifyReplayError', () => {
     expect(d.logTag).toBe('replay:retry');
   });
 
-  it.each([500, 502, 503])('5xx (%i) → retry, stop, but server NOT marked unreachable', status => {
+  it.each([429, 500, 502, 503])('429/5xx (%i) → retry, stop, but server NOT marked unreachable', status => {
     const d = classifyReplayError(new ApiError(status, 'boom'), 'item.move');
     expect(d.outcome).toBe('retry');
     expect(d.stop).toBe(true);

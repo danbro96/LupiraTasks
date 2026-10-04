@@ -4,7 +4,7 @@ import type { ListDto } from '@lupira/tasks-api/models';
 import { sortActiveLists, sortArchivedLists } from '@lupira/tasks-domain/listOrder';
 import { getDb, getListDocs, getArchivedListDocs } from '../data/db';
 import { useSyncStatus } from '../sync/syncStatus';
-import { logDebug } from '../debug/log';
+import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
 
 // One in-memory copy of the mirrored lists, shared by every screen. A per-screen read would start
 // empty on mount, and an empty list set reads as "not a member" until SQLite answers.

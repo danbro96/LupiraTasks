@@ -30,12 +30,12 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CloseIcon from '@mui/icons-material/Close';
 import { useLists } from '../../state/useLists';
 import { useMe } from '../../state/useMe';
-import { logout } from '../../data/api/session';
-import { ApiError } from '@lupira/tasks-api/apiError';
+import { logout } from '@danbro96/lupira-web-session/session';
+import { ApiError } from '@danbro96/lupira-http/apiError';
 import type { ListKind, ListDto } from '@lupira/tasks-api/models';
 import { listColorOptions } from '@lupira/tasks-tokens/color';
-import { Centered } from '../components/Centered';
-import { DragIcon } from '../icons';
+import { Centered } from '@danbro96/lupira-web-mui/Centered';
+import { DragIcon } from '@danbro96/lupira-web-mui/icons';
 
 /** One list row: a drag grip plus a link into the list. The grip owns the drag listeners so the
  *  link stays clickable (same split as TaskRow). */

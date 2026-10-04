@@ -15,5 +15,9 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@danbro96/lupira-config-eslint": "0.1.0",
+    "@danbro96/lupira-config-ts": "0.1.0"
   }
 }

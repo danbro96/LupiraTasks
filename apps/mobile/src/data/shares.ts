@@ -4,7 +4,7 @@ import {
   deleteShare,
 } from '@lupira/tasks-api/fetch/shares';
 import type { ShareAccess, ShareDto } from '@lupira/tasks-api/models';
-import { ApiError } from '@lupira/tasks-api/apiError';
+import { ApiError } from '@danbro96/lupira-http/apiError';
 
 // Public share links for a list (Owner-only). These are immediate online calls, not
 // event-sourced list mutations, so they bypass the outbox — same direct-fetch shape as

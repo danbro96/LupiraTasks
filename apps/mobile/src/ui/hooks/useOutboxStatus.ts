@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { getDb, allOutboxRows } from '../../data/db';
 import { useSyncStatus } from '../../sync/syncStatus';
 import type { ClientOp } from '../../domain/ops';
-import { logDebug } from '../../debug/log';
+import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
 
 export type OpStatus = 'pending' | 'failed';
 

@@ -1,8 +1,8 @@
 import { FlatList, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
-import { Button } from '../components/Button';
+import { Button } from '@danbro96/lupira-expo-paper/components/Button';
 import { SyncBanner } from '../components/SyncBanner';
-import { toastError } from '../../feedback/toast';
+import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { useArchivedLists } from '../hooks/useMirror';
 import { enqueue } from '../../sync/outbox';
 import { stamp } from '../../domain/ops';

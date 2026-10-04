@@ -1,5 +1,5 @@
 // Must be first: polyfills global `crypto` (for uuid) before any module that mints an id loads.
-import './src/polyfills/crypto';
+import '@danbro96/lupira-expo-oidc/crypto';
 
 // gesture-handler must be imported once, before any react-native rendering, in the entry file.
 import 'react-native-gesture-handler';

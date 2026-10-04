@@ -4,14 +4,14 @@ import { List, Switch, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-import { Button } from '../components/Button';
-import { SegmentedPicker } from '../components/SegmentedPicker';
+import { Button } from '@danbro96/lupira-expo-paper/components/Button';
+import { SegmentedPicker } from '@danbro96/lupira-expo-paper/components/SegmentedPicker';
 import { SyncBanner } from '../components/SyncBanner';
-import { useConfirm } from '../components/ConfirmDialog';
+import { useConfirm } from '@danbro96/lupira-expo-paper/components/ConfirmDialog';
 import { useAuth } from '../../state/auth-store';
 import { usePrefs, type RowSpacing, type TextSize } from '../../state/prefs-store';
 import { APP_VERSION } from '../../config';
-import { UPDATE_LABEL } from '../buildInfo';
+import { UPDATE_LABEL } from '@danbro96/lupira-expo-diagnostics/buildInfo';
 import { radii, spacing, useColors, type Palette } from '../theme';
 import { ICONS } from '../icons';
 

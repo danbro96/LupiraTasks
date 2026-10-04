@@ -15,7 +15,7 @@ import { qtyLabel } from '@lupira/tasks-domain/itemFormat';
 import { formatDue } from '@lupira/tasks-domain/dueDate';
 import { Checkbox } from './Checkbox';
 import { PriorityControl } from './PriorityControl';
-import { DragIcon } from '../icons';
+import { DragIcon } from '@danbro96/lupira-web-mui/icons';
 
 const INDENT = 18; // px per nesting level
 

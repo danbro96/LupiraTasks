@@ -12,12 +12,11 @@
     "spec": "dotnet build ../../src/LupiraTasksBff/LupiraTasksBff.csproj -v q --nologo"
   },
   "devDependencies": {
+    "@danbro96/lupira-config-ts": "0.1.0",
     "@types/node": "^26.6.2",
     "orval": "^8.23.0"
   },
   "exports": {
-    "./transport": "./src/transport.ts",
-    "./apiError": "./src/apiError.ts",
     "./models": "./src/generated/models/index.ts",
     "./query/*": "./src/generated/query/*/*.ts",
     "./shared/*": "./src/generated/shared/*/*.ts",
@@ -30,5 +29,8 @@
     "@tanstack/react-query": {
       "optional": true
     }
+  },
+  "dependencies": {
+    "@danbro96/lupira-http": "0.1.0"
   }
 }

@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
 import App from '../../App';
-import { RequireAuth } from './RequireAuth';
+import { RequireAuth } from '@danbro96/lupira-web-session/RequireAuth';
+import { Centered } from '@danbro96/lupira-web-mui/Centered';
 import { ListsScreen } from '../screens/ListsScreen';
 import { ListDetailScreen } from '../screens/ListDetailScreen';
 import { ShareEntryScreen } from '../screens/ShareEntryScreen';
@@ -13,7 +14,7 @@ export const router = createBrowserRouter([
     children: [
       { path: 's/:token', element: <ShareEntryScreen /> },
       {
-        element: <RequireAuth />,
+        element: <RequireAuth pending={(title) => <Centered title={title} />} />,
         children: [
           { index: true, element: <ListsScreen /> },
           { path: 'lists/:listId', element: <ListDetailScreen /> },

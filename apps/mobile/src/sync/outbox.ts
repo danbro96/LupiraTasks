@@ -13,7 +13,7 @@ import { applyListOp } from '../domain/listDoc';
 import type { ListDto, PersonRef } from '@lupira/tasks-api/models';
 import { useSyncStatus, bumpMirror } from './syncStatus';
 import { replayOp } from './replayOp';
-import { logDebug } from '../debug/log';
+import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
 
 export async function refreshPending(): Promise<void> {
   const db = await getDb();

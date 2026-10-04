@@ -4,7 +4,7 @@ import type { ListDto, PersonRef } from '@lupira/tasks-api/models';
 
 const holder = vi.hoisted(() => ({ db: null as unknown }));
 vi.mock('expo-sqlite', () => ({ openDatabaseAsync: async () => holder.db }));
-vi.mock('../debug/log', () => ({ logDebug: vi.fn() }));
+vi.mock('@danbro96/lupira-expo-diagnostics/log', () => ({ logDebug: vi.fn() }));
 
 const ME: PersonRef = { principalId: 'me-p', email: 'me@x', displayName: 'Me' };
 const T0 = '2026-01-01T00:00:00.000Z';

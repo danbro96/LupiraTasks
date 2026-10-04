@@ -1,9 +1,3 @@
-import { defineConfig } from 'vitest/config';
+import { vitestConfig } from '@danbro96/lupira-config-ts/vitest';
 
-export default defineConfig({
-  test: {
-    environment: 'node',
-    include: ['src/**/*.test.ts'],
-    passWithNoTests: true,
-  },
-});
+export default vitestConfig({ passWithNoTests: true });

@@ -1,8 +1,8 @@
 import Button from '@mui/material/Button';
-import { ApiError } from '@lupira/tasks-api/apiError';
+import { ApiError } from '@danbro96/lupira-http/apiError';
 import { useGuestSession } from '../../state/useGuestSession';
 import { useSharedList } from '../../state/useSharedList';
-import { Centered } from './Centered';
+import { Centered } from '@danbro96/lupira-web-mui/Centered';
 import { ListView } from './ListView';
 
 /** Account-less share surface: trade the token for the guest cookie, then render the shared task UI.

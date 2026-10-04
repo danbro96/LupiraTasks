@@ -4,7 +4,7 @@ import { LIST_POLL_MS } from '../../config';
 import { useSyncStatus } from '../../sync/syncStatus';
 import { drainOutbox } from '../../sync/outbox';
 import { pullList } from '../../sync/sync';
-import { logDebug } from '../../debug/log';
+import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
 
 /**
  * Keep an open list fresh: while its screen is focused and the app is foregrounded, push pending

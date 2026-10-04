@@ -2,7 +2,7 @@ import { AppState } from 'react-native';
 import { create } from 'zustand';
 import { enqueue } from '../../sync/outbox';
 import { stamp, type ClientOp } from '../../domain/ops';
-import { toast } from '../../feedback/toast';
+import { toast } from '@danbro96/lupira-expo-feedback/toast';
 
 // Soft-delete with an Undo window. The item(s) are hidden from lists immediately, but the durable
 // `item.delete` op(s) are only enqueued after the window lapses — so Undo cancels with zero loss

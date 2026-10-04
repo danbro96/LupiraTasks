@@ -12,7 +12,7 @@ import type { PersonRef } from '@lupira/tasks-api/models';
 const holder = vi.hoisted(() => ({ db: null as unknown }));
 vi.mock('expo-sqlite', () => ({ openDatabaseAsync: async () => holder.db }));
 vi.mock('@sentry/react-native', () => ({ captureException: vi.fn(), captureMessage: vi.fn(), setUser: vi.fn(), addBreadcrumb: vi.fn() }));
-vi.mock('../debug/log', () => ({ logDebug: vi.fn() }));
+vi.mock('@danbro96/lupira-expo-diagnostics/log', () => ({ logDebug: vi.fn() }));
 vi.mock('./replayOp', () => ({ replayOp: vi.fn() }));
 
 const ME: PersonRef = { principalId: 'me-p', email: 'me@x', displayName: 'Me' };
@@ -39,7 +39,7 @@ async function load() {
   const outbox = await import('./outbox');
   const dbm = await import('../data/db');
   const { useSyncStatus } = await import('./syncStatus');
-  const { ApiError } = await import('@lupira/tasks-api/apiError');
+  const { ApiError } = await import('@danbro96/lupira-http/apiError');
   const { replayOp } = await import('./replayOp');
   const db = await dbm.getDb();
   return { outbox, dbm, db, useSyncStatus, ApiError, replayOp: vi.mocked(replayOp) };

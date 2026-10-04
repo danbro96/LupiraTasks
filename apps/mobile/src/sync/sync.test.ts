@@ -15,7 +15,7 @@ vi.mock('expo-sqlite', () => ({ openDatabaseAsync: async () => holder.db }));
 vi.mock('react-native', () => ({ AppState: { addEventListener: vi.fn(() => ({ remove: vi.fn() })) } }));
 vi.mock('@react-native-community/netinfo', () => ({ default: { addEventListener: vi.fn(() => () => {}) } }));
 vi.mock('@sentry/react-native', () => ({ captureException: vi.fn(), captureMessage: vi.fn(), setUser: vi.fn(), addBreadcrumb: vi.fn() }));
-vi.mock('../debug/log', () => ({ logDebug: vi.fn() }));
+vi.mock('@danbro96/lupira-expo-diagnostics/log', () => ({ logDebug: vi.fn() }));
 vi.mock('./replayOp', () => ({ replayOp: vi.fn() }));
 vi.mock('@lupira/tasks-api/fetch/sync', () => ({ syncList: vi.fn() }));
 vi.mock('@lupira/tasks-api/fetch/lists', () => ({ listLists: vi.fn() }));
@@ -63,7 +63,7 @@ async function load() {
   const dbm = await import('../data/db');
   const { useSyncStatus } = await import('./syncStatus');
   // instanceof checks (isNetworkError) must see the same class the fresh module graph uses.
-  const { ApiError } = await import('@lupira/tasks-api/apiError');
+  const { ApiError } = await import('@danbro96/lupira-http/apiError');
   const { listLists } = await import('@lupira/tasks-api/fetch/lists');
   const { syncList } = await import('@lupira/tasks-api/fetch/sync');
   const { getMe } = await import('@lupira/tasks-api/fetch/me');

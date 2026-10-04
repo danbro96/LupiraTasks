@@ -4,11 +4,11 @@ import { Button as PaperButton, Card, List, Text } from 'react-native-paper';
 import * as Clipboard from 'expo-clipboard';
 import { ShareAccess, type ShareDto } from '@lupira/tasks-api/models';
 import { createShareLink, listShareLinks, revokeShareLink } from '../../data/shares';
-import { toast, toastError } from '../../feedback/toast';
+import { toast, toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { spacing, useColors, type Palette } from '../theme';
-import { Button } from './Button';
-import { SegmentedPicker } from './SegmentedPicker';
-import { useConfirm } from './ConfirmDialog';
+import { Button } from '@danbro96/lupira-expo-paper/components/Button';
+import { SegmentedPicker } from '@danbro96/lupira-expo-paper/components/SegmentedPicker';
+import { useConfirm } from '@danbro96/lupira-expo-paper/components/ConfirmDialog';
 
 const ACCESS_OPTIONS: ShareAccess[] = [ShareAccess.Read, ShareAccess.ReadWrite];
 const ACCESS_LABELS: Record<ShareAccess, string> = { Read: 'Read', ReadWrite: 'Read & write' };

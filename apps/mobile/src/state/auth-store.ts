@@ -2,14 +2,15 @@ import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 import * as Crypto from 'expo-crypto';
 import * as Sentry from '@sentry/react-native';
-import { API_PRESETS, DEFAULT_API_URL, DEFAULT_AUTH_MODE, type AuthMode } from '../config';
+import { DEFAULT_API_URL, DEFAULT_AUTH_MODE, type AuthMode } from '../config';
 import { setAuthPort } from '../data/api/authProvider';
 import { adoptDbOwner } from '../data/db';
 import { bumpMirror } from '../sync/syncStatus';
-import { refreshTokens, RefreshError } from '../data/auth/oidc';
+import { RefreshError } from '@danbro96/lupira-expo-oidc/oidc';
+import { oidc } from '../data/auth/oidc';
 import { useSyncStatus } from '../sync/syncStatus';
-import { toast } from '../feedback/toast';
-import { logDebug } from '../debug/log';
+import { toast } from '@danbro96/lupira-expo-feedback/toast';
+import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
 
 // One shared in-flight refresh. Concurrent callers await it instead of each POSTing the
 // refresh token (mirrors the syncing/draining guards). See refreshIfNeeded for why.
@@ -246,7 +247,7 @@ export const useAuth = create<AuthState & AuthActions>((set, get) => ({
     if (refreshing) return refreshing;
     refreshing = (async (): Promise<string | null> => {
       try {
-        const t = await refreshTokens(refreshToken);
+        const t = await oidc.refreshTokens(refreshToken);
         if (!t.accessToken) return token;
         const next: Session = {
           accessToken: t.accessToken,
@@ -291,8 +292,3 @@ setAuthPort({
   applyProfile: profile => useAuth.getState().updateProfile(profile),
   onSignIn: cb => useAuth.subscribe((state, prev) => { if (!prev.token && state.token) cb(); }),
 });
-
-/** Which preset the current backend matches, or 'custom'. */
-export function presetFor(url: string, authMode: AuthMode): string {
-  return API_PRESETS.find(p => p.urls.api === url && p.authMode === authMode)?.key ?? 'custom';
-}

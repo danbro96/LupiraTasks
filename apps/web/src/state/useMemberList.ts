@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ApiError } from '@lupira/tasks-api/apiError';
+import { ApiError } from '@danbro96/lupira-http/apiError';
 import {
   deleteListItem,
   getListListItemsQueryKey,

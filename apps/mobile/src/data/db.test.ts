@@ -8,7 +8,7 @@ import { emptyItemState, type ItemState } from '../domain/itemState';
 
 const holder = vi.hoisted(() => ({ db: null as unknown }));
 vi.mock('expo-sqlite', () => ({ openDatabaseAsync: async () => holder.db }));
-vi.mock('../debug/log', () => ({ logDebug: vi.fn() }));
+vi.mock('@danbro96/lupira-expo-diagnostics/log', () => ({ logDebug: vi.fn() }));
 
 type DbModule = typeof import('./db');
 

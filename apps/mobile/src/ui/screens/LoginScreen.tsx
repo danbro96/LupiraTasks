@@ -5,9 +5,10 @@ import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { OIDC_CLIENT_ID, OIDC_ISSUER, OIDC_REDIRECT_PATH, OIDC_SCHEME, OIDC_SCOPES } from '../../data/auth/oidcConfig';
-import { decodeJwt, exchangeAuthCode } from '../../data/auth/oidc';
-import { logAuth, clearAuthLog } from '../../data/auth/authDebug';
-import { Button } from '../components/Button';
+import { decodeJwt } from '@danbro96/lupira-expo-oidc/oidc';
+import { oidc } from '../../data/auth/oidc';
+import { logDebug, clearDebugLog } from '@danbro96/lupira-expo-diagnostics/log';
+import { Button } from '@danbro96/lupira-expo-paper/components/Button';
 import { DebugPanel } from '../components/DebugPanel';
 import { useAuth } from '../../state/auth-store';
 import { usePrefs } from '../../state/prefs-store';
@@ -29,25 +30,25 @@ async function exchangeCodeForSession(
   setError(null);
   try {
     const tokenEndpoint = discovery.tokenEndpoint;
-    logAuth('exchange:start', `endpoint=${tokenEndpoint ?? 'MISSING'} verifier=${!!request.codeVerifier}`);
+    logDebug('exchange:start', `endpoint=${tokenEndpoint ?? 'MISSING'} verifier=${!!request.codeVerifier}`);
     if (!tokenEndpoint) {
       setError('Discovery returned no token endpoint.');
       return;
     }
-    const token = await exchangeAuthCode({
+    const token = await oidc.exchangeAuthCode({
       tokenEndpoint,
       code,
       redirectUri,
       codeVerifier: request.codeVerifier,
     });
-    logAuth(
+    logDebug(
       'exchange:ok',
       `accessToken=${!!token.accessToken} idToken=${!!token.idToken} refresh=${!!token.refreshToken} expiresIn=${token.expiresIn ?? 'n/a'}`,
     );
     const claims = decodeJwt(token.idToken ?? token.accessToken);
     const email = (claims.email as string) ?? (claims.preferred_username as string) ?? (claims.sub as string) ?? '';
     const name = (claims.name as string) ?? (claims.given_name as string) ?? undefined;
-    logAuth('decode', `email=${email ? 'present' : 'EMPTY'} name=${name ? 'present' : 'none'}`);
+    logDebug('decode', `email=${email ? 'present' : 'EMPTY'} name=${name ? 'present' : 'none'}`);
     await useAuth.getState().setSession(
       {
         accessToken: token.accessToken,
@@ -56,10 +57,10 @@ async function exchangeCodeForSession(
       },
       { sub: email, displayName: name },
     );
-    logAuth('setSession', 'authed=true');
+    logDebug('setSession', 'authed=true');
   } catch (e) {
     const err = e as { code?: string; description?: string; message?: string };
-    logAuth('exchange:error', `${err.code ?? ''} ${err.description ?? ''} ${err.message ?? String(e)}`.trim());
+    logDebug('exchange:error', `${err.code ?? ''} ${err.description ?? ''} ${err.message ?? String(e)}`.trim());
     setError(err.message ?? String(e));
   } finally {
     setBusy(false);
@@ -92,59 +93,59 @@ export function LoginScreen() {
 
   // Surface the static config once so it can be compared to the Authentik provider.
   useEffect(() => {
-    logAuth('config', `issuer=${OIDC_ISSUER} client=${OIDC_CLIENT_ID} redirectUri=${redirectUri}`);
+    logDebug('config', `issuer=${OIDC_ISSUER} client=${OIDC_CLIENT_ID} redirectUri=${redirectUri}`);
   }, [redirectUri]);
 
   useEffect(() => {
-    logAuth(discovery ? 'discovery:loaded' : 'discovery:loading', discovery?.tokenEndpoint ?? undefined);
+    logDebug(discovery ? 'discovery:loaded' : 'discovery:loading', discovery?.tokenEndpoint ?? undefined);
   }, [discovery]);
 
   useEffect(() => {
-    if (request) logAuth('request:ready', `verifier=${!!request.codeVerifier}`);
+    if (request) logDebug('request:ready', `verifier=${!!request.codeVerifier}`);
   }, [request]);
 
   // Diagnostic: log any deep link that reaches the app (the Authentik redirect should show
   // up here as lupiratasks://...?code=…). If it arrives but auth still 'dismiss'es, the issue
   // is session matching; if it never arrives, the redirect isn't returning to the app's task.
   useEffect(() => {
-    void Linking.getInitialURL().then(u => { if (u) logAuth('linking:initial', u); });
-    const sub = Linking.addEventListener('url', ({ url }) => logAuth('linking:url', url));
+    void Linking.getInitialURL().then(u => { if (u) logDebug('linking:initial', u); });
+    const sub = Linking.addEventListener('url', ({ url }) => logDebug('linking:url', url));
     return () => sub.remove();
   }, []);
 
   async function handleSignIn() {
-    clearAuthLog();
-    logAuth('config', `issuer=${OIDC_ISSUER} client=${OIDC_CLIENT_ID} redirectUri=${redirectUri}`);
-    logAuth('prompt:open');
+    clearDebugLog();
+    logDebug('config', `issuer=${OIDC_ISSUER} client=${OIDC_CLIENT_ID} redirectUri=${redirectUri}`);
+    logDebug('prompt:open');
     try {
       // createTask:false (Android) keeps the auth tab in the app's task so the redirect can
       // return into it — without this the redirect lands in a separate task and resolves
       // 'dismiss' (expo/expo#23781).
       const result = await promptAsync({ createTask: false });
-      logAuth('prompt:result', result.type);
+      logDebug('prompt:result', result.type);
     } catch (e) {
-      logAuth('prompt:throw', String(e));
+      logDebug('prompt:throw', String(e));
     }
   }
 
   useEffect(() => {
     if (!response) return;
-    logAuth('response', response.type);
+    logDebug('response', response.type);
 
     if (response.type === 'error') {
-      logAuth('response:error', `${response.error?.code ?? ''} ${responseError}`.trim());
+      logDebug('response:error', `${response.error?.code ?? ''} ${responseError}`.trim());
       return;
     }
     if (response.type !== 'success') {
       // dismiss / cancel / locked — no params to exchange. Stop with a visible reason.
-      logAuth('response:not-success', response.type);
+      logDebug('response:not-success', response.type);
       return;
     }
     if (!discovery || !request) {
-      logAuth('response:guard', `discovery=${!!discovery} request=${!!request}`);
+      logDebug('response:guard', `discovery=${!!discovery} request=${!!request}`);
       return;
     }
-    logAuth('response:params', `code=${!!response.params.code} state=${!!response.params.state}`);
+    logDebug('response:params', `code=${!!response.params.code} state=${!!response.params.state}`);
 
     void exchangeCodeForSession(discovery, request, response.params.code, redirectUri, setBusy, setError);
   }, [response, responseError, discovery, request, redirectUri]);

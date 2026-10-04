@@ -8,15 +8,15 @@ import { SyncIssuesScreen } from '../screens/SyncIssuesScreen';
 import { CreateListScreen } from '../screens/CreateListScreen';
 import { ImportListScreen } from '../screens/ImportListScreen';
 import { ArchivedListsScreen } from '../screens/ArchivedListsScreen';
-import { DebugLogScreen } from '../screens/DebugLogScreen';
+import { DebugLogScreen } from '@danbro96/lupira-expo-diagnostics/DebugLogScreen';
 import { DeveloperScreen } from '../screens/DeveloperScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { useAuth } from '../../state/auth-store';
 import type { RootStackParamList } from './types';
 import { StyleSheet, View } from 'react-native';
-import { IconButton } from '../components/IconButton';
+import { IconButton } from '@danbro96/lupira-expo-paper/components/IconButton';
 import { ICONS } from '../icons';
-import { SettingsButton } from '../components/SettingsButton';
+import { SettingsButton } from '@danbro96/lupira-expo-paper/components/SettingsButton';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

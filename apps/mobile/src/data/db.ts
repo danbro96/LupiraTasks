@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 import type { ItemState } from '../domain/itemState';
 import { rowsForList } from '../domain/outboxScope';
-import { logDebug } from '../debug/log';
+import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
 
 // One SQLite database holds the offline read-model mirror (lists + items as JSON docs)
 // and the durable mutation outbox, so an optimistic apply + enqueue commit atomically.

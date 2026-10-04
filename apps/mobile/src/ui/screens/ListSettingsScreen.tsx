@@ -5,13 +5,13 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ListRole } from '@lupira/tasks-api/models';
 import type { RootStackParamList } from '../navigation/types';
-import { Button } from '../components/Button';
-import { SegmentedPicker } from '../components/SegmentedPicker';
-import { TextField } from '../components/TextField';
+import { Button } from '@danbro96/lupira-expo-paper/components/Button';
+import { SegmentedPicker } from '@danbro96/lupira-expo-paper/components/SegmentedPicker';
+import { TextField } from '@danbro96/lupira-expo-paper/components/TextField';
 import { ColorSwatches } from '../components/ColorSwatches';
 import { ShareLinks } from '../components/ShareLinks';
-import { useConfirm } from '../components/ConfirmDialog';
-import { toast, toastError } from '../../feedback/toast';
+import { useConfirm } from '@danbro96/lupira-expo-paper/components/ConfirmDialog';
+import { toast, toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { SyncBanner } from '../components/SyncBanner';
 import { useItems, useLists } from '../hooks/useMirror';
 import { useMyRole } from '../hooks/useMyRole';

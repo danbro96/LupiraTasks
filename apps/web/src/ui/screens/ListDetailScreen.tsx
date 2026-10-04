@@ -4,8 +4,8 @@ import Button from '@mui/material/Button';
 import MuiLink from '@mui/material/Link';
 import Box from '@mui/material/Box';
 import { useMemberList } from '../../state/useMemberList';
-import { ApiError } from '@lupira/tasks-api/apiError';
-import { Centered } from '../components/Centered';
+import { ApiError } from '@danbro96/lupira-http/apiError';
+import { Centered } from '@danbro96/lupira-web-mui/Centered';
 import { ListView } from '../components/ListView';
 import { MembersPanel } from '../components/MembersPanel';
 

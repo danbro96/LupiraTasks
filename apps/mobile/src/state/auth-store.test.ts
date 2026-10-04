@@ -9,8 +9,8 @@ vi.mock('expo-secure-store', () => ({
   setItemAsync: vi.fn().mockResolvedValue(undefined),
   deleteItemAsync: vi.fn().mockResolvedValue(undefined),
 }));
-vi.mock('../feedback/toast', () => ({ toast: vi.fn() }));
-vi.mock('../debug/log', () => ({ logDebug: vi.fn() }));
+vi.mock('@danbro96/lupira-expo-feedback/toast', () => ({ toast: vi.fn() }));
+vi.mock('@danbro96/lupira-expo-diagnostics/log', () => ({ logDebug: vi.fn() }));
 vi.mock('expo-crypto', () => ({
   digestStringAsync: vi.fn().mockResolvedValue('hashed-id'),
   CryptoDigestAlgorithm: { SHA256: 'SHA-256' },
@@ -21,7 +21,8 @@ vi.mock('@sentry/react-native', () => ({
   captureException: vi.fn(),
   addBreadcrumb: vi.fn(),
 }));
-vi.mock('../data/auth/oidc', () => {
+vi.mock('../data/auth/oidc', () => ({ oidc: { refreshTokens: vi.fn() } }));
+vi.mock('@danbro96/lupira-expo-oidc/oidc', () => {
   class RefreshError extends Error {
     definitive: boolean;
     constructor(definitive: boolean, message: string) {
@@ -30,17 +31,18 @@ vi.mock('../data/auth/oidc', () => {
       this.name = 'RefreshError';
     }
   }
-  return { RefreshError, refreshTokens: vi.fn() };
+  return { RefreshError };
 });
 vi.mock('../data/db', () => ({ adoptDbOwner: vi.fn().mockResolvedValue(undefined) }));
 
 import * as SecureStore from 'expo-secure-store';
 import { useAuth } from './auth-store';
-import { refreshTokens, RefreshError } from '../data/auth/oidc';
+import { RefreshError } from '@danbro96/lupira-expo-oidc/oidc';
+import { oidc } from '../data/auth/oidc';
 import { adoptDbOwner } from '../data/db';
-import { toast } from '../feedback/toast';
+import { toast } from '@danbro96/lupira-expo-feedback/toast';
 
-const refreshMock = refreshTokens as unknown as ReturnType<typeof vi.fn>;
+const refreshMock = oidc.refreshTokens as unknown as ReturnType<typeof vi.fn>;
 const toastMock = toast as unknown as ReturnType<typeof vi.fn>;
 const setItemMock = SecureStore.setItemAsync as unknown as ReturnType<typeof vi.fn>;
 const adoptMock = adoptDbOwner as unknown as ReturnType<typeof vi.fn>;

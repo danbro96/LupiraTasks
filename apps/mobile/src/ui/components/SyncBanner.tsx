@@ -6,7 +6,7 @@ import { useSyncStatus } from '../../sync/syncStatus';
 import { usePrefs } from '../../state/prefs-store';
 import { bannerState, type BannerKind } from '../../domain/bannerState';
 import type { RootStackParamList } from '../navigation/types';
-import { Glyph } from './Glyph';
+import { Glyph } from '@danbro96/lupira-expo-paper/components/Glyph';
 import { ICONS } from '../icons';
 import { useColors } from '../theme';
 

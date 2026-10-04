@@ -8,9 +8,10 @@
 
 ## Workspaces
 - `packages/domain` (`@lupira/tasks-domain`) — pure shared rules, TS source. Only `fractional-indexing` and `uuid` allowed. Holds `dueDate`, `listOrder`, `text`, `itemTree`, `itemChange` (generic over the actor: principal id in the mirror, `PersonRef` from the API), `ids`, `itemFormat`. The mirror's own machinery (`itemState`, `itemLww`, `ops`, `listDoc`, `outboxScope`) stays in the app.
-- `packages/tokens` (`@lupira/tasks-tokens`) — estate scale, byte-identical with LupiraCal's; each app has a one-line theme adapter.
+- `packages/tokens` (`@lupira/tasks-tokens`) — the Tasks-only palette keys extending `@danbro96/lupira-tokens-core`'s `Palette`, plus `listColorOptions`; each app has a one-line theme adapter.
 - `packages/api` (`@lupira/tasks-api`) — generated client in three flavours: `query/*` (member), `shared/*` (account-less share surface), `fetch/*` (the app's sync layer).
-- **The transport is installed, not imported.** `installApiTransports()` in `apps/web/src/data/api/fetcher.ts` fills the slot from `main.tsx`; mobile installs from `src/data/api/installTransport.ts`, imported as a side effect in `index.ts` (ES imports hoist).
+- **The transport is installed, not imported.** The generated clients call `@danbro96/lupira-http`'s seam. `installApiTransports()` in `apps/web/src/data/api/fetcher.ts` installs `@danbro96/lupira-web-session`'s cookie transport from `main.tsx`; mobile installs the bearer mutator from `src/data/api/installTransport.ts`, imported as a side effect in `index.ts` (ES imports hoist).
+- Shared frontend plumbing comes from LupiraPlatform `@danbro96/lupira-*` packages (`~/Nextcloud/Familj/DevOps/Guides/platform-packages.md`); `@lupira/tasks-*` hold only what is Tasks-specific.
 
 ## Proxy specifics
 - `exposed.json` (`Lupira.Bff.Proxy` shape) groups: `operations` → Default policy, `guest` → the share surface (`Guest` policy, `credential: none`, `pathMap`).

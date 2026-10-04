@@ -17,8 +17,8 @@ import { applyListOps } from '../domain/listDoc';
 import { bumpMirror, useSyncStatus } from './syncStatus';
 import { drainOutbox, refreshPending, refreshFailed } from './outbox';
 import { listsToPrune } from '../domain/pruneLists';
-import { logDebug } from '../debug/log';
-import { isNetworkError } from '@lupira/tasks-api/apiError';
+import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
+import { isNetworkError } from '@danbro96/lupira-http/apiError';
 
 /** Provision + cache the caller's `/me` profile (best-effort; non-fatal on failure). */
 export async function pullMe(): Promise<void> {

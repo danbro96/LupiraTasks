@@ -1,30 +1,17 @@
+import { compareInstant, wins } from '@danbro96/lupira-sync-core/lww';
 import type { Guid, Iso, ItemEvent } from './events';
 import { type ItemState, emptyItemState } from './itemState';
 
 // Pure last-writer-wins reducer for an item — the client mirror of the server's Domain/Items/ItemLww.cs,
 // which documents the rules. Same rules here, so the server snapshot and this reducer converge on identical
 // state regardless of the order offline edits sync.
-//
-// The commandId tiebreak is an ORDINAL comparison of the canonical lowercase GUID string — exactly the
-// server's string.CompareOrdinal, NOT .NET Guid.CompareTo, so the two agree byte-for-byte.
-
-/** Ordinal compare of two canonical lowercase GUID strings. */
-function compareCommandId(a: Guid, b: Guid): number {
-  return a < b ? -1 : a > b ? 1 : 0;
-}
-
-function wins(occurredAt: Iso, commandId: Guid, guardTs: Iso, guardCmd: Guid): boolean {
-  const t = Date.parse(occurredAt);
-  const g = Date.parse(guardTs);
-  return t > g || (t === g && compareCommandId(commandId, guardCmd) > 0);
-}
 
 function clone(s: ItemState): ItemState {
   return { ...s, tags: [...s.tags], tagTs: { ...s.tagTs }, tagCmd: { ...s.tagCmd } };
 }
 
 function touch(s: ItemState, at: Iso): void {
-  if (Date.parse(at) > Date.parse(s.updatedAt)) s.updatedAt = at;
+  if (compareInstant(at, s.updatedAt) > 0) s.updatedAt = at;
 }
 
 function newerTag(s: ItemState, tagId: Guid, occurredAt: Iso, commandId: Guid): boolean {
@@ -105,7 +92,7 @@ export function applyItemEvent(prev: ItemState, e: ItemEvent, actor: string | nu
 
     case 'ItemDeleted':
       s.deleted = true;
-      if (Date.parse(e.occurredAt) > Date.parse(s.updatedAt)) s.updatedAt = e.occurredAt;
+      if (compareInstant(e.occurredAt, s.updatedAt) > 0) s.updatedAt = e.occurredAt;
       return s;
   }
 }
