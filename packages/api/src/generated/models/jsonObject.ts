@@ -5,4 +5,4 @@
  * OpenAPI spec version: v1
  */
 
-export interface JsonNode {}
+export interface JsonObject { [key: string]: unknown }

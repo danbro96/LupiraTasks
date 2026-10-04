@@ -5,7 +5,7 @@
  * OpenAPI spec version: v1
  */
 import type { ItemStatus } from './itemStatus';
-import type { JsonNode } from './jsonNode';
+import type { JsonObject } from './jsonObject';
 import type { PersonRef } from './personRef';
 
 /**
@@ -40,5 +40,5 @@ export interface ItemDto {
   createdBy?: null | PersonRef;
   createdAt: string;
   updatedAt: string;
-  metadata?: null | JsonNode;
+  metadata?: null | JsonObject;
 }

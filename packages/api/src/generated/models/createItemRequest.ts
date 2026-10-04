@@ -23,7 +23,7 @@ export interface CreateItemRequest {
   quantity?: number | null;
   /** @nullable */
   unit?: string | null;
-  /** Standard iCalendar priority, 0..9 (0 = none). Defaults to 0. */
+  /** Priority 0..9 (0 = none). Defaults to 0. */
   priority?: number;
   /** @nullable */
   tagIds?: string[] | null;

@@ -19,7 +19,7 @@ export * from './guestSessionInfo';
 export * from './itemDto';
 export * from './itemStatus';
 export * from './itemTimestampRequest';
-export * from './jsonNode';
+export * from './jsonObject';
 export * from './listDto';
 export * from './listKind';
 export * from './listListItemsParams';

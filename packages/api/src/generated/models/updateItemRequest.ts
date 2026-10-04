@@ -29,7 +29,7 @@ export interface UpdateItemRequest {
   /** @nullable */
   unit?: string | null;
   quantityProvided?: boolean;
-  /** Standard iCalendar priority, 0..9 (0 = none). Only applied when bool UpdateItemRequest.PriorityProvided is true. */
+  /** Priority 0..9 (0 = none). Only applied when bool UpdateItemRequest.PriorityProvided is true. */
   priority?: number;
   priorityProvided?: boolean;
   /**
