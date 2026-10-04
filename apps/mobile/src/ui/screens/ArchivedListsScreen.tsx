@@ -5,6 +5,7 @@ import { SyncBanner } from '../components/SyncBanner';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { useArchivedLists } from '../hooks/useMirror';
 import { enqueue } from '../../sync/outbox';
+import { getDb } from '../../data/db/expoDb';
 import { stamp } from '../../domain/ops';
 import { radii, spacing, useColors, type Palette } from '../theme';
 
@@ -14,7 +15,7 @@ export function ArchivedListsScreen() {
   const styles = makeStyles(c);
 
   function restore(listId: string) {
-    void enqueue({ ...stamp(), kind: 'list.restore', listId }).catch(() => toastError("Couldn't restore list"));
+    void getDb().then(db => enqueue(db, { ...stamp(), kind: 'list.restore', listId })).catch(() => toastError("Couldn't restore list"));
   }
 
   return (

@@ -2,7 +2,8 @@ import { AppState } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { LIST_POLL_MS } from '../../config';
 import { useSyncStatus } from '../../sync/syncStatus';
-import { drainOutbox } from '../../sync/outbox';
+import { drain } from '../../sync/outbox';
+import { getDb } from '../../data/db/expoDb';
 import { pullList } from '../../sync/sync';
 import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
 
@@ -31,8 +32,9 @@ export function useListPolling(listId: string): void {
         logDebug('poll:skip', online ? `appState=${state}` : 'offline');
       } else {
         try {
-          if (pending > 0) await drainOutbox(); // push before pull, as runSync does
-          await pullList(listId);
+          const db = await getDb();
+          if (pending > 0) await drain(db); // push before pull, as runSync does
+          await pullList(db, listId);
           logDebug('poll', listId);
         } catch (e) {
           // Surfaced by the sync banner; a failed tick must not break the loop.

@@ -4,10 +4,12 @@ import { authPort } from '../data/api/authProvider';
 import { syncList } from '@lupira/tasks-api/fetch/sync';
 import { listLists } from '@lupira/tasks-api/fetch/lists';
 import { getMe } from '@lupira/tasks-api/fetch/me';
+import type { Db } from '@danbro96/lupira-expo-sqlite/types';
+import { getDb } from '../data/db/expoDb';
 import {
-  getDb, getItemState, putItemState, putListDoc, pendingOutbox, pendingOutboxForList,
-  getListIds, deleteListLocal, deleteItemsNotIn, withWriteTxn, getItemJsonByList, getListDocJson, type OutboxRow,
-} from '../data/db';
+  getItemState, putItemState, putListDoc, pendingOutbox, pendingOutboxForList,
+  getListIds, deleteListLocal, deleteItemsNotIn, getItemJsonByList, getListDocJson, type OutboxRow,
+} from '../data/mirror';
 import { listIdsOf, rowsForList } from '../domain/outboxScope';
 import { itemResponseToState } from '../domain/itemMap';
 import { emptyItemState } from '../domain/itemState';
@@ -15,7 +17,7 @@ import { applyItemEvent } from '../domain/itemLww';
 import { type ClientOp, opToEvents } from '../domain/ops';
 import { applyListOps } from '../domain/listDoc';
 import { bumpMirror, useSyncStatus } from './syncStatus';
-import { drainOutbox, refreshPending, refreshFailed } from './outbox';
+import { drain, refreshPending, refreshFailed } from './outbox';
 import { listsToPrune } from '../domain/pruneLists';
 import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
 import { isNetworkError } from '@danbro96/lupira-http/apiError';
@@ -44,8 +46,7 @@ function unionBySeq(a: OutboxRow[], b: OutboxRow[]): OutboxRow[] {
  * access to (guarding lists with un-pushed local ops). Returns the ACTIVE list ids — item pulls
  * stay scoped to active lists; an archived list's items re-arrive after restore → push → pull.
  */
-export async function pullLists(): Promise<string[]> {
-  const db = await getDb();
+export async function pullLists(db: Db): Promise<string[]> {
   // Snapshot BEFORE the GETs: an op acked while a response is already in flight (its outbox row
   // deleted by the drain) must still protect its list — the response predates the server apply.
   const preProtected = listIdsOf(await pendingOutbox(db));
@@ -68,7 +69,7 @@ export async function pullLists(): Promise<string[]> {
 
   const self = authPort().getSelf();
   let changed = false;
-  await withWriteTxn(async tx => {
+  await db.exclusive(async tx => {
     const stored = await getListDocJson(tx);
     for (const list of serverLists) {
       // Re-apply the list's pending list.* ops so a not-yet-pushed rename/archive isn't visually
@@ -97,8 +98,7 @@ export async function pullLists(): Promise<string[]> {
  * except what the rebase recreates. Parked ops neither rebase nor survive the deletion pass
  * (same rule as the prune above: they can never reconcile; the user resolves them in Sync Issues).
  */
-export async function pullList(listId: string): Promise<void> {
-  const db = await getDb();
+export async function pullList(db: Db, listId: string): Promise<void> {
   // Snapshot BEFORE the GET: an op acked while the response is already in flight (row deleted by
   // the drain) must still rebase — the server base predates its apply. Re-applying an acked op
   // is a no-op under the LWW guards.
@@ -112,7 +112,7 @@ export async function pullList(listId: string): Promise<void> {
   // and the mirror bump, or every tick rewrites every item and re-renders the screen.
   let changed = false;
 
-  await withWriteTxn(async tx => {
+  await db.exclusive(async tx => {
     const rows = unionBySeq(preRows, await pendingOutboxForList(tx, listId));
     const ops = rows.map(row => JSON.parse(row.op_json) as ClientOp);
 
@@ -169,23 +169,24 @@ let syncing: Promise<void> | null = null;
  * Full sync in the plan's push-then-pull order: provision /me, drain the outbox (push local
  * edits), then pull lists + each list's items (which rebases any still-pending edits on top).
  */
-export function syncAll(): Promise<void> {
-  if (!syncing) syncing = runSync().finally(() => { syncing = null; });
+export function syncAll(dbOverride?: Db): Promise<void> {
+  if (!syncing) syncing = runSync(dbOverride).finally(() => { syncing = null; });
   return syncing;
 }
 
-async function runSync(): Promise<void> {
+async function runSync(dbOverride?: Db): Promise<void> {
   const token = await authPort().refresh();
   if (!token) { logDebug('sync:skip', 'no token'); return; } // not signed in — stay on cached mirror.
   logDebug('sync:start');
   const status = useSyncStatus.getState();
   try {
+    const db = dbOverride ?? (await getDb());
     await pullMe();
-    await drainOutbox();
-    const ids = await pullLists();
+    await drain(db);
+    const ids = await pullLists(db);
     for (const id of ids) {
       try {
-        await pullList(id);
+        await pullList(db, id);
       } catch (e) {
         if (isNetworkError(e)) throw e; // offline — stop; the outer catch marks the server unreachable
         // e.g. a 404 for a list deleted since the ids were fetched — skip it, pull the rest.
@@ -226,7 +227,6 @@ export function startSync(): () => void {
   // the non-null→non-null swap that token rotation performs, and syncAll() self-coalesces, so a
   // race with the mount-effect sync is harmless.
   const authSub = authPort().onSignIn(() => void syncAll());
-  void refreshPending();
-  void refreshFailed(); // parked rows survive a relaunch — rehydrate the failed badge too
+  void getDb().then(db => Promise.all([refreshPending(db), refreshFailed(db)])); // parked rows survive a relaunch — rehydrate the failed badge too
   return () => { netSub(); appSub.remove(); authSub(); };
 }

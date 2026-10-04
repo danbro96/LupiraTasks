@@ -1,6 +1,7 @@
 import { AppState } from 'react-native';
 import { create } from 'zustand';
 import { enqueue } from '../../sync/outbox';
+import { getDb } from '../../data/db/expoDb';
 import { stamp, type ClientOp } from '../../domain/ops';
 import { toast } from '@danbro96/lupira-expo-feedback/toast';
 
@@ -38,7 +39,8 @@ function setIds(mutate: (next: Set<string>) => void) {
 function commit(group: PendingGroup) {
   clearTimeout(group.timer);
   if (!groups.delete(group)) return; // already committed or undone
-  void Promise.allSettled(group.ops.map(op => enqueue(op)))
+  void getDb()
+    .then(db => Promise.allSettled(group.ops.map(op => enqueue(db, op))))
     .then(rs => {
       if (rs.some(r => r.status === 'rejected')) toast("Couldn't delete item");
     })

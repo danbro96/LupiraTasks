@@ -19,6 +19,7 @@ import { useOutboxStatus, type OpStatus } from '../hooks/useOutboxStatus';
 import { useSyncStatus } from '../../sync/syncStatus';
 import { syncAll } from '../../sync/sync';
 import { enqueueMany } from '../../sync/outbox';
+import { getDb } from '../../data/db/expoDb';
 import { planListReorder } from '@lupira/tasks-domain/listOrder';
 import { stamp } from '../../domain/ops';
 import { radii, spacing, useColors, type Palette } from '../theme';
@@ -102,7 +103,7 @@ export function ListsScreen() {
     if (targets.length === 0) return;
     setFrozen({ lists: reorderItems(dragLists, from, to), sourceLists: rendered.current.lists });
     // One transaction, one mirror bump — the first drag materializes every list's key at once.
-    void enqueueMany(targets.map(t => ({ ...stamp(), kind: 'list.reorder' as const, ...t })))
+    void getDb().then(db => enqueueMany(db, targets.map(t => ({ ...stamp(), kind: 'list.reorder' as const, ...t }))))
       .catch(() => toastError("Couldn't reorder lists"));
   }
 

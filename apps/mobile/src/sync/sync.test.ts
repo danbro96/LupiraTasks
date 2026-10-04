@@ -1,22 +1,22 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createFakeDb } from '../test/fakeExpoSqlite';
+import { migrate } from '@danbro96/lupira-expo-sqlite/migrate';
+import { openNodeDb } from '@danbro96/lupira-expo-sqlite/node';
+import { MIGRATIONS } from '../data/db/schema';
 import { itemResponseToState } from '../domain/itemMap';
 import { applyItemEvent } from '../domain/itemLww';
 import type { ClientOp } from '../domain/ops';
 import type { AuthPort } from '../data/api/authProvider';
 import type { ItemDto, ListDto, PersonRef } from '@lupira/tasks-api/models';
 
-// Pull-path tests over a real in-memory SQLite (node:sqlite behind the expo-sqlite surface) with
-// the generated API mocked. Each test re-imports the module graph: getDb memoizes a connection
-// and sync/outbox hold coalescing state.
+// Pull-path tests over a real in-memory SQLite (node:sqlite) with the generated API mocked. Each
+// test re-imports the module graph: sync/outbox hold coalescing state.
 
-const holder = vi.hoisted(() => ({ db: null as unknown }));
-vi.mock('expo-sqlite', () => ({ openDatabaseAsync: async () => holder.db }));
 vi.mock('react-native', () => ({ AppState: { addEventListener: vi.fn(() => ({ remove: vi.fn() })) } }));
 vi.mock('@react-native-community/netinfo', () => ({ default: { addEventListener: vi.fn(() => () => {}) } }));
 vi.mock('@sentry/react-native', () => ({ captureException: vi.fn(), captureMessage: vi.fn(), setUser: vi.fn(), addBreadcrumb: vi.fn() }));
 vi.mock('@danbro96/lupira-expo-diagnostics/log', () => ({ logDebug: vi.fn() }));
 vi.mock('./replayOp', () => ({ replayOp: vi.fn() }));
+vi.mock('../data/db/expoDb', () => ({ getDb: vi.fn() }));
 vi.mock('@lupira/tasks-api/fetch/sync', () => ({ syncList: vi.fn() }));
 vi.mock('@lupira/tasks-api/fetch/lists', () => ({ listLists: vi.fn() }));
 vi.mock('@lupira/tasks-api/fetch/me', () => ({ getMe: vi.fn() }));
@@ -46,7 +46,8 @@ const ok = <T,>(data: T) => ({ status: 200 as const, data, headers: new Headers(
 
 async function load() {
   vi.resetModules();
-  holder.db = createFakeDb();
+  const db = openNodeDb();
+  await migrate(db, MIGRATIONS);
   const { setAuthPort } = await import('../data/api/authProvider');
   const port: AuthPort = {
     getApiUrl: () => 'https://api.test',
@@ -60,14 +61,13 @@ async function load() {
   };
   setAuthPort(port);
   const sync = await import('./sync');
-  const dbm = await import('../data/db');
+  const dbm = await import('../data/mirror');
   const { useSyncStatus } = await import('./syncStatus');
   // instanceof checks (isNetworkError) must see the same class the fresh module graph uses.
   const { ApiError } = await import('@danbro96/lupira-http/apiError');
   const { listLists } = await import('@lupira/tasks-api/fetch/lists');
   const { syncList } = await import('@lupira/tasks-api/fetch/sync');
   const { getMe } = await import('@lupira/tasks-api/fetch/me');
-  const db = await dbm.getDb();
   return {
     sync, dbm, db, useSyncStatus, ApiError,
     listLists: vi.mocked(listLists),
@@ -90,10 +90,10 @@ describe('pullList', () => {
   it('an unchanged payload writes nothing and does not bump the mirror', async () => {
     const c = await load();
     c.getSync.mockResolvedValue(ok({ list: list('L1'), items: [item('X'), item('Y')], nextCursor: 1 }));
-    await c.sync.pullList('L1');
+    await c.sync.pullList(c.db, 'L1');
     const rev = c.useSyncStatus.getState().mirrorRevision;
 
-    await c.sync.pullList('L1');
+    await c.sync.pullList(c.db, 'L1');
 
     expect(c.useSyncStatus.getState().mirrorRevision).toBe(rev);
   });
@@ -101,11 +101,11 @@ describe('pullList', () => {
   it('a changed item bumps the mirror and is written', async () => {
     const c = await load();
     c.getSync.mockResolvedValue(ok({ list: list('L1'), items: [item('X')], nextCursor: 1 }));
-    await c.sync.pullList('L1');
+    await c.sync.pullList(c.db, 'L1');
     const rev = c.useSyncStatus.getState().mirrorRevision;
     c.getSync.mockResolvedValue(ok({ list: list('L1'), items: [item('X', { title: 'Edited', updatedAt: T1 })], nextCursor: 1 }));
 
-    await c.sync.pullList('L1');
+    await c.sync.pullList(c.db, 'L1');
 
     expect(c.useSyncStatus.getState().mirrorRevision).toBe(rev + 1);
     expect((await c.dbm.getItemState(c.db, 'X'))?.title).toBe('Edited');
@@ -114,11 +114,11 @@ describe('pullList', () => {
   it('a server-side deletion alone bumps the mirror', async () => {
     const c = await load();
     c.getSync.mockResolvedValue(ok({ list: list('L1'), items: [item('X'), item('Y')], nextCursor: 1 }));
-    await c.sync.pullList('L1');
+    await c.sync.pullList(c.db, 'L1');
     const rev = c.useSyncStatus.getState().mirrorRevision;
     c.getSync.mockResolvedValue(ok({ list: list('L1'), items: [item('X')], nextCursor: 1 }));
 
-    await c.sync.pullList('L1');
+    await c.sync.pullList(c.db, 'L1');
 
     expect(c.useSyncStatus.getState().mirrorRevision).toBe(rev + 1);
     expect(await c.dbm.getItemState(c.db, 'Y')).toBeNull();
@@ -130,7 +130,7 @@ describe('pullList', () => {
     await c.dbm.putItemState(c.db, itemResponseToState(item('X')));
     c.getSync.mockResolvedValue(ok({ list: list('L1'), items: [item('Y')], nextCursor: 1 }));
 
-    await c.sync.pullList('L1');
+    await c.sync.pullList(c.db, 'L1');
 
     expect(await c.dbm.getItemState(c.db, 'X')).toBeNull();
     expect((await c.dbm.getItemsByList(c.db, 'L1')).map(i => i.id)).toEqual(['Y']);
@@ -143,7 +143,7 @@ describe('pullList', () => {
     await seedOp(c, { commandId: 'c2', occurredAt: T2, kind: 'item.rename', listId: 'L1', itemId: 'N', title: 'Renamed task' });
     c.getSync.mockResolvedValue(ok({ list: list('L1'), items: [], nextCursor: 1 }));
 
-    await c.sync.pullList('L1');
+    await c.sync.pullList(c.db, 'L1');
 
     const n = await c.dbm.getItemState(c.db, 'N');
     expect(n?.title).toBe('Renamed task');
@@ -157,7 +157,7 @@ describe('pullList', () => {
     await seedOp(c, { commandId: 'c1', occurredAt: T1, kind: 'item.rename', listId: 'L1', itemId: 'G', title: 'Too late' });
     c.getSync.mockResolvedValue(ok({ list: list('L1'), items: [], nextCursor: 1 }));
 
-    await c.sync.pullList('L1');
+    await c.sync.pullList(c.db, 'L1');
 
     expect(await c.dbm.getItemState(c.db, 'G')).toBeNull();
   });
@@ -172,7 +172,7 @@ describe('pullList', () => {
       return ok({ list: list('L1'), items: [item('X')], nextCursor: 1 });
     });
 
-    await c.sync.pullList('L1');
+    await c.sync.pullList(c.db, 'L1');
 
     expect((await c.dbm.getItemState(c.db, 'X'))?.title).toBe('User edit');
   });
@@ -183,7 +183,7 @@ describe('pullList', () => {
     await seedOp(c, { commandId: 'c1', occurredAt: T1, kind: 'list.rename', listId: 'L1', name: 'Local name' });
     c.getSync.mockResolvedValue(ok({ list: list('L1', { name: 'Server name' }), items: [], nextCursor: 1 }));
 
-    await c.sync.pullList('L1');
+    await c.sync.pullList(c.db, 'L1');
 
     expect((await c.dbm.getListDoc<ListDto>(c.db, 'L1'))?.name).toBe('Local name');
   });
@@ -193,7 +193,7 @@ describe('pullList', () => {
     await seedOp(c, { commandId: 'c1', occurredAt: T1, kind: 'list.delete', listId: 'L1' });
     c.getSync.mockResolvedValue(ok({ list: list('L1'), items: [item('X')], nextCursor: 1 }));
 
-    await c.sync.pullList('L1');
+    await c.sync.pullList(c.db, 'L1');
 
     expect(await c.dbm.getListDoc(c.db, 'L1')).toBeNull();
     expect(await c.dbm.getItemsByList(c.db, 'L1')).toEqual([]);
@@ -207,7 +207,7 @@ describe('pullList', () => {
     await seedOp(c, { commandId: 'c1', occurredAt: T1, kind: 'item.delete', listId: 'L1', itemId: 'X' });
     c.getSync.mockResolvedValue(ok({ list: list('L1'), items: [item('X')], nextCursor: 1 }));
 
-    await c.sync.pullList('L1');
+    await c.sync.pullList(c.db, 'L1');
 
     expect((await c.dbm.getItemState(c.db, 'X'))?.deleted).toBe(true);
     expect(await c.dbm.getItemsByList(c.db, 'L1')).toEqual([]);
@@ -222,7 +222,7 @@ describe('pullLists', () => {
     c.listLists.mockImplementation(async params =>
       ok(params?.archived ? [list('B', { isArchived: true })] : [list('A')]));
 
-    const ids = await c.sync.pullLists();
+    const ids = await c.sync.pullLists(c.db);
 
     expect(ids).toEqual(['A']);
     expect((await c.dbm.getListDocs<ListDto>(c.db)).map(l => l.id)).toEqual(['A']);
@@ -236,10 +236,10 @@ describe('pullLists', () => {
     await seedList(c, 'Q');
     await seedOp(c, { commandId: 'c1', occurredAt: T1, kind: 'list.create', listId: 'P', name: 'P', listKind: 'Todo', color: null });
     await seedOp(c, { commandId: 'c2', occurredAt: T1, kind: 'list.create', listId: 'Q', name: 'Q', listKind: 'Todo', color: null });
-    await c.dbm.bumpOutboxFailure(c.db, 2, 'parked', '403 forbidden');
+    await c.db.exclusive(tx => c.dbm.markFailure(tx, 2, true, null, '403 forbidden'));
     c.listLists.mockResolvedValue(ok([]));
 
-    await c.sync.pullLists();
+    await c.sync.pullLists(c.db);
 
     expect(await c.dbm.getListDoc(c.db, 'P')).not.toBeNull();
     expect(await c.dbm.getListDoc(c.db, 'Q')).toBeNull();
@@ -254,7 +254,7 @@ describe('pullLists', () => {
       return ok([]);
     });
 
-    await c.sync.pullLists();
+    await c.sync.pullLists(c.db);
 
     expect(await c.dbm.getListDoc(c.db, 'P')).not.toBeNull();
   });
@@ -264,7 +264,7 @@ describe('pullLists', () => {
     await seedOp(c, { commandId: 'c1', occurredAt: T1, kind: 'list.archive', listId: 'A' });
     c.listLists.mockImplementation(async params => ok(params?.archived ? [] : [list('A')]));
 
-    await c.sync.pullLists();
+    await c.sync.pullLists(c.db);
 
     expect((await c.dbm.getArchivedListDocs<ListDto>(c.db)).map(l => l.id)).toEqual(['A']);
   });
@@ -284,7 +284,7 @@ describe('runSync', () => {
       return ok({ list: list(listId), items: [], nextCursor: 1 });
     });
 
-    await c.sync.syncAll();
+    await c.sync.syncAll(c.db);
 
     expect(await c.dbm.getListDoc(c.db, 'B')).not.toBeNull();
     expect(c.useSyncStatus.getState().serverReachable).toBe(true);
@@ -297,7 +297,7 @@ describe('runSync', () => {
     arm(c);
     c.getSync.mockRejectedValue(new c.ApiError(0, 'offline'));
 
-    await c.sync.syncAll();
+    await c.sync.syncAll(c.db);
 
     expect(c.useSyncStatus.getState().serverReachable).toBe(false);
     expect(c.useSyncStatus.getState().lastError).toBe('offline');

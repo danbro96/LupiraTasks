@@ -4,17 +4,14 @@ import * as Crypto from 'expo-crypto';
 import * as Sentry from '@sentry/react-native';
 import { DEFAULT_API_URL, DEFAULT_AUTH_MODE, type AuthMode } from '../config';
 import { setAuthPort } from '../data/api/authProvider';
-import { adoptDbOwner } from '../data/db';
+import { getDb } from '../data/db/expoDb';
+import { adoptDbOwner } from '../data/mirror';
 import { bumpMirror } from '../sync/syncStatus';
-import { RefreshError } from '@danbro96/lupira-expo-oidc/oidc';
+import { createTokenRefresher, secureSessionStore } from '@danbro96/lupira-expo-oidc/tokenSession';
 import { oidc } from '../data/auth/oidc';
 import { useSyncStatus } from '../sync/syncStatus';
 import { toast } from '@danbro96/lupira-expo-feedback/toast';
 import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
-
-// One shared in-flight refresh. Concurrent callers await it instead of each POSTing the
-// refresh token (mirrors the syncing/draining guards). See refreshIfNeeded for why.
-let refreshing: Promise<string | null> | null = null;
 
 /**
  * Attach a PSEUDONYMOUS Sentry identity so events can be correlated per-user without storing the
@@ -36,9 +33,7 @@ async function setSentryUser(email: string | null): Promise<void> {
 
 const KEY_API_URL = 'lupira.tasks.apiUrl';
 const KEY_AUTH_MODE = 'lupira.tasks.authMode';
-const KEY_TOKEN = 'lupira.tasks.token';
-const KEY_REFRESH = 'lupira.tasks.refreshToken';
-const KEY_EXPIRES = 'lupira.tasks.expiresAt';
+const sessionStore = secureSessionStore('lupira.tasks');
 const KEY_USER_SUB = 'lupira.tasks.userSub';
 const KEY_USER_NAME = 'lupira.tasks.userName';
 const KEY_USER_PRINCIPAL = 'lupira.tasks.userPrincipalId';
@@ -108,12 +103,10 @@ export const useAuth = create<AuthState & AuthActions>((set, get) => ({
   },
 
   load: async () => {
-    const [apiUrl, authMode, token, refreshToken, expiresAt, userSub, userName, userPrincipal] = await Promise.all([
+    const [apiUrl, authMode, session, userSub, userName, userPrincipal] = await Promise.all([
       SecureStore.getItemAsync(KEY_API_URL),
       SecureStore.getItemAsync(KEY_AUTH_MODE),
-      SecureStore.getItemAsync(KEY_TOKEN),
-      SecureStore.getItemAsync(KEY_REFRESH),
-      SecureStore.getItemAsync(KEY_EXPIRES),
+      sessionStore.load(),
       SecureStore.getItemAsync(KEY_USER_SUB),
       SecureStore.getItemAsync(KEY_USER_NAME),
       SecureStore.getItemAsync(KEY_USER_PRINCIPAL),
@@ -122,15 +115,15 @@ export const useAuth = create<AuthState & AuthActions>((set, get) => ({
       loaded: true,
       apiUrl: apiUrl || DEFAULT_API_URL,
       authMode: (authMode as AuthMode | null) ?? DEFAULT_AUTH_MODE,
-      token: token ?? null,
-      refreshToken: refreshToken ?? null,
-      expiresAt: expiresAt ? Number(expiresAt) : null,
+      token: session.token,
+      refreshToken: session.refreshToken,
+      expiresAt: session.expiresAt || null,
       user: userSub ? { sub: userSub, displayName: userName ?? undefined, principalId: userPrincipal ?? undefined } : null,
     });
     void setSentryUser(userSub ?? null);
     // Stamp DB ownership for the restored account (no-op if already stamped; an install that
     // predates ownership stamping adopts without wiping).
-    if (userSub) void adoptDbOwner(userSub);
+    if (userSub) void getDb().then(db => adoptDbOwner(db, userSub));
   },
 
   setSession: async (session, user) => {
@@ -140,7 +133,7 @@ export const useAuth = create<AuthState & AuthActions>((set, get) => ({
     // Same-sub calls (token rotation) skip straight through, keeping rotation DB-free.
     if (get().user?.sub !== user.sub) {
       try {
-        await adoptDbOwner(user.sub);
+        await adoptDbOwner(await getDb(), user.sub);
         bumpMirror(); // a wipe must drop the previous account's lists from the in-memory store
       } catch (e) {
         // The sign-in itself must not be blocked by a local-DB failure — record it loudly.
@@ -160,11 +153,7 @@ export const useAuth = create<AuthState & AuthActions>((set, get) => ({
     void setSentryUser(user.sub);
     try {
       await Promise.all([
-        SecureStore.setItemAsync(KEY_TOKEN, session.accessToken),
-        session.refreshToken
-          ? SecureStore.setItemAsync(KEY_REFRESH, session.refreshToken)
-          : SecureStore.deleteItemAsync(KEY_REFRESH),
-        SecureStore.setItemAsync(KEY_EXPIRES, String(session.expiresAt)),
+        sessionStore.save({ token: session.accessToken, refreshToken: session.refreshToken ?? null, expiresAt: session.expiresAt }),
         SecureStore.setItemAsync(KEY_USER_SUB, user.sub),
         user.displayName
           ? SecureStore.setItemAsync(KEY_USER_NAME, user.displayName)
@@ -203,9 +192,7 @@ export const useAuth = create<AuthState & AuthActions>((set, get) => ({
     // the sign-in view; a deliberate sign-out passes no reason and stays silent.
     if (opts?.reason === 'expired') toast('Session expired — please sign in again.');
     await Promise.all([
-      SecureStore.deleteItemAsync(KEY_TOKEN),
-      SecureStore.deleteItemAsync(KEY_REFRESH),
-      SecureStore.deleteItemAsync(KEY_EXPIRES),
+      sessionStore.clear(),
       SecureStore.deleteItemAsync(KEY_USER_SUB),
       SecureStore.deleteItemAsync(KEY_USER_NAME),
       SecureStore.deleteItemAsync(KEY_USER_PRINCIPAL),
@@ -216,65 +203,25 @@ export const useAuth = create<AuthState & AuthActions>((set, get) => ({
     useSyncStatus.getState().setFirstSyncDone(false);
   },
 
-  refreshIfNeeded: async opts => {
-    const { token, refreshToken, expiresAt, user } = get();
-    if (!token) return null;
-    const force = opts?.force ?? false;
-    // A forced caller reports the token its 401'd request actually sent; if the session has
-    // already moved past it (another caller refreshed in the meantime), hand back the current
-    // token instead of rotating again — every extra rotation risks tripping reuse detection.
-    if (force && opts?.sentToken && opts.sentToken !== token) return token;
-    const fresh = expiresAt ? Date.now() < expiresAt - 60_000 : false;
-    // Proactive callers stand pat while the token is still fresh; a forced (post-401) caller
-    // always attempts a refresh.
-    if (!force && fresh) return token;
-    if (!refreshToken || !user) {
-      // No way to refresh. A forced caller reached here because the server already rejected the
-      // token (401), so the session is definitively dead — clear it for re-auth. A proactive
-      // caller keeps the (possibly still-valid) token and lets any later 401 trigger the force path.
-      if (force) {
-        logDebug('auth:logout', refreshToken ? 'forced refresh with no user' : 'forced refresh with no refresh token');
-        await get().clearSession({ reason: 'expired' });
-        return null;
-      }
-      logDebug('refresh:no-refresh-token', 'keeping stale access token');
-      return token;
-    }
-    // Coalesce concurrent refreshes: an enqueue-triggered drain firing while a foreground
-    // sync is already mid-refresh must NOT POST the refresh token a second time — with
-    // Authentik rotation the second send replays an already-rotated token, which fails and
-    // forces an unexpected logout. The first caller owns the request; the rest await it.
-    if (refreshing) return refreshing;
-    refreshing = (async (): Promise<string | null> => {
-      try {
-        const t = await oidc.refreshTokens(refreshToken);
-        if (!t.accessToken) return token;
-        const next: Session = {
-          accessToken: t.accessToken,
-          refreshToken: t.refreshToken ?? refreshToken,
-          expiresAt: Date.now() + (t.expiresIn ?? 3600) * 1000,
-        };
-        await get().setSession(next, user);
-        return next.accessToken;
-      } catch (e) {
-        // Definitive rejection (refresh token/client invalid) — drop the session to re-auth.
-        if (e instanceof RefreshError && e.definitive) {
-          // Rare + high-signal (the user is being forced to sign in again) — worth a Sentry event.
-          logDebug('auth:logout', `definitive: ${e.message}`);
-          Sentry.captureMessage(`auth: definitive refresh failure — ${e.message}`, 'warning');
-          await get().clearSession({ reason: 'expired' });
-          return null;
-        }
-        // Transient (network/timeout/5xx): keep the session and retry on the next trigger. Return
-        // the current token best-effort — it may still be valid within the 60s margin; if expired,
-        // downstream 401s are handled by the outbox / runSync. A blip must not log the user out.
-        logDebug('refresh:transient', e instanceof Error ? e.message : String(e));
-        return token;
-      }
-    })().finally(() => { refreshing = null; });
-    return refreshing;
-  },
+  refreshIfNeeded: opts => refresh(opts),
 }));
+
+const refresh = createTokenRefresher({
+  // No user means no way to re-seat the session, so a forced refresh signs out instead of rotating.
+  read: () => {
+    const { token, refreshToken, expiresAt, user } = useAuth.getState();
+    return { token, refreshToken: user ? refreshToken : null, expiresAt: expiresAt ?? 0 };
+  },
+  refreshTokens: refreshToken => oidc.refreshTokens(refreshToken),
+  apply: async (t, previous) => {
+    const { user, setSession } = useAuth.getState();
+    if (!user) return;
+    await setSession({ accessToken: t.accessToken, refreshToken: t.refreshToken ?? previous, expiresAt: Date.now() + (t.expiresIn ?? 3600) * 1000 }, user);
+  },
+  signOut: () => useAuth.getState().clearSession({ reason: 'expired' }),
+  log: logDebug,
+  onDefinitiveFailure: e => Sentry.captureMessage(`auth: definitive refresh failure — ${e.message}`, 'warning'),
+});
 
 // Register the auth capabilities the lower layers (API mutator, offline sync/outbox) depend on,
 // so they read the live session through the AuthPort instead of importing this store upward. Runs

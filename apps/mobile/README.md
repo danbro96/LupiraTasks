@@ -25,20 +25,21 @@ npm run start
 
 ## Architecture
 
-Layered, downward-only imports, enforced by `eslint-plugin-boundaries` (`eslint.config.mjs`):
+Layered, downward-only imports, enforced by the `mobile()` preset of `@danbro96/lupira-config-eslint` (`eslint.config.mjs`):
 
 ```
 src/
   domain/     pure logic: ops/events, LWW reducer, item tree, import/export
-  data/       SQLite (db.ts), API client (api/installTransport.ts + api/generated/), OIDC client
+  data/       SQLite (db/expoDb.ts, db/schema.ts, mirror.ts), API client (api/installTransport.ts + api/generated/), OIDC client
   sync/       outbox enqueue/drain, pull/rebase (sync.ts), replayOp, sync status store
   state/      auth + prefs stores (register the AuthPort the lower layers read)
   ui/         screens, components, hooks, navigation, theme
   config.ts   defaults (API URL, version, Sentry DSN)
 ```
 
-Writes flow UI → `enqueue(op)` → one SQLite transaction (optimistic apply + outbox row) →
-background drain replays to the API with an `Idempotency-Key`. Pulls write the server base into
+Writes flow UI → `enqueue(db, op)` → one exclusive SQLite transaction (optimistic apply + outbox row) →
+background drain replays to the API with an `Idempotency-Key`; a transient failure backs off, and a parked or
+backed-off op holds the later ops of its list. Pulls write the server base into
 the mirror and rebase still-pending local ops on top.
 
 ## API client

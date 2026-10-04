@@ -4,14 +4,15 @@
 - **Primary product.** The web client (`apps/web`) mirrors this app's screen flow and
   structure; keep changes here coherent with it. Android-first (`eas.json` builds Android only), package
   `com.lupira.tasks`, scheme `lupiratasks`, `eas.json` submits to the Play internal track — see `docs/mobile/RELEASE.md` for the EAS/OTA path.
-- **Offline-first.** Writes go UI → `enqueue(op)` → one SQLite transaction (optimistic apply + outbox
+- **Offline-first.** Writes go UI → `enqueue(db, op)` → one exclusive SQLite transaction (optimistic apply + outbox
   row) → background drain replaying to the API with an `Idempotency-Key`; pulls write the server base
-  and rebase pending ops. All SQLite access passes a single serialization gate in `data/db.ts` — expo-sqlite's
-  `withTransactionAsync` isn't mutexed and races the `SharedObjectRegistry`.
+  and rebase pending ops. SQLite is `@danbro96/lupira-expo-sqlite` (`Db`/`Tx`, migrations in `data/db/schema.ts`),
+  opened with `serializeStatements` because expo-modules-core's `SharedObjectRegistry` races concurrent statements.
+  The drain backs off transient failures and parks after `PARK_AFTER_ATTEMPTS`; a parked or backed-off op holds the later ops of its list.
 - **Layering** (downward-only, `eslint-plugin-boundaries`): `domain → data → sync → state → ui`, with
   `config/` as a leaf. `@danbro96/lupira-*` imports are allowed per layer: tokens everywhere, http (domain:
-  `apiError` only), feedback, the debug `log` and `oidc` from data up, the Paper kit and diagnostics
-  screens from ui. See README for the per-folder breakdown.
+  `apiError` only), feedback, the debug `log`, `oidc` and `sqlite` from data up, the Paper kit and diagnostics
+  screens from ui. `eslint.config.mjs` is the `mobile()` preset of `@danbro96/lupira-config-eslint`. See README for the per-folder breakdown.
 - **API client is generated**: orval → `src/data/api/generated/` (never hand-edit). `client: 'fetch'`
   deliberately, not react-query — reads come from the SQLite mirror, so a query cache would be a
   second, mirror-unaware one.

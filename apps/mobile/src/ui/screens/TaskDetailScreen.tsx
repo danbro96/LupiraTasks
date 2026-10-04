@@ -25,6 +25,7 @@ import { requestItemDeleteMany } from '../state/pendingDeletes';
 import { childrenOf, nextChildSortOrder, descendantIds } from '@lupira/tasks-domain/itemTree';
 import { priorityLabel } from '@lupira/tasks-domain/itemFormat';
 import { enqueue } from '../../sync/outbox';
+import { getDb } from '../../data/db/expoDb';
 import { newId } from '@lupira/tasks-domain/ids';
 import { stamp } from '../../domain/ops';
 import { oneLine } from '@lupira/tasks-domain/text';
@@ -107,18 +108,18 @@ export function TaskDetailScreen() {
     return () => {
       const t = titleRef.current.trim();
       if (t && t !== savedTitle.current) {
-        void enqueue({ ...stamp(), kind: 'item.rename', listId, itemId, title: t }).catch(() => {});
+        void getDb().then(db => enqueue(db, { ...stamp(), kind: 'item.rename', listId, itemId, title: t })).catch(() => {});
       }
       const n = notesRef.current.trim() || null;
       if ((n ?? null) !== (savedNotes.current || null)) {
-        void enqueue({ ...stamp(), kind: 'item.notes', listId, itemId, notes: n }).catch(() => {});
+        void getDb().then(db => enqueue(db, { ...stamp(), kind: 'item.notes', listId, itemId, notes: n })).catch(() => {});
       }
       const parsed = qtyRef.current.trim() === '' ? null : Number(qtyRef.current.trim());
       const quantity = parsed != null && Number.isFinite(parsed) ? parsed : null;
       const u = unitRef.current.trim() || null;
       const savedQ = savedQty.current === '' ? null : Number(savedQty.current);
       if (quantity !== savedQ || (u ?? null) !== (savedUnit.current || null)) {
-        void enqueue({ ...stamp(), kind: 'item.quantity', listId, itemId, quantity, unit: u }).catch(() => {});
+        void getDb().then(db => enqueue(db, { ...stamp(), kind: 'item.quantity', listId, itemId, quantity, unit: u })).catch(() => {});
       }
     };
   }, [listId, itemId]);
@@ -170,14 +171,14 @@ export function TaskDetailScreen() {
     const t = oneLine(titleRef.current).trim();
     if (!t || t === savedTitle.current) return;
     savedTitle.current = t;
-    void run(() => enqueue({ ...stamp(), kind: 'item.rename', listId, itemId, title: t }), "Couldn't rename task");
+    void run(async () => enqueue(await getDb(), { ...stamp(), kind: 'item.rename', listId, itemId, title: t }), "Couldn't rename task");
   }
 
   function saveNotes() {
     const n = notesRef.current.trim() || null;
     if ((n ?? null) === (savedNotes.current || null)) return;
     savedNotes.current = n ?? '';
-    void run(() => enqueue({ ...stamp(), kind: 'item.notes', listId, itemId, notes: n }), "Couldn't save notes");
+    void run(async () => enqueue(await getDb(), { ...stamp(), kind: 'item.notes', listId, itemId, notes: n }), "Couldn't save notes");
   }
 
   function saveQuantity() {
@@ -187,29 +188,29 @@ export function TaskDetailScreen() {
     if (qVal === (item!.quantity ?? null) && u === (item!.unit ?? null)) return;
     savedQty.current = qVal != null ? String(qVal) : '';
     savedUnit.current = u ?? '';
-    void run(() => enqueue({ ...stamp(), kind: 'item.quantity', listId, itemId, quantity: qVal, unit: u }), "Couldn't set quantity");
+    void run(async () => enqueue(await getDb(), { ...stamp(), kind: 'item.quantity', listId, itemId, quantity: qVal, unit: u }), "Couldn't set quantity");
   }
 
   const setDue = (iso: string | null) =>
-    run(() => enqueue({ ...stamp(), kind: 'item.due', listId, itemId, dueAt: iso }), "Couldn't set due date");
+    run(async () => enqueue(await getDb(), { ...stamp(), kind: 'item.due', listId, itemId, dueAt: iso }), "Couldn't set due date");
 
   const setAssignee = (member: { principalId: string; email: string } | null) =>
     run(
-      () => enqueue({ ...stamp(), kind: 'item.assign', listId, itemId, assigneePrincipalId: member?.principalId ?? null, assigneeEmail: member?.email ?? null }),
+      async () => enqueue(await getDb(), { ...stamp(), kind: 'item.assign', listId, itemId, assigneePrincipalId: member?.principalId ?? null, assigneeEmail: member?.email ?? null }),
       "Couldn't assign task",
     );
 
   const setPriority = (priority: number) =>
-    run(() => enqueue({ ...stamp(), kind: 'item.priority', listId, itemId, priority }), "Couldn't set priority");
+    run(async () => enqueue(await getDb(), { ...stamp(), kind: 'item.priority', listId, itemId, priority }), "Couldn't set priority");
 
   const toggleComplete = () => {
     if (!item!.completed) hapticSuccess();
-    return run(() => enqueue({ ...stamp(), kind: item!.completed ? 'item.reopen' : 'item.complete', listId, itemId }), "Couldn't update task");
+    return run(async () => enqueue(await getDb(), { ...stamp(), kind: item!.completed ? 'item.reopen' : 'item.complete', listId, itemId }), "Couldn't update task");
   };
 
   const toggleSub = (st: { id: string; completed: boolean }) => {
     if (!st.completed) hapticSuccess();
-    return run(() => enqueue({ ...stamp(), kind: st.completed ? 'item.reopen' : 'item.complete', listId, itemId: st.id }), "Couldn't update subtask");
+    return run(async () => enqueue(await getDb(), { ...stamp(), kind: st.completed ? 'item.reopen' : 'item.complete', listId, itemId: st.id }), "Couldn't update subtask");
   };
 
   async function addSubtask() {
@@ -217,8 +218,8 @@ export function TaskDetailScreen() {
     if (!t) return;
     setSubTitle('');
     await run(
-      () =>
-        enqueue({
+      async () =>
+        enqueue(await getDb(), {
           ...stamp(),
           kind: 'item.create',
           listId,

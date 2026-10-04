@@ -12,6 +12,7 @@ import { TextField } from '@danbro96/lupira-expo-paper/components/TextField';
 import { SyncBanner } from '../components/SyncBanner';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { enqueueMany } from '../../sync/outbox';
+import { getDb } from '../../data/db/expoDb';
 import { newId } from '@lupira/tasks-domain/ids';
 import { stamp, type ClientOp } from '../../domain/ops';
 import { parseImport, type ImportedTask } from '../../domain/importTasks';
@@ -58,7 +59,7 @@ async function enqueueImport(
 ) {
   setBusy(true);
   try {
-    await enqueueMany(buildImportOps(name, kind, tasks));
+    await enqueueMany(await getDb(), buildImportOps(name, kind, tasks));
     onImported();
   } catch (e) {
     toastError("Couldn't import list");

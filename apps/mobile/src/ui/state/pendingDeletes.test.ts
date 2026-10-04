@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// pendingDeletes pulls in outbox (→ expo-sqlite) and react-native (AppState); the toast leaf is
+// pendingDeletes pulls in outbox and the db handle and react-native (AppState); the toast leaf is
 // zustand-only but mocked here so we can assert the Undo handler without standing up the store.
 const { appStateListeners, stampCount } = vi.hoisted(() => ({
   appStateListeners: [] as ((s: string) => void)[],
@@ -15,6 +15,7 @@ vi.mock('react-native', () => ({
   },
 }));
 vi.mock('../../sync/outbox', () => ({ enqueue: vi.fn().mockResolvedValue(undefined) }));
+vi.mock('../../data/db/expoDb', () => ({ getDb: vi.fn().mockResolvedValue('db') }));
 vi.mock('../../domain/ops', () => ({
   stamp: vi.fn(() => ({ commandId: `cmd-${++stampCount.n}`, occurredAt: '2026-06-07T00:00:00.000Z' })),
 }));
@@ -45,49 +46,50 @@ describe('requestItemDelete', () => {
     vi.useRealTimers();
   });
 
-  it('hides immediately and only enqueues the delete after the undo window', () => {
+  it('hides immediately and only enqueues the delete after the undo window', async () => {
     requestItemDelete('L', 'A');
     expect(enqueueMock).not.toHaveBeenCalled();
-    vi.advanceTimersByTime(6000);
+    await vi.advanceTimersByTimeAsync(6000);
     expect(enqueueMock).toHaveBeenCalledTimes(1);
-    expect(enqueueMock).toHaveBeenCalledWith(expect.objectContaining({ kind: 'item.delete', listId: 'L', itemId: 'A' }));
+    expect(enqueueMock).toHaveBeenCalledWith('db', expect.objectContaining({ kind: 'item.delete', listId: 'L', itemId: 'A' }));
   });
 
-  it('Undo cancels the delete entirely', () => {
+  it('Undo cancels the delete entirely', async () => {
     requestItemDelete('L', 'B');
     latestUndo()();
-    vi.advanceTimersByTime(6000);
+    await vi.advanceTimersByTimeAsync(6000);
     expect(enqueueMock).not.toHaveBeenCalled();
   });
 
-  it('a second delete of the same item does not double-enqueue', () => {
+  it('a second delete of the same item does not double-enqueue', async () => {
     requestItemDelete('L', 'C');
     requestItemDelete('L', 'C'); // re-entrant: must drop the first timer
-    vi.advanceTimersByTime(6000);
+    await vi.advanceTimersByTimeAsync(6000);
     expect(enqueueMock).toHaveBeenCalledTimes(1);
   });
 
-  it('Undo still works after a re-entrant delete (no orphaned timer fires)', () => {
+  it('Undo still works after a re-entrant delete (no orphaned timer fires)', async () => {
     requestItemDelete('L', 'D');
     requestItemDelete('L', 'D');
     latestUndo()();
-    vi.advanceTimersByTime(6000);
+    await vi.advanceTimersByTimeAsync(6000);
     expect(enqueueMock).not.toHaveBeenCalled();
   });
 
-  it('stamps the delete at request time, not commit time', () => {
+  it('stamps the delete at request time, not commit time', async () => {
     requestItemDelete('L', 'E');
     expect(stampMock).toHaveBeenCalledTimes(1); // stamped when the user acted
-    vi.advanceTimersByTime(6000);
+    await vi.advanceTimersByTimeAsync(6000);
     expect(stampMock).toHaveBeenCalledTimes(1); // commit enqueues the held op, no re-stamp
   });
 
-  it('backgrounding commits pending deletes immediately (no memory-only loss window)', () => {
+  it('backgrounding commits pending deletes immediately (no memory-only loss window)', async () => {
     requestItemDelete('L', 'F');
     expect(enqueueMock).not.toHaveBeenCalled();
     for (const cb of appStateListeners) cb('background');
+    await vi.advanceTimersByTimeAsync(0);
     expect(enqueueMock).toHaveBeenCalledTimes(1);
-    vi.advanceTimersByTime(6000);
+    await vi.advanceTimersByTimeAsync(6000);
     expect(enqueueMock).toHaveBeenCalledTimes(1); // the timer was cleared — no double commit
   });
 });

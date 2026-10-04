@@ -33,13 +33,14 @@ vi.mock('@danbro96/lupira-expo-oidc/oidc', () => {
   }
   return { RefreshError };
 });
-vi.mock('../data/db', () => ({ adoptDbOwner: vi.fn().mockResolvedValue(undefined) }));
+vi.mock('../data/db/expoDb', () => ({ getDb: vi.fn().mockResolvedValue({ db: true }) }));
+vi.mock('../data/mirror', () => ({ adoptDbOwner: vi.fn().mockResolvedValue(undefined) }));
 
 import * as SecureStore from 'expo-secure-store';
 import { useAuth } from './auth-store';
 import { RefreshError } from '@danbro96/lupira-expo-oidc/oidc';
 import { oidc } from '../data/auth/oidc';
-import { adoptDbOwner } from '../data/db';
+import { adoptDbOwner } from '../data/mirror';
 import { toast } from '@danbro96/lupira-expo-feedback/toast';
 
 const refreshMock = oidc.refreshTokens as unknown as ReturnType<typeof vi.fn>;
@@ -174,7 +175,7 @@ describe('setSession', () => {
       { sub: 'other@example.com' },
     );
     unsub();
-    expect(adoptMock).toHaveBeenCalledWith('other@example.com');
+    expect(adoptMock).toHaveBeenCalledWith({ db: true }, 'other@example.com');
     expect(adoptedBeforeSignIn).toBe(true);
   });
 

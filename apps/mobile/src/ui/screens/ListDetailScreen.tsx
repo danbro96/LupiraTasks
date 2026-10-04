@@ -31,6 +31,7 @@ import { changeLabel, type ItemChange, type ItemChangeKind } from '@lupira/tasks
 import { qtyLabel } from '@lupira/tasks-domain/itemFormat';
 import { oneLine } from '@lupira/tasks-domain/text';
 import { enqueue } from '../../sync/outbox';
+import { getDb } from '../../data/db/expoDb';
 import { pullList } from '../../sync/sync';
 import { newId } from '@lupira/tasks-domain/ids';
 import { stamp } from '../../domain/ops';
@@ -219,7 +220,7 @@ export function ListDetailScreen() {
   // ListSettings are pushed on top, so a mount-only effect would leave tasks stale on return.
   useFocusEffect(() => {
     // Background refresh: errors surface via the sync banner, not an unhandled rejection.
-    void pullList(listId).catch(() => {}).finally(() => setPulled(true));
+    void getDb().then(db => pullList(db, listId)).catch(() => {}).finally(() => setPulled(true));
   });
 
   useListPolling(listId);
@@ -282,7 +283,7 @@ export function ListDetailScreen() {
 
   async function refresh() {
     setRefreshing(true);
-    await pullList(listId)
+    await getDb().then(db => pullList(db, listId))
       .catch(() => toastError('Sync failed'))
       .finally(() => setRefreshing(false));
   }
@@ -294,7 +295,7 @@ export function ListDetailScreen() {
     // New tasks from the list view are always top-level and go to the top.
     const sortOrder = topSortOrder(items);
     try {
-      await enqueue({ ...stamp(), kind: 'item.create', listId, itemId: newId(), title: t, sortOrder, parentItemId: null });
+      await enqueue(await getDb(), { ...stamp(), kind: 'item.create', listId, itemId: newId(), title: t, sortOrder, parentItemId: null });
     } catch {
       toastError("Couldn't add item");
     }
@@ -304,7 +305,7 @@ export function ListDetailScreen() {
     if (!it.completed) hapticSuccess(); // satisfying tick when checking a task off
     const kind = it.completed ? 'item.reopen' : 'item.complete';
     try {
-      await enqueue({ ...stamp(), kind, listId, itemId: it.id });
+      await enqueue(await getDb(), { ...stamp(), kind, listId, itemId: it.id });
     } catch {
       toastError("Couldn't update item");
     }
@@ -332,7 +333,7 @@ export function ListDetailScreen() {
   const setPriority = async (it: ItemState, priority: number) => {
     if (priority === it.priority) return;
     try {
-      await enqueue({ ...stamp(), kind: 'item.priority', listId, itemId: it.id, priority });
+      await enqueue(await getDb(), { ...stamp(), kind: 'item.priority', listId, itemId: it.id, priority });
     } catch {
       toastError("Couldn't update priority");
     }
@@ -359,7 +360,7 @@ export function ListDetailScreen() {
     const target = siblingReorder(scope, draggedId);
     if (target) {
       setFrozen({ rows: reorderItems(dragRows, from, to), sourceRows: rendered.current.rows });
-      void enqueue({ ...stamp(), kind: 'item.move', listId, itemId: draggedId, ...target }).catch(() => toastError("Couldn't move item"));
+      void getDb().then(db => enqueue(db, { ...stamp(), kind: 'item.move', listId, itemId: draggedId, ...target })).catch(() => toastError("Couldn't move item"));
     }
   };
 

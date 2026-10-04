@@ -5,6 +5,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Button } from '@danbro96/lupira-expo-paper/components/Button';
 import { toast } from '@danbro96/lupira-expo-feedback/toast';
 import { listParked, retryParked, discardParked, type ParkedOp } from '../../sync/outbox';
+import { getDb } from '../../data/db/expoDb';
 import { useSyncStatus } from '../../sync/syncStatus';
 import type { ClientOp } from '../../domain/ops';
 import { spacing, useColors, type Palette } from '../theme';
@@ -53,16 +54,16 @@ export function SyncIssuesScreen() {
   const styles = makeStyles(c);
 
   useEffect(() => {
-    void listParked().then(setRows);
+    void getDb().then(listParked).then(setRows);
   }, [failed, rev]);
 
   function onRetryAll() {
-    void retryParked();
+    void getDb().then(db => retryParked(db));
     toast('Retrying failed changes…');
   }
 
   function onDiscard(row: ParkedOp) {
-    void discardParked(row.seq);
+    void getDb().then(db => discardParked(db, row.seq));
     toast('Change discarded');
   }
 

@@ -12,6 +12,7 @@ import { ColorSwatches } from '../components/ColorSwatches';
 import { SyncBanner } from '../components/SyncBanner';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { enqueue } from '../../sync/outbox';
+import { getDb } from '../../data/db/expoDb';
 import { newId } from '@lupira/tasks-domain/ids';
 import { stamp } from '../../domain/ops';
 import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
@@ -40,7 +41,7 @@ export function CreateListScreen() {
       return;
     }
     try {
-      await enqueue({ ...stamp(), kind: 'list.create', listId: newId(), name: n, listKind: kind, color });
+      await enqueue(await getDb(), { ...stamp(), kind: 'list.create', listId: newId(), name: n, listKind: kind, color });
       nav.goBack();
     } catch (e) {
       toastError("Couldn't create list");

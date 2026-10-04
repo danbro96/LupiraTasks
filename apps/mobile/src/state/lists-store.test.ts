@@ -1,9 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createFakeDb } from '../test/fakeExpoSqlite';
+import { migrate } from '@danbro96/lupira-expo-sqlite/migrate';
+import { openNodeDb } from '@danbro96/lupira-expo-sqlite/node';
+import type { Db } from '@danbro96/lupira-expo-sqlite/types';
+import { MIGRATIONS } from '../data/db/schema';
 import type { ListDto, PersonRef } from '@lupira/tasks-api/models';
 
-const holder = vi.hoisted(() => ({ db: null as unknown }));
-vi.mock('expo-sqlite', () => ({ openDatabaseAsync: async () => holder.db }));
+const holder = vi.hoisted(() => ({ db: null as unknown as Db }));
+vi.mock('../data/db/expoDb', () => ({ getDb: async () => holder.db }));
 vi.mock('@danbro96/lupira-expo-diagnostics/log', () => ({ logDebug: vi.fn() }));
 
 const ME: PersonRef = { principalId: 'me-p', email: 'me@x', displayName: 'Me' };
@@ -18,11 +21,12 @@ function list(id: string, over: Partial<ListDto> = {}): ListDto {
 
 async function load() {
   vi.resetModules();
-  holder.db = createFakeDb();
+  const db = openNodeDb();
+  await migrate(db, MIGRATIONS);
+  holder.db = db;
   const store = await import('./lists-store');
-  const dbm = await import('../data/db');
+  const dbm = await import('../data/mirror');
   const { bumpMirror } = await import('../sync/syncStatus');
-  const db = await dbm.getDb();
   const seed = (id: string, over: Partial<ListDto> = {}) =>
     dbm.putListDoc(db, { id, archived: over.isArchived ?? false, updatedAt: T0, doc: list(id, over) });
   return { ...store, bumpMirror, seed };

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { create } from 'zustand';
-import { getDb, allOutboxRows } from '../../data/db';
+import { getDb } from '../../data/db/expoDb';
+import { allOutboxRows } from '../../data/mirror';
 import { useSyncStatus } from '../../sync/syncStatus';
 import type { ClientOp } from '../../domain/ops';
 import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';

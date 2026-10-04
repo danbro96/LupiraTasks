@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import { create } from 'zustand';
 import type { ListDto } from '@lupira/tasks-api/models';
 import { sortActiveLists, sortArchivedLists } from '@lupira/tasks-domain/listOrder';
-import { getDb, getListDocs, getArchivedListDocs } from '../data/db';
+import { getDb } from '../data/db/expoDb';
+import { getListDocs, getArchivedListDocs } from '../data/mirror';
 import { useSyncStatus } from '../sync/syncStatus';
 import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
 

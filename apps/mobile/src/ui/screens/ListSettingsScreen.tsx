@@ -18,6 +18,7 @@ import { useMyRole } from '../hooks/useMyRole';
 import { useAuth } from '../../state/auth-store';
 import { usePrefs } from '../../state/prefs-store';
 import { enqueue } from '../../sync/outbox';
+import { getDb } from '../../data/db/expoDb';
 import { stamp } from '../../domain/ops';
 import { tasksToJson } from '../../domain/exportTasks';
 import type { CompletedMode } from '@lupira/tasks-domain/itemTree';
@@ -87,14 +88,14 @@ export function ListSettingsScreen() {
       return;
     }
     if (n === list!.name) return;
-    await run(() => enqueue({ ...stamp(), kind: 'list.rename', listId, name: n }), "Couldn't rename list", 'List name saved');
+    await run(async () => enqueue(await getDb(), { ...stamp(), kind: 'list.rename', listId, name: n }), "Couldn't rename list", 'List name saved');
   }
 
   const setColor = (color: string | null) =>
-    run(() => enqueue({ ...stamp(), kind: 'list.recolor', listId, color }), "Couldn't change color");
+    run(async () => enqueue(await getDb(), { ...stamp(), kind: 'list.recolor', listId, color }), "Couldn't change color");
 
   const setSimplePriority = (simple: boolean) =>
-    run(() => enqueue({ ...stamp(), kind: 'list.setSimplePriority', listId, simplePriority: simple }), "Couldn't change priority mode");
+    run(async () => enqueue(await getDb(), { ...stamp(), kind: 'list.setSimplePriority', listId, simplePriority: simple }), "Couldn't change priority mode");
 
   async function addMember() {
     const email = newEmail.trim();
@@ -109,14 +110,14 @@ export function ListSettingsScreen() {
     }
     setNewEmail('');
     await run(
-      () => enqueue({ ...stamp(), kind: 'list.memberAdd', listId, email, role: inviteRole }),
+      async () => enqueue(await getDb(), { ...stamp(), kind: 'list.memberAdd', listId, email, role: inviteRole }),
       "Couldn't add member",
       `Added ${email}`,
     );
   }
 
   const changeRole = (principalId: string, role: ListRole) =>
-    run(() => enqueue({ ...stamp(), kind: 'list.memberRoleChange', listId, principalId, role }), "Couldn't change role");
+    run(async () => enqueue(await getDb(), { ...stamp(), kind: 'list.memberRoleChange', listId, principalId, role }), "Couldn't change role");
 
   async function confirmRoleChange(principalId: string, role: ListRole) {
     // Downgrading your own role is how an owner accidentally locks themselves out — confirm it.
@@ -140,7 +141,7 @@ export function ListSettingsScreen() {
       confirmLabel: 'Remove',
       destructive: true,
     });
-    if (ok) await run(() => enqueue({ ...stamp(), kind: 'list.memberRemove', listId, principalId }), "Couldn't remove member");
+    if (ok) await run(async () => enqueue(await getDb(), { ...stamp(), kind: 'list.memberRemove', listId, principalId }), "Couldn't remove member");
   }
 
   function exportJson() {
@@ -149,7 +150,7 @@ export function ListSettingsScreen() {
 
   function archive() {
     void run(async () => {
-      await enqueue({ ...stamp(), kind: 'list.archive', listId });
+      await enqueue(await getDb(), { ...stamp(), kind: 'list.archive', listId });
       nav.popToTop();
     }, "Couldn't archive list");
   }
@@ -163,7 +164,7 @@ export function ListSettingsScreen() {
     });
     if (!ok) return;
     await run(async () => {
-      await enqueue({ ...stamp(), kind: 'list.delete', listId });
+      await enqueue(await getDb(), { ...stamp(), kind: 'list.delete', listId });
       nav.popToTop();
     }, "Couldn't delete list");
   }
@@ -177,7 +178,7 @@ export function ListSettingsScreen() {
     });
     if (!ok) return;
     await run(async () => {
-      await enqueue({ ...stamp(), kind: 'list.leave', listId, principalId: me });
+      await enqueue(await getDb(), { ...stamp(), kind: 'list.leave', listId, principalId: me });
       nav.popToTop();
     }, "Couldn't leave list");
   }
