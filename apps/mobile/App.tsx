@@ -8,6 +8,7 @@ import { NavigationContainer, type LinkingOptions } from '@react-navigation/nati
 import { PaperProvider } from 'react-native-paper';
 import * as ExpoLinking from 'expo-linking';
 import { RootStack } from './src/ui/navigation/RootStack';
+import { useAutoUpdate } from './src/ui/hooks/useAutoUpdate';
 import type { RootStackParamList } from './src/ui/navigation/types';
 import { ToastHost } from './src/ui/components/ToastHost';
 import { ConfirmDialogHost } from './src/ui/components/ConfirmDialog';
@@ -54,6 +55,7 @@ function ErrorFallback({ palette }: { palette: Palette }) {
 }
 
 function App() {
+  useAutoUpdate();
   const loaded = useAuth(s => s.loaded);
   const scheme = useColorScheme();
 

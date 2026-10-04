@@ -78,7 +78,7 @@ below if the installed build predates this setup).
    ```
    eas update --branch production --message "Short changelog"
    ```
-3. Testers receive it on the **next app launch** (expo-updates checks on launch by default).
+3. Running apps reload into it immediately: `useAutoUpdate` checks on launch and on foreground (max once per 5 min), downloads, then calls `reloadAsync()`.
 
 Channel ↔ branch: the `production` **channel** (set on the build) maps to the `production`
 **branch** (created on first `eas update`). If they aren't linked, run once:
