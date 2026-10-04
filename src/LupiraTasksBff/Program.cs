@@ -1,154 +1,66 @@
-using System.Net.Http.Headers;
-using System.Security.Claims;
-using System.Text.Json.Serialization;
-using Duende.AccessTokenManagement;
-using Duende.AccessTokenManagement.OpenIdConnect;
-using LupiraTasksBff.Auth;
-using LupiraTasksBff.Dependencies;
+using Lupira.Bff.Auth;
+using Lupira.Bff.OpenApi;
+using Lupira.Bff.Proxy;
+using Lupira.Depz;
+using Lupira.Depz.Yarp;
+using Lupira.Hosting.Defaults;
+using Lupira.Hosting.Health;
+using Lupira.Hosting.Observability;
 using LupiraTasksBff.Endpoints;
 using LupiraTasksBff.Upstream;
-using LupiraTasksBff.OpenApi;
-using LupiraTasksBff.Proxy;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.HttpOverrides;
 using Scalar.AspNetCore;
-using OpenTelemetry.Logs;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
-using Yarp.ReverseProxy.Transforms;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// `--routes` prints what the proxy will serve.
-if (args is ["--routes", ..])
+if (builder.TryPrintLupiraBffRoutes(args)) return;
+
+builder.AddLupiraDefaults(o =>
 {
-    foreach (var (key, value) in ProxyRoutes.Build(ExposedSurface.Load()).OrderBy(r => r.Key, StringComparer.Ordinal))
-        Console.WriteLine($"{key} = {value}");
-    return;
-}
+    o.StrictNumbers = false;
+    o.CaseInsensitiveProperties = true;
+    o.StatusCodePages = false;
+});
 
-// One exact template per allowlisted path, as a config source: YARP's LoadFromConfig and the
-// ApiPrefixes fence then read it exactly as they read appsettings, and clusters stay hand-maintained.
-builder.Configuration.AddInMemoryCollection(ProxyRoutes.Build(ExposedSurface.Load()));
+builder.AddLupiraBffProxy();
+builder.AddLupiraBffAuth(o =>
+{
+    o.EnableOidc = true;
+    o.EnableBearer = true;
+    o.Audience = "lupira-tasks";
+    o.CookieName = "__Host-lupira-tasks";
+    o.AdminGroups = ["tasks-admins", "platform-admins"];
+    o.DevGroups = ["tasks-admins"];
+    o.Guest = new LupiraGuestSessionOptions { CookieName = "__Host-lupira-tasks-guest", RequiredClaim = "share-token" };
+});
 
-builder.Services.ConfigureHttpJsonOptions(o =>
-    o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
-
-// Prod: Authentik OIDC + server-side cookie session (the SPA never holds a token). Dev: a local user.
-builder.AddTasksAuth();
-
-// Persist data-protection keys so the auth cookie survives container restarts (mount DataProtection:KeyPath).
-var keyPath = builder.Configuration["DataProtection:KeyPath"];
-if (!string.IsNullOrWhiteSpace(keyPath))
-    builder.Services.AddDataProtection()
-        .SetApplicationName("LupiraTasksBff")
-        .PersistKeysToFileSystem(new DirectoryInfo(keyPath));
-
-builder.Services.AddAppHealthChecks();
+builder.Services.AddLupiraHealth();
 builder.Services.AddUpstreamClient(builder.Configuration);
 
-// Non-gating dependency probe (/depz): edges derive from the proxy's clusters, probed on a dedicated client.
-builder.Services.Configure<DepzOptions>(builder.Configuration.GetSection(DepzOptions.SectionName));
-var depzOptions = builder.Configuration.GetSection(DepzOptions.SectionName).Get<DepzOptions>() ?? new DepzOptions();
-builder.Services.AddSingleton(DependencyTargets.From(builder.Configuration));
-builder.Services.AddSingleton<DependencyReportCache>();
-builder.Services.AddSingleton<DependencyProbe>();
-builder.Services.AddHttpClient(DependencyProbe.ProbeClientName, c => c.Timeout = depzOptions.ProbeTimeout);
-if (depzOptions.Enabled)
-    builder.Services.AddHostedService<DependencyPollWorker>();
-
-// MSBuild runs this same pipeline on build and writes openapi/LupiraTasksBff.json — the file the
-// TypeScript clients generate from.
-builder.Services.AddOpenApi(options => options.AddDocumentTransformer<BffDocumentTransformer>());
-
-// Reverse proxy to LupiraTasksApi. The member route (default policy) carries the signed-in user's
-// access token; /api/shared/* is anonymous and never gets a bearer (account-less surface). Dev forwards
-// X-Dev-User instead of a token so the stack runs without Authentik.
-var isDev = builder.Environment.IsDevelopment();
-var devUser = builder.Configuration["Dev:User"] ?? "dev@localhost";
-builder.Services.AddReverseProxy()
-    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
-    .AddTransforms(ctx => ctx.AddRequestTransform(async transform =>
-    {
-        // Guest routes: replay the token from the cookie, never a member credential — not even one the
-        // caller sent. Path is set from the original request so this does not depend on transform ordering.
-        if (transform.HttpContext.Request.Path.StartsWithSegments("/api/share", out var shareRest))
-        {
-            transform.ProxyRequest.Headers.Authorization = null;
-            transform.ProxyRequest.Headers.Remove("X-Dev-User");
-            var shareToken = transform.HttpContext.User.FindFirstValue(GuestSession.TokenClaim);
-            if (string.IsNullOrEmpty(shareToken)) return;   // the Guest policy already rejected this
-            transform.Path = $"/shared/{shareToken}{shareRest}";
-            return;
-        }
-
-        // Native callers already presented a bearer the API accepts — YARP copies it verbatim.
-        if (transform.HttpContext.Request.Headers.Authorization.Count > 0)
-            return;
-
-        if (isDev)
-        {
-            // Replace, never append: StringValues joins duplicates with a comma and the upstream's dev
-            // handler derives its principal from the value, so a caller-supplied header would other-
-            // wise change who the request runs as.
-            transform.ProxyRequest.Headers.Remove("X-Dev-User");
-            transform.ProxyRequest.Headers.TryAddWithoutValidation("X-Dev-User", devUser);
-        }
-        else if (transform.HttpContext.User.Identity?.IsAuthenticated == true)
-        {
-            var token = await transform.HttpContext.GetUserAccessTokenAsync().GetToken();
-            var accessToken = token.AccessToken.ToString();
-            if (!string.IsNullOrEmpty(accessToken))
-                transform.ProxyRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        }
-    }));
-
-// OpenTelemetry → platform collector. Env-gated: a no-op without OTEL_EXPORTER_OTLP_ENDPOINT (local
-// dev stays silent). Protocol/headers/interval/resource-attrs come from the standard OTEL_* env vars.
-var otlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
-if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+builder.Services.AddLupiraDepz(o =>
 {
-    builder.Services.AddOpenTelemetry()
-        .ConfigureResource(r => r.AddService(
-            serviceName: "lupira-tasks-web",
-            serviceVersion: typeof(Program).Assembly.GetName().Version?.ToString() ?? "0.0.0"))
-        .WithTracing(t => t
-            .AddAspNetCoreInstrumentation(o =>
-            {
-                o.RecordException = true;
-                // Health probes are polled constantly by docker + devops-monitor; their spans add nothing.
-                o.Filter = ctx => ctx.Request.Path != "/livez" && ctx.Request.Path != "/readyz"
-                    && ctx.Request.Path != "/depz";
-            })
-            .AddHttpClientInstrumentation()
-            .AddOtlpExporter())
-        .WithMetrics(m => m
-            .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation()
-            .AddRuntimeInstrumentation()
-            .AddOtlpExporter());
+    builder.Configuration.GetSection(DepzOptions.SectionName).Bind(o);
+    o.ServiceName = "lupira-tasks-web";
+    o.MeterName = "LupiraTasksBff.Depz";
+    o.MetricPrefix = "tasksweb";
+});
+builder.Services.AddLupiraDepzYarpTargets(o => o.ServiceNames["tasks-api"] = "lupira-tasks-api");
 
-    builder.Logging.AddOpenTelemetry(o =>
-    {
-        o.IncludeFormattedMessage = true;
-        o.IncludeScopes = true;
-        o.AddOtlpExporter();
-    });
-}
+builder.Services.AddLupiraBffOpenApi(o =>
+{
+    o.Title = "LupiraTasks BFF";
+    o.SortPaths = true;
+    o.SecurityFor = operation => operation.Group.Name == "guest" ? ["GuestCookie"] : ["Cookie", "Bearer"];
+    o.Upstreams.Add(new UpstreamSpec { Cluster = "tasks-api", Name = "LupiraTasksApi" });
+    o.SecuritySchemes["Cookie"] = BffSecuritySchemes.Cookie("__Host-lupira-tasks", "Member session cookie minted by the BFF's OIDC login.");
+    o.SecuritySchemes["Bearer"] = BffSecuritySchemes.Bearer("Authentik access token from the mobile app; audience must include lupira-tasks.");
+    o.SecuritySchemes["GuestCookie"] = BffSecuritySchemes.Cookie("__Host-lupira-tasks-guest", "Account-less share session, minted by POST /auth/guest from a share token.");
+});
+
+builder.AddLupiraTelemetry("lupira-tasks-web");
 
 var app = builder.Build();
 
-// Behind the reverse proxy: trust X-Forwarded-* so OIDC redirect URIs and Secure cookies use https.
-// cloudflared reaches us from a Docker-bridge IP, not loopback, so the default KnownProxies/KnownNetworks
-// allowlist would drop the headers — clear it. Safe only because the container's sole ingress is the tunnel.
-var forwardedHeaders = new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
-};
-forwardedHeaders.KnownIPNetworks.Clear();
-forwardedHeaders.KnownProxies.Clear();
-app.UseForwardedHeaders(forwardedHeaders);
+app.UseLupiraDefaults();
 
 if (app.Environment.IsProduction())
 {
@@ -156,42 +68,27 @@ if (app.Environment.IsProduction())
     app.UseHttpsRedirection();
 }
 
-app.MapAppHealthChecks();
+app.MapLupiraHealth();
 app.MapDepz();
 
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapAuthEndpoints(app.Environment);
+app.MapLupiraAuthEndpoints();
 app.MapGuestEndpoints();
 // Authenticated: the document is the whole internal API map, and the clients read the committed
 // file rather than this endpoint.
 app.MapOpenApi("/openapi/{documentName}.json").RequireAuthorization();
 app.MapScalarApiReference("/scalar").RequireAuthorization();
 
-app.MapReverseProxy();
-
-// A proxied prefix that matched no route is a 404, not the SPA shell. Without this the fallback
-// answers 200/text-html for anything under an API prefix, so a removed route and a live one look
-// alike from outside. Literal segments outrank this catch-all, so it only fires on a real miss.
-foreach (var prefix in ApiPrefixes(app.Configuration))
-    app.Map($"{prefix}/{{**rest}}", () => Results.NotFound());
+app.MapLupiraBffProxy();
 
 // SPA shell — served anonymously so the account-less share surface (/s/:token) loads without a session.
 // The SPA's own guard plus the member proxy route enforce auth for everything else.
 app.MapFallbackToFile("index.html");
 
 app.Run();
-
-// The first segment of every proxy route's path, so the fence can't drift from the route table.
-static string[] ApiPrefixes(IConfiguration config) =>
-    config.GetSection("ReverseProxy:Routes").GetChildren()
-        .Select(route => route["Match:Path"])
-        .Where(path => !string.IsNullOrWhiteSpace(path))
-        .Select(path => $"/{path!.TrimStart('/').Split('/')[0]}")
-        .Distinct()
-        .ToArray();
 
 // Exposes the implicit Program entry point to the integration test assembly (WebApplicationFactory<Program>).
 public partial class Program;

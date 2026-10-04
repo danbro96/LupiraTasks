@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using LupiraTasksBff.Dependencies;
+using Lupira.Depz;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 

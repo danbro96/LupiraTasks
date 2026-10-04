@@ -1,5 +1,6 @@
 using System.Security.Claims;
-using LupiraTasksBff.Auth;
+using Lupira.Bff.Auth;
+using LupiraTasksBff.Dtos;
 using LupiraTasksBff.Upstream;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -12,7 +13,7 @@ public static class GuestEndpoints
     {
         // Trades a share token for the guest cookie, so the token leaves the URL after one request.
         app.MapPost("/auth/guest", async Task<Results<Ok<GuestSessionInfo>, UnauthorizedHttpResult>> (
-                GuestExchangeRequest body, HttpContext ctx, IHttpClientFactory clients, CancellationToken ct) =>
+                GuestExchangeRequest body, HttpContext ctx, IHttpClientFactory clients, LupiraBffAuthOptions auth, CancellationToken ct) =>
             {
                 var token = body.Token?.Trim();
                 if (string.IsNullOrEmpty(token)) return TypedResults.Unauthorized();
@@ -22,9 +23,9 @@ public static class GuestEndpoints
                 using var probe = await http.GetAsync($"/shared/{Uri.EscapeDataString(token)}", ct);
                 if (!probe.IsSuccessStatusCode) return TypedResults.Unauthorized();
 
-                var identity = new ClaimsIdentity(
-                    [new Claim(GuestSession.TokenClaim, token)], GuestSession.SchemeName);
-                await ctx.SignInAsync(GuestSession.SchemeName, new ClaimsPrincipal(identity));
+                var guest = auth.Guest!;
+                var identity = new ClaimsIdentity([new Claim(guest.RequiredClaim, token)], guest.SchemeName);
+                await ctx.SignInAsync(guest.SchemeName, new ClaimsPrincipal(identity));
 
                 return TypedResults.Ok(new GuestSessionInfo { Active = true });
             })
@@ -32,9 +33,9 @@ public static class GuestEndpoints
             .WithName("ExchangeShareToken")
             .WithTags("Guest");
 
-        app.MapPost("/auth/guest/logout", async (HttpContext ctx) =>
+        app.MapPost("/auth/guest/logout", async (HttpContext ctx, LupiraBffAuthOptions auth) =>
             {
-                await ctx.SignOutAsync(GuestSession.SchemeName);
+                await ctx.SignOutAsync(auth.Guest!.SchemeName);
                 return Results.NoContent();
             })
             .AllowAnonymous()
@@ -42,15 +43,4 @@ public static class GuestEndpoints
 
         return app;
     }
-}
-
-public sealed class GuestExchangeRequest
-{
-    public required string Token { get; set; }
-}
-
-/// <summary>Deliberately not <c>UserInfo</c>: a guest has no email, name or groups.</summary>
-public sealed class GuestSessionInfo
-{
-    public required bool Active { get; set; }
 }

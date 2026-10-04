@@ -10,6 +10,7 @@ on:
 
 env:
   SOLUTION: LupiraTasksBff.slnx
+  PACKAGES_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
   INTEGRATION_PROJECT: tests/LupiraTasksBff.IntegrationTests
 
 jobs:

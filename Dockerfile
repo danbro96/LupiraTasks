@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # Single-image BFF: build the Vite SPA, then publish the .NET app with the SPA served from wwwroot.
 # Build context = repo root.
 
@@ -24,10 +25,11 @@ RUN npm run build -w apps/web -- --outDir dist --emptyOutDir
 # --- backend publish ---
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
+COPY nuget.config ./
 COPY src/LupiraTasksBff/ ./LupiraTasksBff/
 WORKDIR /src/LupiraTasksBff
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet restore "./LupiraTasksBff.csproj"
+RUN --mount=type=secret,id=packages_token,env=PACKAGES_TOKEN dotnet restore "./LupiraTasksBff.csproj"
 RUN dotnet publish "./LupiraTasksBff.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 COPY --from=client /repo/apps/web/dist /app/publish/wwwroot
 

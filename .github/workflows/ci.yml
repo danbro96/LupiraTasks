@@ -8,5 +8,6 @@ on:
 jobs:
   tests:
     uses: ./.github/workflows/tests.yml
+    secrets: inherit
     with:
       run_integration: ${{ contains(github.event.pull_request.labels.*.name, 'integration') }}

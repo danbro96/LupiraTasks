@@ -13,7 +13,7 @@
 - **The transport is installed, not imported.** `installApiTransports()` in `apps/web/src/data/api/fetcher.ts` fills the slot from `main.tsx`; mobile installs from `src/data/api/installTransport.ts`, imported as a side effect in `index.ts` (ES imports hoist).
 
 ## Proxy specifics
-- `exposed.json` groups: `operations` → Default policy, `guest` → the share surface.
+- `exposed.json` (`Lupira.Bff.Proxy` shape) groups: `operations` → Default policy, `guest` → the share surface (`Guest` policy, `credential: none`, `pathMap`).
 - Published paths carry `/api`; `API_BASE_URL` is empty and presets are bare BFF origins. **Never invalidate on a hand-written path key**; use the generated `get*QueryKey`, or a prefix change silently stops invalidating.
 - **Tags are not rewritten** (Cal's merger retags per cluster): `Shared` is the share surface `apps/web` splits its two generated clients on.
 - No wildcard route at all: Tasks proxies no file subtree.
@@ -21,8 +21,8 @@
 - Refresh: copy `../LupiraTasksApi/openapi/LupiraTasksApi.json` into `src/LupiraTasksBff/upstream/`, rebuild.
 
 ## The share link is a cookie, not a URL
-`/s/:token` posts the token once to `POST /auth/guest`. The BFF validates it upstream (`GET /shared/{token}`), then signs a DataProtection-encrypted `Guest` cookie carrying it. Later calls go to `/api/share/…`; a YARP transform replays the token onto the upstream's `/shared/{token}/…`. The upstream is unchanged.
-- The token segment is dropped in one place, `ExposedSurface.BffPath`, shared by the merger and `ProxyRoutes`. `exposed.test.ts` restates the rule independently; `ProxyRoutesTests` asserts no `{token}` survives in a template. The merger also strips the unbindable `token` path parameter.
+`/s/:token` posts the token once to `POST /auth/guest`. The BFF validates it upstream (`GET /shared/{token}`), then signs a DataProtection-encrypted `Guest` cookie carrying it. Later calls go to `/api/share/…`; the proxy refills the upstream's `/shared/{token}/…` from the cookie's `share-token` claim (`pathMap.claims`). The upstream is unchanged.
+- The token segment is dropped in one place, the guest group's `pathMap`, shared by the route table and the OpenAPI merger. `exposed.test.ts` restates the rule independently; `ProxyRoutesTests` asserts no `{token}` survives in a template. The merger also strips the unbindable `token` path parameter.
 - `Guest` is a real named policy, not YARP's `"Anonymous"`: under `AllowAnonymous` a non-default scheme is never authenticated. The policy names its scheme, so neither cookie satisfies the other's.
 - Cookie name and Secure policy fork by environment: `__Host-` needs Secure and dev is plain http, so dev uses `lupira-tasks-guest`/`SameAsRequest`. Dev cannot fall back to `DevAuthHandler` here.
 - `markGuestSession()` suppresses the member 401 redirect (both surfaces share `customFetch`); `useGuestSession` sets it.

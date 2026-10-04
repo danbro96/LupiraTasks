@@ -39,14 +39,16 @@ const GUEST_MOUNT = '/share';
 const bffPath = (path: string) =>
   path.startsWith(UPSTREAM_GUEST_PREFIX) ? GUEST_MOUNT + path.slice(UPSTREAM_GUEST_PREFIX.length) : path;
 
-const allowlisted = Object.values(exposed).flatMap((group) =>
-  Object.values(group)
-    .flat()
-    .map((op) => {
-      const [verb, path] = op.split(' ');
-      return `${verb} ${PREFIX}${bffPath(path)}`;
-    }),
-);
+const allowlisted = Object.entries(exposed)
+  .filter(([key]) => key !== 'clusters' && key !== 'groups')
+  .flatMap(([, group]) =>
+    Object.values(group)
+      .flat()
+      .map((op) => {
+        const [verb, path] = op.split(' ');
+        return `${verb} ${PREFIX}${bffPath(path)}`;
+      }),
+  );
 
 describe('the allowlist', () => {
   it('publishes the BFF\'s own endpoints alongside the proxied ones', () => {

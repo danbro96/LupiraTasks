@@ -1,4 +1,19 @@
 {
+  "clusters": {
+    "tasks-api": { "prefix": "/api" }
+  },
+  "groups": {
+    "guest": {
+      "policy": "Guest",
+      "documented": true,
+      "credential": "none",
+      "pathMap": {
+        "upstream": "/shared/{token}",
+        "bff": "/share",
+        "claims": { "token": "share-token" }
+      }
+    }
+  },
   "operations": {
     "tasks-api": [
       "GET /lists",

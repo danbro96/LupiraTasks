@@ -51,6 +51,7 @@ public sealed class BffTestFactory : WebApplicationFactory<Program>, IAsyncLifet
         builder.UseSetting("Auth:Oidc:ClientId", "lupira-tasks");
         builder.UseSetting("DataProtection:KeyPath", "");
         builder.UseSetting("Depz:ProbeKey", ProbeKey);
+        builder.UseSetting("OTEL_EXPORTER_OTLP_ENDPOINT", "http://127.0.0.1:9");
         builder.ConfigureTestServices(services =>
         {
             // Local signing key instead of Authentik discovery.
