@@ -71,10 +71,12 @@ builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
     .AddTransforms(ctx => ctx.AddRequestTransform(async transform =>
     {
-        // Guest routes: replay the token from the cookie, never a member credential. Path is set from
-        // the original request so this does not depend on transform ordering.
+        // Guest routes: replay the token from the cookie, never a member credential — not even one the
+        // caller sent. Path is set from the original request so this does not depend on transform ordering.
         if (transform.HttpContext.Request.Path.StartsWithSegments("/api/share", out var shareRest))
         {
+            transform.ProxyRequest.Headers.Authorization = null;
+            transform.ProxyRequest.Headers.Remove("X-Dev-User");
             var shareToken = transform.HttpContext.User.FindFirstValue(GuestSession.TokenClaim);
             if (string.IsNullOrEmpty(shareToken)) return;   // the Guest policy already rejected this
             transform.Path = $"/shared/{shareToken}{shareRest}";

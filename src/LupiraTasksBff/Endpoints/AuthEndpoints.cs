@@ -57,8 +57,13 @@ public static class AuthEndpoints
     }
 
     // Only allow same-site relative redirects back into the SPA.
-    private static string SafeReturnUrl(string? returnUrl) =>
-        !string.IsNullOrEmpty(returnUrl) && Uri.IsWellFormedUriString(returnUrl, UriKind.Relative) && returnUrl.StartsWith('/')
+    internal static string SafeReturnUrl(string? returnUrl) =>
+        !string.IsNullOrEmpty(returnUrl)
+        && Uri.IsWellFormedUriString(returnUrl, UriKind.Relative)
+        && returnUrl.StartsWith('/')
+        && !returnUrl.StartsWith("//", StringComparison.Ordinal)
+        && !returnUrl.StartsWith("/\\", StringComparison.Ordinal)
+        && !returnUrl.Any(char.IsControl)
             ? returnUrl
             : "/";
 }

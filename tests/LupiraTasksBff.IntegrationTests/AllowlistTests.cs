@@ -93,6 +93,23 @@ public sealed class AllowlistTests(BffTestFactory factory) : IClassFixture<BffTe
     }
 
     [Fact]
+    public async Task Guest_route_drops_caller_sent_credentials()
+    {
+        var client = Client();
+        (await client.PostAsync("/auth/guest", JsonContent.Create(new { token = "some-token" }))).EnsureSuccessStatusCode();
+        client.DefaultRequestHeaders.Authorization = new("Bearer", BffTestFactory.MintToken());
+        client.DefaultRequestHeaders.Add("X-Dev-User", "someone@test");
+
+        var res = await client.GetAsync("/api/share");
+
+        res.EnsureSuccessStatusCode();
+        var echo = await res.Content.ReadFromJsonAsync<UpstreamEcho>();
+        Assert.Equal("/shared/some-token", echo!.Path);
+        Assert.Empty(echo.Authorization);
+        Assert.Empty(echo.XDevUser);
+    }
+
+    [Fact]
     public async Task Guest_exchange_is_refused_when_the_upstream_rejects_the_token()
     {
         factory.Upstream.Reject.Add("/shared/dead-token");
