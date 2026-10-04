@@ -13,6 +13,25 @@ import { useConfirm } from './ConfirmDialog';
 const ACCESS_OPTIONS: ShareAccess[] = [ShareAccess.Read, ShareAccess.ReadWrite];
 const ACCESS_LABELS: Record<ShareAccess, string> = { Read: 'Read', ReadWrite: 'Read & write' };
 
+async function createAndCopyShareLink(
+  listId: string,
+  access: ShareAccess,
+  onCreated: (share: ShareDto) => void,
+  setBusy: (busy: boolean) => void,
+) {
+  setBusy(true);
+  try {
+    const share = await createShareLink(listId, access);
+    onCreated(share);
+    await Clipboard.setStringAsync(share.url);
+    toast('Link created & copied');
+  } catch {
+    toastError("Couldn't create share link");
+  } finally {
+    setBusy(false);
+  }
+}
+
 /** Owner-only public share-link management for a list. Renders inside ListSettingsScreen. */
 export function ShareLinks({ listId }: { listId: string }) {
   const confirm = useConfirm();
@@ -38,17 +57,7 @@ export function ShareLinks({ listId }: { listId: string }) {
 
   async function create() {
     if (busy) return;
-    setBusy(true);
-    try {
-      const share = await createShareLink(listId, access);
-      setShares(prev => [share, ...(prev ?? [])]);
-      await Clipboard.setStringAsync(share.url);
-      toast('Link created & copied');
-    } catch {
-      toastError("Couldn't create share link");
-    } finally {
-      setBusy(false);
-    }
+    await createAndCopyShareLink(listId, access, share => setShares(prev => [share, ...(prev ?? [])]), setBusy);
   }
 
   async function copy(url: string) {

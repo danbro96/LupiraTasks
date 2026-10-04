@@ -297,13 +297,9 @@ export function ListDetailScreen() {
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
-    try {
-      await pullList(listId);
-    } catch {
-      toastError('Sync failed');
-    } finally {
-      setRefreshing(false);
-    }
+    await pullList(listId)
+      .catch(() => toastError('Sync failed'))
+      .finally(() => setRefreshing(false));
   }, [listId]);
 
   async function addItem() {
@@ -322,8 +318,9 @@ export function ListDetailScreen() {
   // Row callbacks are stable (useCallback) so the memoized TaskRow can bail out of re-renders.
   const toggle = useCallback(async (it: ItemState) => {
     if (!it.completed) hapticSuccess(); // satisfying tick when checking a task off
+    const kind = it.completed ? 'item.reopen' : 'item.complete';
     try {
-      await enqueue({ ...stamp(), kind: it.completed ? 'item.reopen' : 'item.complete', listId, itemId: it.id });
+      await enqueue({ ...stamp(), kind, listId, itemId: it.id });
     } catch {
       toastError("Couldn't update item");
     }

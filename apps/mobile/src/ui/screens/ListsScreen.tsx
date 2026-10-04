@@ -84,13 +84,9 @@ export function ListsScreen() {
 
   async function refresh() {
     setRefreshing(true);
-    try {
-      await syncAll();
-    } catch {
-      toastError('Sync failed');
-    } finally {
-      setRefreshing(false);
-    }
+    await syncAll()
+      .catch(() => toastError('Sync failed'))
+      .finally(() => setRefreshing(false));
   }
 
   function freezeForDrag() {

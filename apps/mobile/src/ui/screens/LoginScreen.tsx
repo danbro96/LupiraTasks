@@ -17,6 +17,55 @@ import { ICONS } from '../icons';
 // Required so the auth redirect back into the app dismisses the in-app browser.
 WebBrowser.maybeCompleteAuthSession();
 
+async function exchangeCodeForSession(
+  discovery: AuthSession.DiscoveryDocument,
+  request: AuthSession.AuthRequest,
+  code: string,
+  redirectUri: string,
+  setBusy: (busy: boolean) => void,
+  setError: (error: string | null) => void,
+) {
+  setBusy(true);
+  setError(null);
+  try {
+    const tokenEndpoint = discovery.tokenEndpoint;
+    logAuth('exchange:start', `endpoint=${tokenEndpoint ?? 'MISSING'} verifier=${!!request.codeVerifier}`);
+    if (!tokenEndpoint) {
+      setError('Discovery returned no token endpoint.');
+      return;
+    }
+    const token = await exchangeAuthCode({
+      tokenEndpoint,
+      code,
+      redirectUri,
+      codeVerifier: request.codeVerifier,
+    });
+    logAuth(
+      'exchange:ok',
+      `accessToken=${!!token.accessToken} idToken=${!!token.idToken} refresh=${!!token.refreshToken} expiresIn=${token.expiresIn ?? 'n/a'}`,
+    );
+    const claims = decodeJwt(token.idToken ?? token.accessToken);
+    const email = (claims.email as string) ?? (claims.preferred_username as string) ?? (claims.sub as string) ?? '';
+    const name = (claims.name as string) ?? (claims.given_name as string) ?? undefined;
+    logAuth('decode', `email=${email ? 'present' : 'EMPTY'} name=${name ? 'present' : 'none'}`);
+    await useAuth.getState().setSession(
+      {
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
+        expiresAt: Date.now() + (token.expiresIn ?? 3600) * 1000,
+      },
+      { sub: email, displayName: name },
+    );
+    logAuth('setSession', 'authed=true');
+  } catch (e) {
+    const err = e as { code?: string; description?: string; message?: string };
+    logAuth('exchange:error', `${err.code ?? ''} ${err.description ?? ''} ${err.message ?? String(e)}`.trim());
+    setError(err.message ?? String(e));
+  } finally {
+    setBusy(false);
+  }
+}
+
 export function LoginScreen() {
   const discovery = AuthSession.useAutoDiscovery(OIDC_ISSUER);
   const redirectUri = AuthSession.makeRedirectUri({ scheme: OIDC_SCHEME, path: OIDC_REDIRECT_PATH });
@@ -97,47 +146,7 @@ export function LoginScreen() {
     }
     logAuth('response:params', `code=${!!response.params.code} state=${!!response.params.state}`);
 
-    (async () => {
-      setBusy(true);
-      setError(null);
-      try {
-        const tokenEndpoint = discovery.tokenEndpoint;
-        logAuth('exchange:start', `endpoint=${tokenEndpoint ?? 'MISSING'} verifier=${!!request.codeVerifier}`);
-        if (!tokenEndpoint) {
-          setError('Discovery returned no token endpoint.');
-          return;
-        }
-        const token = await exchangeAuthCode({
-          tokenEndpoint,
-          code: response.params.code,
-          redirectUri,
-          codeVerifier: request.codeVerifier,
-        });
-        logAuth(
-          'exchange:ok',
-          `accessToken=${!!token.accessToken} idToken=${!!token.idToken} refresh=${!!token.refreshToken} expiresIn=${token.expiresIn ?? 'n/a'}`,
-        );
-        const claims = decodeJwt(token.idToken ?? token.accessToken);
-        const email = (claims.email as string) ?? (claims.preferred_username as string) ?? (claims.sub as string) ?? '';
-        const name = (claims.name as string) ?? (claims.given_name as string) ?? undefined;
-        logAuth('decode', `email=${email ? 'present' : 'EMPTY'} name=${name ? 'present' : 'none'}`);
-        await useAuth.getState().setSession(
-          {
-            accessToken: token.accessToken,
-            refreshToken: token.refreshToken,
-            expiresAt: Date.now() + (token.expiresIn ?? 3600) * 1000,
-          },
-          { sub: email, displayName: name },
-        );
-        logAuth('setSession', 'authed=true');
-      } catch (e) {
-        const err = e as { code?: string; description?: string; message?: string };
-        logAuth('exchange:error', `${err.code ?? ''} ${err.description ?? ''} ${err.message ?? String(e)}`.trim());
-        setError(err.message ?? String(e));
-      } finally {
-        setBusy(false);
-      }
-    })();
+    void exchangeCodeForSession(discovery, request, response.params.code, redirectUri, setBusy, setError);
   }, [response, responseError, discovery, request, redirectUri]);
 
   return (

@@ -49,6 +49,25 @@ function buildImportOps(name: string, kind: ListKind, tasks: ImportedTask[]): Cl
   return ops;
 }
 
+async function enqueueImport(
+  name: string,
+  kind: ListKind,
+  tasks: ImportedTask[],
+  onImported: () => void,
+  setBusy: (busy: boolean) => void,
+) {
+  setBusy(true);
+  try {
+    await enqueueMany(buildImportOps(name, kind, tasks));
+    onImported();
+  } catch (e) {
+    toastError("Couldn't import list");
+    logDebug('importList:error', e instanceof Error ? e.message : String(e));
+  } finally {
+    setBusy(false);
+  }
+}
+
 export function ImportListScreen() {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [name, setName] = useState('');
@@ -72,16 +91,7 @@ export function ImportListScreen() {
 
   const importList = useCallback(async () => {
     if (!parsed?.ok || !name.trim()) return;
-    setBusy(true);
-    try {
-      await enqueueMany(buildImportOps(name.trim(), kind, parsed.tasks));
-      nav.goBack();
-    } catch (e) {
-      toastError("Couldn't import list");
-      logDebug('importList:error', e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(false);
-    }
+    await enqueueImport(name.trim(), kind, parsed.tasks, () => nav.goBack(), setBusy);
   }, [parsed, name, kind, nav]);
 
   // Modal actions live in the header (always visible, reachable with the keyboard up) — same
