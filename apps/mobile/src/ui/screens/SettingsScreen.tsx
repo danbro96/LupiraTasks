@@ -12,6 +12,7 @@ import { useConfirm } from '../components/ConfirmDialog';
 import { useAuth } from '../../state/auth-store';
 import { usePrefs, type RowSpacing, type TextSize } from '../../state/prefs-store';
 import { APP_VERSION } from '../../config';
+import { UPDATE_LABEL } from '../buildInfo';
 import { radii, spacing, useColors, type Palette } from '../theme';
 import { ICONS } from '../icons';
 
@@ -79,7 +80,7 @@ export function SettingsScreen() {
         </View>
 
         <List.Subheader>About</List.Subheader>
-        <Text variant="labelSmall" style={styles.version}>Lupira Tasks v{APP_VERSION}</Text>
+        <Text variant="labelSmall" style={styles.version}>Lupira Tasks v{APP_VERSION} · {UPDATE_LABEL}</Text>
 
         <List.Subheader>Developer</List.Subheader>
         <List.Item

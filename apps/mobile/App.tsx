@@ -15,7 +15,8 @@ import { ConfirmDialogHost } from './src/ui/components/ConfirmDialog';
 import { useAuth } from './src/state/auth-store';
 import { usePrefs } from './src/state/prefs-store';
 import { startSync, syncAll } from './src/sync/sync';
-import { SENTRY_DSN, APP_VERSION } from './src/config';
+import { SENTRY_DSN } from './src/config';
+import { UPDATE_CHANNEL, UPDATE_ID } from './src/ui/buildInfo';
 import { lightColors, darkColors, navDark, navLight, paperDark, paperLight, type Palette } from './src/ui/theme';
 import { paperSettings } from './src/ui/theme/paperSettings';
 
@@ -28,10 +29,10 @@ Sentry.init({
   enabled: !!sentryDsn,
   tracesSampleRate: 0.2,
   sendDefaultPii: false,
-  release: APP_VERSION,
-  dist: APP_VERSION,
   environment: __DEV__ ? 'development' : 'production',
 });
+Sentry.setTag('update_id', UPDATE_ID ?? 'none');
+Sentry.setTag('update_channel', UPDATE_CHANNEL ?? 'none');
 
 // Deep links: lupiratasks://task/<listId>/<itemId> (minted by e.g. the calendar's TaskCard). The OIDC
 // callback (lupiratasks://oauthredirect) must never reach navigation — expo-auth-session owns it; when
