@@ -61,10 +61,8 @@ export default [
           { from: { element: { type: 'config' } }, allow: [] },
         ],
       }],
-      // Hook correctness (RN standard). exhaustive-deps stays a warning — the screens carry a few
-      // intentional `// eslint-disable-next-line` opt-outs that need the rule to be defined.
-      'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
+      // Hook correctness plus the React Compiler's diagnostics.
+      ...reactHooks.configs['recommended-latest'].rules,
     },
   },
 ];

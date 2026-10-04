@@ -1,4 +1,4 @@
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -48,9 +48,9 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
 
   const addForm = useForm<{ email: string; role: ListRole }>({ defaultValues: { email: '', role: 'Editor' } });
   const shareForm = useForm<{ access: ShareAccess }>({ defaultValues: { access: 'ReadWrite' } });
-  const email = addForm.watch('email');
-  const addRole = addForm.watch('role');
-  const shareAccess = shareForm.watch('access');
+  const email = useWatch({ control: addForm.control, name: 'email' });
+  const addRole = useWatch({ control: addForm.control, name: 'role' });
+  const shareAccess = useWatch({ control: shareForm.control, name: 'access' });
 
   const addMut = useMutation({
     mutationFn: () => addListMember(listId, { email: email.trim(), role: addRole }),

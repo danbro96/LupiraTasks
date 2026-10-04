@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
@@ -33,7 +33,7 @@ export function CreateListScreen() {
   const c = useColors();
   const styles = useMemo(() => makeStyles(c), [c]);
 
-  async function create() {
+  const create = useCallback(async () => {
     const n = name.trim();
     if (!n) {
       toastError('Name cannot be empty');
@@ -46,7 +46,7 @@ export function CreateListScreen() {
       toastError("Couldn't create list");
       logDebug('createList:error', e instanceof Error ? e.message : String(e));
     }
-  }
+  }, [name, kind, color, nav]);
 
   // Modal actions live in the header (always visible, reachable with the keyboard up). Re-set as
   // name/kind/color change so Create's enabled state and the closed-over values stay current.
@@ -60,8 +60,7 @@ export function CreateListScreen() {
         <Button variant="text" title="Create" onPress={() => void create()} disabled={!canCreate} accessibilityLabel="Create list" />
       ),
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nav, name, kind, color, styles]);
+  }, [nav, name, create]);
 
   const kindHint = KIND_HINTS[kind];
 

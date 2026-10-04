@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import {
   DndContext,
   KeyboardSensor,
@@ -159,10 +159,10 @@ function CreateListModal({
   onCancel: () => void;
   onCreate: (name: string, kind: ListKind, color: string | null) => void;
 }) {
-  const { control, handleSubmit, watch } = useForm<{ name: string; kind: ListKind; color: string | null }>({
+  const { control, handleSubmit } = useForm<{ name: string; kind: ListKind; color: string | null }>({
     defaultValues: { name: '', kind: 'Todo', color: null },
   });
-  const trimmed = watch('name').trim();
+  const trimmed = useWatch({ control, name: 'name' }).trim();
 
   return (
     <Dialog open fullWidth maxWidth="sm" onClose={onCancel} aria-labelledby="create-list-title">

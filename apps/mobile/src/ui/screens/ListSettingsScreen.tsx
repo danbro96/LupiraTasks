@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Text } from 'react-native-paper';
 import { KeyboardAvoidingView, Platform, ScrollView, Share, StyleSheet, View } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
@@ -54,10 +54,11 @@ export function ListSettingsScreen() {
 
   // Seed the name field once the list loads from the mirror (loaded asynchronously, so `list`
   // is undefined on first render). Keyed on the list id so a remote rename doesn't clobber an edit.
-  useEffect(() => {
+  const [seededListId, setSeededListId] = useState(list?.id);
+  if (seededListId !== list?.id) {
+    setSeededListId(list?.id);
     if (list) setName(list.name);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [list?.id]);
+  }
 
   if (!list) {
     return (

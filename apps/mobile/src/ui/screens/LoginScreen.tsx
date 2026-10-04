@@ -26,6 +26,17 @@ export function LoginScreen() {
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const responseError =
+    response?.type === 'error'
+      ? (response.error?.message ?? 'Sign-in failed.')
+      : response && response.type !== 'success'
+        ? `Sign-in did not complete (${response.type}).`
+        : null;
+  const [shownResponse, setShownResponse] = useState(response);
+  if (response !== shownResponse) {
+    setShownResponse(response);
+    if (responseError) setError(responseError);
+  }
   const debugEnabled = usePrefs(s => s.debugEnabled);
   const c = useColors();
   const styles = useMemo(() => makeStyles(c), [c]);
@@ -72,15 +83,12 @@ export function LoginScreen() {
     logAuth('response', response.type);
 
     if (response.type === 'error') {
-      const msg = response.error?.message ?? 'Sign-in failed.';
-      logAuth('response:error', `${response.error?.code ?? ''} ${msg}`.trim());
-      setError(msg);
+      logAuth('response:error', `${response.error?.code ?? ''} ${responseError}`.trim());
       return;
     }
     if (response.type !== 'success') {
       // dismiss / cancel / locked — no params to exchange. Stop with a visible reason.
       logAuth('response:not-success', response.type);
-      setError(`Sign-in did not complete (${response.type}).`);
       return;
     }
     if (!discovery || !request) {
@@ -130,7 +138,7 @@ export function LoginScreen() {
         setBusy(false);
       }
     })();
-  }, [response, discovery, request, redirectUri]);
+  }, [response, responseError, discovery, request, redirectUri]);
 
   return (
     <View style={styles.container}>

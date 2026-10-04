@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
@@ -69,11 +69,12 @@ export function ListsScreen() {
   const [dragging, setDragging] = useState(false);
   // The list moves the row on drop, but our order only changes once the enqueued op reaches the
   // mirror. Keep rendering the reordered snapshot until it does, or the cells lose their slots.
-  const [settling, setSettling] = useState(false);
-  const frozen = useRef(lists);
-  if (!dragging && !settling) frozen.current = lists;
-  const data = dragging || settling ? frozen.current : lists;
-  useEffect(() => setSettling(false), [lists]);
+  const [frozen, setFrozen] = useState<{ lists: typeof lists; sourceLists: typeof lists } | null>(null);
+  const data = frozen && (dragging || frozen.sourceLists === lists) ? frozen.lists : lists;
+  const rendered = useRef({ lists, data });
+  useLayoutEffect(() => {
+    rendered.current = { lists, data };
+  }, [lists, data]);
 
   const dragGesture = useMemo(() => Gesture.Pan().activateAfterLongPress(520), []);
 
@@ -92,13 +93,18 @@ export function ListsScreen() {
     }
   }
 
+  function freezeForDrag() {
+    setFrozen({ lists: rendered.current.data, sourceLists: rendered.current.lists });
+    setDragging(true);
+  }
+
   function onReorder({ from, to }: { from: number; to: number }) {
     setDragging(false);
     // Indices refer to the frozen array the list was rendered with during the drag.
-    const targets = planListReorder(frozen.current, from, to);
+    const dragLists = rendered.current.data;
+    const targets = planListReorder(dragLists, from, to);
     if (targets.length === 0) return;
-    frozen.current = reorderItems(frozen.current, from, to);
-    setSettling(true);
+    setFrozen({ lists: reorderItems(dragLists, from, to), sourceLists: rendered.current.lists });
     // One transaction, one mirror bump — the first drag materializes every list's key at once.
     void enqueueMany(targets.map(t => ({ ...stamp(), kind: 'list.reorder' as const, ...t })))
       .catch(() => toastError("Couldn't reorder lists"));
@@ -117,7 +123,7 @@ export function ListsScreen() {
         onDragStart={() => {
           'worklet';
           runOnJS(hapticImpact)(); // "pickup" thunk when a row is grabbed to reorder
-          runOnJS(setDragging)(true);
+          runOnJS(freezeForDrag)();
         }}
         onDragEnd={() => {
           'worklet';

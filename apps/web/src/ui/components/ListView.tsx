@@ -47,17 +47,25 @@ export function ListView({ list, items, canEdit, tagsById, actions, members, hea
 
   // Each batch owns its expiry timer — a change arriving mid-flash must not cancel the previous
   // batch's cleanup and leave those rows highlighted for good.
-  const [flashes, setFlashes] = useState<Map<string, ItemChange<ActorRef>>>(new Map());
+  const [flashes, setFlashes] = useState<Map<string, ItemChange<ActorRef>>>(
+    () => new Map(changes.list.map(c => [c.itemId, c])),
+  );
+  const [flashedChanges, setFlashedChanges] = useState(changes);
+  if (flashedChanges !== changes) {
+    setFlashedChanges(changes);
+    if (changes.list.length > 0) {
+      setFlashes(prev => {
+        const next = new Map(prev);
+        for (const c of changes.list) next.set(c.itemId, c);
+        return next;
+      });
+    }
+  }
   const flashTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   useEffect(() => () => flashTimers.current.forEach(clearTimeout), []);
   useEffect(() => {
     if (changes.list.length === 0) return;
     const batch = changes.list;
-    setFlashes(prev => {
-      const next = new Map(prev);
-      for (const c of batch) next.set(c.itemId, c);
-      return next;
-    });
     flashTimers.current.push(
       setTimeout(() => {
         setFlashes(prev => {

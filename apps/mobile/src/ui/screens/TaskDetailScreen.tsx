@@ -72,10 +72,12 @@ export function TaskDetailScreen() {
   const savedNotes = useRef(item?.notes ?? '');
   const savedQty = useRef(item?.quantity != null ? String(item.quantity) : '');
   const savedUnit = useRef(item?.unit ?? '');
-  titleRef.current = title;
-  notesRef.current = notes;
-  qtyRef.current = qty;
-  unitRef.current = unit;
+  useLayoutEffect(() => {
+    titleRef.current = title;
+    notesRef.current = notes;
+    qtyRef.current = qty;
+    unitRef.current = unit;
+  }, [title, notes, qty, unit]);
 
   const members = useMemo(() => list?.members ?? [], [list]);
   const memberNames = useMemo(() => new Map(members.map(m => [m.principalId, m.displayName ?? m.email])), [members]);
@@ -182,7 +184,7 @@ export function TaskDetailScreen() {
     const parsed = qty.trim() === '' ? null : Number(qty.trim());
     const qVal = parsed != null && Number.isFinite(parsed) ? parsed : null;
     const u = unit.trim() || null;
-    if ((qVal ?? null) === (item!.quantity ?? null) && (u ?? null) === (item!.unit ?? null)) return;
+    if (qVal === (item!.quantity ?? null) && u === (item!.unit ?? null)) return;
     savedQty.current = qVal != null ? String(qVal) : '';
     savedUnit.current = u ?? '';
     void run(() => enqueue({ ...stamp(), kind: 'item.quantity', listId, itemId, quantity: qVal, unit: u }), "Couldn't set quantity");

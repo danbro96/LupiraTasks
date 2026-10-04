@@ -91,7 +91,7 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
     const parsed = qty.trim() === '' ? null : Number(qty.trim());
     const qVal = parsed != null && Number.isFinite(parsed) ? parsed : null;
     const u = unit.trim() || null;
-    if ((qVal ?? null) === (item.quantity ?? null) && (u ?? null) === (item.unit ?? null)) return;
+    if (qVal === (item.quantity ?? null) && u === (item.unit ?? null)) return;
     actions.setQuantity(item.id, qVal, u);
   }
 

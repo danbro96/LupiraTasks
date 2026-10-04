@@ -1,4 +1,4 @@
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
@@ -11,8 +11,8 @@ interface Props {
 
 /** Quick-add input. Enter (or the Add button) commits a single-line, trimmed title. */
 export function AddTaskBar({ placeholder = 'Add task…', onAdd }: Props) {
-  const { control, handleSubmit, reset, watch } = useForm<{ title: string }>({ defaultValues: { title: '' } });
-  const title = watch('title');
+  const { control, handleSubmit, reset } = useForm<{ title: string }>({ defaultValues: { title: '' } });
+  const title = useWatch({ control, name: 'title' });
 
   return (
     <Box

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
@@ -63,13 +63,14 @@ export function ImportListScreen() {
 
   // Prefill name/kind from a JSON export's header — but only while the user hasn't named the
   // list themselves, so a round-trip is one paste while a manual name is never clobbered.
-  useEffect(() => {
-    if (parsed?.ok && parsed.name && !name.trim()) setName(parsed.name);
-    if (parsed?.ok && (parsed.kind === ListKind.Todo || parsed.kind === ListKind.Shopping)) setKind(parsed.kind);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [parsed]);
+  function changeCsvText(text: string) {
+    setCsvText(text);
+    const next = text.trim() ? parseImport(text) : null;
+    if (next?.ok && next.name && !name.trim()) setName(next.name);
+    if (next?.ok && (next.kind === ListKind.Todo || next.kind === ListKind.Shopping)) setKind(next.kind);
+  }
 
-  async function importList() {
+  const importList = useCallback(async () => {
     if (!parsed?.ok || !name.trim()) return;
     setBusy(true);
     try {
@@ -81,7 +82,7 @@ export function ImportListScreen() {
     } finally {
       setBusy(false);
     }
-  }
+  }, [parsed, name, kind, nav]);
 
   // Modal actions live in the header (always visible, reachable with the keyboard up) — same
   // pattern as CreateListScreen.
@@ -94,8 +95,7 @@ export function ImportListScreen() {
         <Button variant="text" title="Import" onPress={() => void importList()} disabled={!canImport} accessibilityLabel="Import list" />
       ),
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nav, name, kind, csvText, busy, styles]);
+  }, [nav, importList, canImport]);
 
   const preview = parsed
     ? parsed.ok
@@ -125,7 +125,7 @@ export function ImportListScreen() {
         <TextField
           placeholder={'Paste a JSON export…\nor just:\nMilk\nBread'}
           value={csvText}
-          onChangeText={setCsvText}
+          onChangeText={changeCsvText}
           multiline
           style={styles.csvInput}
           accessibilityLabel="Tasks to import"

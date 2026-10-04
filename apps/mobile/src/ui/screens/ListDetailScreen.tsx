@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, RefreshControl, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -79,12 +79,12 @@ interface RowProps {
 function RemoteHighlight({ style, flashKey }: { style: StyleProp<ViewStyle>; flashKey: string }) {
   // Tint in fast, hold, fade out slowly — the slow tail is what stops it reading as a UI glitch.
   const highlight = useSharedValue(0);
-  const highlightStyle = useAnimatedStyle(() => ({ opacity: highlight.value }));
+  const highlightStyle = useAnimatedStyle(() => ({ opacity: highlight.get() }));
   useEffect(() => {
-    highlight.value = withSequence(
+    highlight.set(withSequence(
       withTiming(1, { duration: FLASH_IN_MS }),
       withDelay(Math.max(0, REMOTE_FLASH_MS - FLASH_IN_MS - FLASH_OUT_MS), withTiming(0, { duration: FLASH_OUT_MS })),
-    );
+    ));
   }, [flashKey, highlight]);
   return <Animated.View style={[style, highlightStyle]} pointerEvents="none" />;
 }
@@ -94,16 +94,16 @@ const TaskRow = memo(function TaskRow({ item, depth, hasChildren, canEdit, dragg
   const status = useOpStatus(item.id);
   const isActive = useIsActive();
   const translateX = useSharedValue(0);
-  const rowStyle = useAnimatedStyle(() => ({ transform: [{ translateX: translateX.value }] }));
+  const rowStyle = useAnimatedStyle(() => ({ transform: [{ translateX: translateX.get() }] }));
   // Red delete backdrop is invisible until the row is actually swiped — so it never shows at rest
   // or while the row is picked up for reordering.
-  const deleteBgStyle = useAnimatedStyle(() => ({ opacity: translateX.value < -1 ? 1 : 0 }));
+  const deleteBgStyle = useAnimatedStyle(() => ({ opacity: translateX.get() < -1 ? 1 : 0 }));
   // Memoized: a fresh gesture object makes GestureDetector re-attach its native handler every render.
   const swipe = useMemo(() => Gesture.Pan()
     .activeOffsetX(-15)
     .failOffsetY([-12, 12])
     .onUpdate(e => {
-      translateX.value = Math.min(0, e.translationX);
+      translateX.set(Math.min(0, e.translationX));
     })
     .onEnd(e => {
       if (e.translationX < SWIPE_DELETE_THRESHOLD) {
@@ -111,7 +111,7 @@ const TaskRow = memo(function TaskRow({ item, depth, hasChildren, canEdit, dragg
         // neighbors close the gap via the list's itemLayoutAnimation.
         runOnJS(onDelete)(item);
       } else {
-        translateX.value = withSpring(0);
+        translateX.set(withSpring(0));
       }
     }), [item, onDelete, translateX]);
   const due = formatDue(item.dueAt);
@@ -235,17 +235,25 @@ export function ListDetailScreen() {
 
   // Each batch owns its expiry timer — a change arriving mid-flash must not cancel the previous
   // batch's cleanup and leave those rows highlighted for good.
-  const [flashes, setFlashes] = useState<Map<string, ItemChange<string>>>(new Map());
+  const [flashes, setFlashes] = useState<Map<string, ItemChange<string>>>(
+    () => new Map(changes.list.map(c => [c.itemId, c])),
+  );
+  const [flashedChanges, setFlashedChanges] = useState(changes);
+  if (flashedChanges !== changes) {
+    setFlashedChanges(changes);
+    if (changes.list.length > 0) {
+      setFlashes(prev => {
+        const next = new Map(prev);
+        for (const c of changes.list) next.set(c.itemId, c);
+        return next;
+      });
+    }
+  }
   const flashTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   useEffect(() => () => flashTimers.current.forEach(clearTimeout), []);
   useEffect(() => {
     if (changes.list.length === 0) return;
     const batch = changes.list;
-    setFlashes(prev => {
-      const next = new Map(prev);
-      for (const c of batch) next.set(c.itemId, c);
-      return next;
-    });
     flashTimers.current.push(setTimeout(() => {
       setFlashes(prev => {
         const next = new Map(prev);
@@ -273,11 +281,12 @@ export function ListDetailScreen() {
   const [dragging, setDragging] = useState(false);
   // The list moves the row on drop, but our order only changes once the enqueued op reaches the
   // mirror. Keep rendering the reordered snapshot until it does, or the cells lose their slots.
-  const [settling, setSettling] = useState(false);
-  const frozenRows = useRef(rows);
-  if (!dragging && !settling) frozenRows.current = rows;
-  const listData = dragging || settling ? frozenRows.current : rows;
-  useEffect(() => setSettling(false), [rows]);
+  const [frozen, setFrozen] = useState<{ rows: typeof rows; sourceRows: typeof rows } | null>(null);
+  const listData = frozen && (dragging || frozen.sourceRows === rows) ? frozen.rows : rows;
+  const rendered = useRef({ rows, listData });
+  useLayoutEffect(() => {
+    rendered.current = { rows, listData };
+  }, [rows, listData]);
   // Index of the first completed row in 'below' mode — the COMPLETED header renders above it.
   // Derived from the rendered array so it stays consistent while rows are frozen mid-drag. A held
   // row still sits in the open section, so it must not be taken for the section start.
@@ -322,7 +331,9 @@ export function ListDetailScreen() {
 
   // Read through a ref: depending on `items` would hand every row a new callback on each change.
   const itemsRef = useRef(items);
-  itemsRef.current = items;
+  useLayoutEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   const toggleExpand = useCallback((id: string) => {
     setExpanded(prev => (prev.has(id) ? collapseDescendants(prev, id, itemsRef.current) : new Set(prev).add(id)));
@@ -349,7 +360,7 @@ export function ListDetailScreen() {
   const onReorder = useCallback(({ from, to }: { from: number; to: number }) => {
     setDragging(false);
     // Indices refer to the data the list was rendered with — the frozen rows during a drag.
-    const dragRows = frozenRows.current;
+    const dragRows = rendered.current.listData;
     if (from === to) return;
     // 'below' mode: reordering is confined to the open section. Recompute the boundary from the
     // frozen array and bail when the drag starts in or drops into the completed section.
@@ -366,19 +377,22 @@ export function ListDetailScreen() {
     const scope = boundary >= 0 ? next.slice(0, boundary) : next;
     const target = siblingReorder(scope, draggedId);
     if (target) {
-      frozenRows.current = reorderItems(dragRows, from, to);
-      setSettling(true);
+      setFrozen({ rows: reorderItems(dragRows, from, to), sourceRows: rendered.current.rows });
       void enqueue({ ...stamp(), kind: 'item.move', listId, itemId: draggedId, ...target }).catch(() => toastError("Couldn't move item"));
     }
   }, [completedMode, heldCompleted, listId]);
 
   // Every prop the list gets is kept stable: a new one re-renders each cell, and a cell re-render
   // re-runs its Reanimated hooks — ~300ms for a long list, several times per tick.
+  const freezeForDrag = useCallback(() => {
+    setFrozen({ rows: rendered.current.listData, sourceRows: rendered.current.rows });
+    setDragging(true);
+  }, []);
   const onDragStart = useCallback(() => {
     'worklet';
     runOnJS(hapticImpact)(); // "pickup" thunk when a row is grabbed to reorder
-    runOnJS(setDragging)(true);
-  }, []);
+    runOnJS(freezeForDrag)();
+  }, [freezeForDrag]);
   const onDragEnd = useCallback(() => {
     'worklet';
     runOnJS(setDragging)(false);
