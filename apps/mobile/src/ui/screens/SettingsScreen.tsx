@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { List, Switch, Text } from 'react-native-paper';
@@ -29,7 +28,7 @@ export function SettingsScreen() {
   const rowSpacing = usePrefs(s => s.rowSpacing);
   const confirm = useConfirm();
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
 
   async function signOut() {
     const ok = await confirm({

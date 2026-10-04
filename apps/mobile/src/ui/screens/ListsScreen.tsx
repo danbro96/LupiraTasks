@@ -1,4 +1,4 @@
-import { memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { memo, useLayoutEffect, useRef, useState } from 'react';
 import { Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
@@ -63,7 +63,7 @@ export function ListsScreen() {
   const firstSyncDone = useSyncStatus(s => s.firstSyncDone);
   const [refreshing, setRefreshing] = useState(false);
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
 
   // The background poll must not re-sort under the finger mid-drag (same freeze as ListDetailScreen).
   const [dragging, setDragging] = useState(false);
@@ -76,11 +76,11 @@ export function ListsScreen() {
     rendered.current = { lists, data };
   }, [lists, data]);
 
-  const dragGesture = useMemo(() => Gesture.Pan().activateAfterLongPress(520), []);
+  const [dragGesture] = useState(() => Gesture.Pan().activateAfterLongPress(520));
 
-  const openList = useCallback((l: ListDto) => {
+  function openList(l: ListDto) {
     nav.navigate('ListDetail', { listId: l.id, name: l.name });
-  }, [nav]);
+  }
 
   async function refresh() {
     setRefreshing(true);

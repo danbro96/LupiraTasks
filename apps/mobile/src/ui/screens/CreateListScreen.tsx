@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useMemo, useState } from 'react';
+import { useCallback, useLayoutEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
@@ -31,7 +31,7 @@ export function CreateListScreen() {
   const [kind, setKind] = useState<ListKind>(ListKind.Todo);
   const [color, setColor] = useState<string | null>(null);
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
 
   const create = useCallback(async () => {
     const n = name.trim();

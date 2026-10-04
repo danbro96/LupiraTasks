@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Chip from '@mui/material/Chip';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
@@ -79,10 +79,7 @@ export function ListView({ list, items, canEdit, tagsById, actions, members, hea
 
   // Held in place until the flash ends: otherwise a remote completion hides the row, or flings it to
   // the COMPLETED section, at the instant it changes.
-  const heldCompleted = useMemo(
-    () => new Set([...flashes.values()].filter(c => c.kind === 'completed').map(c => c.itemId)),
-    [flashes],
-  );
+  const heldCompleted = new Set([...flashes.values()].filter(c => c.kind === 'completed').map(c => c.itemId));
 
   const pollPaused = useListPollPaused();
   const isShopping = list.kind === 'Shopping';

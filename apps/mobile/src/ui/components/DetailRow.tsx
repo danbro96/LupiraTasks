@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { List, Text } from 'react-native-paper';
@@ -19,7 +18,7 @@ interface Props {
 /** Icon-leading metadata row (label + right-aligned value + chevron) for detail screens. */
 export function DetailRow({ icon, label, value, valueColor, onPress, disabled, divider = true, accessibilityLabel }: Props) {
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
   const interactive = !!onPress && !disabled;
   return (
     <List.Item

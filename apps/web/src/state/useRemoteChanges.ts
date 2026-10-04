@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { diffItems, type ActorRef, type ChangeableItem, type ItemChange } from '@lupira/tasks-domain/itemChange';
 
 // Which edits came from someone else — something React Query can't tell you on its own, because a
@@ -18,16 +18,16 @@ export function useRemoteChanges<T extends ChangeableItem & { completedBy?: Acto
   const snapshot = useRef<{ scope: string; rows: Map<string, T> }>({ scope, rows: new Map() });
   const [changes, setChanges] = useState<RemoteChanges>({ nonce: 0, list: [] });
 
-  const write = useCallback((rows: readonly T[], emitting: boolean, scopeNow: string) => {
+  const write = (rows: readonly T[], emitting: boolean, scopeNow: string) => {
     // A different list: nothing to compare against, or every row would look newly added.
     const switched = snapshot.current.scope !== scopeNow;
     const diff = emitting && !switched ? diffItems(snapshot.current.rows, rows) : [];
     snapshot.current = { scope: scopeNow, rows: new Map(rows.map(r => [r.id, r])) };
     if (diff.length > 0) setChanges(c => ({ nonce: c.nonce + 1, list: diff }));
-  }, []);
+  };
 
-  const absorb = useCallback((rows: readonly T[]) => write(rows, false, scope), [write, scope]);
-  const emit = useCallback((rows: readonly T[]) => write(rows, true, scope), [write, scope]);
+  const absorb = (rows: readonly T[]) => write(rows, false, scope);
+  const emit = (rows: readonly T[]) => write(rows, true, scope);
 
   return { changes, absorb, emit };
 }

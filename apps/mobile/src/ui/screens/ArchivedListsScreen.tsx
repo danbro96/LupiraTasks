@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { Button } from '../components/Button';
@@ -12,7 +11,7 @@ import { radii, spacing, useColors, type Palette } from '../theme';
 export function ArchivedListsScreen() {
   const { lists } = useArchivedLists();
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
 
   function restore(listId: string) {
     void enqueue({ ...stamp(), kind: 'list.restore', listId }).catch(() => toastError("Couldn't restore list"));

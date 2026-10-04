@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button as PaperButton, Card, List, Text } from 'react-native-paper';
 import * as Clipboard from 'expo-clipboard';
@@ -36,7 +36,7 @@ async function createAndCopyShareLink(
 export function ShareLinks({ listId }: { listId: string }) {
   const confirm = useConfirm();
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
   const [shares, setShares] = useState<ShareDto[] | null>(null);
   const [access, setAccess] = useState<ShareAccess>(ShareAccess.Read);
   const [busy, setBusy] = useState(false);

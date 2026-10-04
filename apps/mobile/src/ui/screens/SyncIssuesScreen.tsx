@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -50,12 +50,11 @@ export function SyncIssuesScreen() {
   const rev = useSyncStatus(s => s.mirrorRevision);
   const [rows, setRows] = useState<ParkedOp[]>([]);
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
 
-  const reload = useCallback(() => {
+  useEffect(() => {
     void listParked().then(setRows);
-  }, []);
-  useEffect(reload, [reload, failed, rev]);
+  }, [failed, rev]);
 
   function onRetryAll() {
     void retryParked();

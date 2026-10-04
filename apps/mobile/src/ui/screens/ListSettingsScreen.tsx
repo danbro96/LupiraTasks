@@ -50,7 +50,7 @@ export function ListSettingsScreen() {
   const completedMode = usePrefs(s => s.completedMode[listId] ?? 'inline');
   const confirm = useConfirm();
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
 
   // Seed the name field once the list loads from the mirror (loaded asynchronously, so `list`
   // is undefined on first render). Keyed on the list id so a remote rename doesn't clobber an edit.

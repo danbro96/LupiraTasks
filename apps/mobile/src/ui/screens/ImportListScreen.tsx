@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useMemo, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
@@ -75,9 +75,9 @@ export function ImportListScreen() {
   const [csvText, setCsvText] = useState('');
   const [busy, setBusy] = useState(false);
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
 
-  const parsed = useMemo(() => (csvText.trim() ? parseImport(csvText) : null), [csvText]);
+  const parsed = csvText.trim() ? parseImport(csvText) : null;
   const canImport = !!name.trim() && parsed?.ok === true && !busy;
 
   // Prefill name/kind from a JSON export's header — but only while the user hasn't named the
@@ -89,14 +89,13 @@ export function ImportListScreen() {
     if (next?.ok && (next.kind === ListKind.Todo || next.kind === ListKind.Shopping)) setKind(next.kind);
   }
 
-  const importList = useCallback(async () => {
-    if (!parsed?.ok || !name.trim()) return;
-    await enqueueImport(name.trim(), kind, parsed.tasks, () => nav.goBack(), setBusy);
-  }, [parsed, name, kind, nav]);
-
   // Modal actions live in the header (always visible, reachable with the keyboard up) — same
   // pattern as CreateListScreen.
   useLayoutEffect(() => {
+    const importList = async () => {
+      if (!parsed?.ok || !name.trim()) return;
+      await enqueueImport(name.trim(), kind, parsed.tasks, () => nav.goBack(), setBusy);
+    };
     nav.setOptions({
       headerLeft: () => (
         <Button variant="text" title="Cancel" onPress={() => nav.goBack()} />
@@ -105,7 +104,7 @@ export function ImportListScreen() {
         <Button variant="text" title="Import" onPress={() => void importList()} disabled={!canImport} accessibilityLabel="Import list" />
       ),
     });
-  }, [nav, importList, canImport]);
+  }, [nav, parsed, name, kind, canImport]);
 
   const preview = parsed
     ? parsed.ok

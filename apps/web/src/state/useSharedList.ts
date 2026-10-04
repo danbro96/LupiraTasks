@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@lupira/tasks-api/apiError';
 import {
@@ -30,12 +29,12 @@ import { useListPollInterval } from './usePollInterval';
 
 const TERMINAL = new Set([400, 401, 403, 404]); // not worth retrying
 const nowIso = () => new Date().toISOString();
+const key = getGetSharedListQueryKey();
 
 type Ctx = { previous?: SharedListResponse };
 
 export function useSharedList(token: string, enabled: boolean) {
   const qc = useQueryClient();
-  const key = useMemo(() => getGetSharedListQueryKey(), []);
 
   const { changes, absorb, emit } = useRemoteChanges<SharedItemDto>(token);
   const refetchInterval = useListPollInterval();
@@ -56,12 +55,9 @@ export function useSharedList(token: string, enabled: boolean) {
   });
 
   const list = query.data;
-  const items = useMemo(() => list?.items ?? [], [list]);
+  const items = list?.items ?? [];
   const canEdit = list?.access === 'ReadWrite';
-  const tagsById = useMemo(
-    () => new Map<string, SharedTagDto>((list?.tags ?? []).map(t => [t.id, t])),
-    [list],
-  );
+  const tagsById = new Map<string, SharedTagDto>((list?.tags ?? []).map(t => [t.id, t]));
 
   // Shared optimistic scaffolding for every mutation: snapshot → patch items → roll back on error
   // → refetch on settle.
@@ -162,45 +158,42 @@ export function useSharedList(token: string, enabled: boolean) {
     ...optimistic<{ ids: string[] }>((curr, { ids }) => curr.filter(it => !ids.includes(it.id))),
   });
 
-  const actions = useMemo(
-    () => ({
-      addTask(title: string, parentItemId: string | null = null) {
-        const sortOrder = parentItemId ? nextChildSortOrder(items, parentItemId) : topSortOrder(items);
-        addMut.mutate({ id: newId(), title, sortOrder, parentItemId });
-      },
-      rename(itemId: string, title: string) {
-        updateMut.mutate({ itemId, body: { title, titleProvided: true } });
-      },
-      setNotes(itemId: string, notes: string | null) {
-        updateMut.mutate({ itemId, body: { notes, notesProvided: true } });
-      },
-      setDue(itemId: string, dueAt: string | null) {
-        updateMut.mutate({ itemId, body: { dueAt, dueAtProvided: true } });
-      },
-      setQuantity(itemId: string, quantity: number | null, unit: string | null) {
-        updateMut.mutate({ itemId, body: { quantity, unit, quantityProvided: true } });
-      },
-      setPriority(itemId: string, priority: number) {
-        updateMut.mutate({ itemId, body: { priority, priorityProvided: true } });
-      },
-      // The account-less share surface has no assignees (the API trims emails) — no-op to satisfy
-      // the shared ListActions contract.
-      setAssignee(_itemId: string, _email: string | null) {},
-      toggleTag(itemId: string, tagId: string, on: boolean) {
-        updateMut.mutate({ itemId, body: on ? { addTagIds: [tagId] } : { removeTagIds: [tagId] } });
-      },
-      toggleComplete(item: SharedItemDto) {
-        toggleMut.mutate(item);
-      },
-      move(itemId: string, sortOrder: string, parentItemId: string | null) {
-        moveMut.mutate({ itemId, sortOrder, parentItemId });
-      },
-      remove(item: SharedItemDto) {
-        deleteMut.mutate({ ids: [item.id, ...descendantIds(items, item.id)] });
-      },
-    }),
-    [items, addMut, updateMut, toggleMut, moveMut, deleteMut],
-  );
+  const actions = {
+    addTask(title: string, parentItemId: string | null = null) {
+      const sortOrder = parentItemId ? nextChildSortOrder(items, parentItemId) : topSortOrder(items);
+      addMut.mutate({ id: newId(), title, sortOrder, parentItemId });
+    },
+    rename(itemId: string, title: string) {
+      updateMut.mutate({ itemId, body: { title, titleProvided: true } });
+    },
+    setNotes(itemId: string, notes: string | null) {
+      updateMut.mutate({ itemId, body: { notes, notesProvided: true } });
+    },
+    setDue(itemId: string, dueAt: string | null) {
+      updateMut.mutate({ itemId, body: { dueAt, dueAtProvided: true } });
+    },
+    setQuantity(itemId: string, quantity: number | null, unit: string | null) {
+      updateMut.mutate({ itemId, body: { quantity, unit, quantityProvided: true } });
+    },
+    setPriority(itemId: string, priority: number) {
+      updateMut.mutate({ itemId, body: { priority, priorityProvided: true } });
+    },
+    // The account-less share surface has no assignees (the API trims emails) — no-op to satisfy
+    // the shared ListActions contract.
+    setAssignee(_itemId: string, _email: string | null) {},
+    toggleTag(itemId: string, tagId: string, on: boolean) {
+      updateMut.mutate({ itemId, body: on ? { addTagIds: [tagId] } : { removeTagIds: [tagId] } });
+    },
+    toggleComplete(item: SharedItemDto) {
+      toggleMut.mutate(item);
+    },
+    move(itemId: string, sortOrder: string, parentItemId: string | null) {
+      moveMut.mutate({ itemId, sortOrder, parentItemId });
+    },
+    remove(item: SharedItemDto) {
+      deleteMut.mutate({ ids: [item.id, ...descendantIds(items, item.id)] });
+    },
+  };
 
   return { query, list, items, canEdit, tagsById, actions, changes };
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Chip, Dialog, Portal } from 'react-native-paper';
@@ -24,7 +24,7 @@ export function PriorityControl({
   onChange: (priority: number) => void;
 }) {
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
   const [picking, setPicking] = useState(false);
 
   if (simple) {

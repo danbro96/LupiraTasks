@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, RefreshControl, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -98,8 +98,7 @@ const TaskRow = memo(function TaskRow({ item, depth, hasChildren, canEdit, dragg
   // Red delete backdrop is invisible until the row is actually swiped — so it never shows at rest
   // or while the row is picked up for reordering.
   const deleteBgStyle = useAnimatedStyle(() => ({ opacity: translateX.get() < -1 ? 1 : 0 }));
-  // Memoized: a fresh gesture object makes GestureDetector re-attach its native handler every render.
-  const swipe = useMemo(() => Gesture.Pan()
+  const swipe = Gesture.Pan()
     .activeOffsetX(-15)
     .failOffsetY([-12, 12])
     .onUpdate(e => {
@@ -113,7 +112,7 @@ const TaskRow = memo(function TaskRow({ item, depth, hasChildren, canEdit, dragg
       } else {
         translateX.set(withSpring(0));
       }
-    }), [item, onDelete, translateX]);
+    });
   const due = formatDue(item.dueAt);
   const qty = isShopping ? qtyLabel(item) : null;
 
@@ -198,10 +197,7 @@ export function ListDetailScreen() {
   const color = list?.color ?? null;
   const isShopping = list?.kind === ListKind.Shopping;
   const simplePriority = list?.simplePriority ?? true;
-  const assigneeNames = useMemo(
-    () => new Map((list?.members ?? []).map(m => [m.principalId, m.displayName ?? m.email] as const)),
-    [list],
-  );
+  const assigneeNames = new Map((list?.members ?? []).map(m => [m.principalId, m.displayName ?? m.email] as const));
   const pendingDeletes = usePendingDeletes();
   const role = useMyRole(listId);
   const canEdit = canEditWithRole(role);
@@ -213,23 +209,18 @@ export function ListDetailScreen() {
   const [pulled, setPulled] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const c = useColors();
-  const styles = useMemo(
-    () => makeStyles(c, TEXT_SIZE_SCALE[textSize], ROW_SPACING_PAD[rowSpacing]),
-    [c, textSize, rowSpacing],
-  );
+  const styles = makeStyles(c, TEXT_SIZE_SCALE[textSize], ROW_SPACING_PAD[rowSpacing]);
   const insets = useSafeAreaInsets();
   // Gate the reorder drag behind a long-press so it doesn't claim the quick horizontal swipes used
   // for swipe-to-delete (slightly longer than the row's 500ms delayLongPress, per the lib's guidance).
-  const dragGesture = useMemo(() => Gesture.Pan().activateAfterLongPress(520), []);
+  const [dragGesture] = useState(() => Gesture.Pan().activateAfterLongPress(520));
 
   // Pull on focus (not just mount): native-stack keeps this screen mounted when TaskDetail /
   // ListSettings are pushed on top, so a mount-only effect would leave tasks stale on return.
-  useFocusEffect(
-    useCallback(() => {
-      // Background refresh: errors surface via the sync banner, not an unhandled rejection.
-      void pullList(listId).catch(() => {}).finally(() => setPulled(true));
-    }, [listId]),
-  );
+  useFocusEffect(() => {
+    // Background refresh: errors surface via the sync banner, not an unhandled rejection.
+    void pullList(listId).catch(() => {}).finally(() => setPulled(true));
+  });
 
   useListPolling(listId);
 
@@ -270,11 +261,8 @@ export function ListDetailScreen() {
     [flashes],
   );
 
-  const visibleItems = useMemo(() => items.filter(i => !pendingDeletes.has(i.id)), [items, pendingDeletes]);
-  const rows = useMemo(
-    () => rowsForMode(visibleItems, expanded, completedMode, heldCompleted),
-    [visibleItems, expanded, completedMode, heldCompleted],
-  );
+  const visibleItems = items.filter(i => !pendingDeletes.has(i.id));
+  const rows = rowsForMode(visibleItems, expanded, completedMode, heldCompleted);
 
   // Freeze the rendered data while a drag is active: a mirror reload landing mid-gesture (a sync
   // pull or another device's edit) would otherwise swap the rows under the drag and snap it.
@@ -290,17 +278,14 @@ export function ListDetailScreen() {
   // Index of the first completed row in 'below' mode — the COMPLETED header renders above it.
   // Derived from the rendered array so it stays consistent while rows are frozen mid-drag. A held
   // row still sits in the open section, so it must not be taken for the section start.
-  const firstCompletedIndex = useMemo(
-    () => (completedMode === 'below' ? listData.findIndex(r => r?.item.completed && !heldCompleted.has(r.item.id)) : -1),
-    [completedMode, listData, heldCompleted],
-  );
+  const firstCompletedIndex = completedMode === 'below' ? listData.findIndex(r => r?.item.completed && !heldCompleted.has(r.item.id)) : -1;
 
-  const refresh = useCallback(async () => {
+  async function refresh() {
     setRefreshing(true);
     await pullList(listId)
       .catch(() => toastError('Sync failed'))
       .finally(() => setRefreshing(false));
-  }, [listId]);
+  }
 
   async function addItem() {
     const t = oneLine(title).trim();
@@ -315,8 +300,7 @@ export function ListDetailScreen() {
     }
   }
 
-  // Row callbacks are stable (useCallback) so the memoized TaskRow can bail out of re-renders.
-  const toggle = useCallback(async (it: ItemState) => {
+  const toggle = async (it: ItemState) => {
     if (!it.completed) hapticSuccess(); // satisfying tick when checking a task off
     const kind = it.completed ? 'item.reopen' : 'item.complete';
     try {
@@ -324,7 +308,7 @@ export function ListDetailScreen() {
     } catch {
       toastError("Couldn't update item");
     }
-  }, [listId]);
+  };
 
   // Read through a ref: depending on `items` would hand every row a new callback on each change.
   const itemsRef = useRef(items);
@@ -332,29 +316,29 @@ export function ListDetailScreen() {
     itemsRef.current = items;
   }, [items]);
 
-  const toggleExpand = useCallback((id: string) => {
+  const toggleExpand = (id: string) => {
     setExpanded(prev => (prev.has(id) ? collapseDescendants(prev, id, itemsRef.current) : new Set(prev).add(id)));
-  }, []);
+  };
 
-  const onDelete = useCallback((it: ItemState) => {
+  const onDelete = (it: ItemState) => {
     hapticImpact();
     requestItemDeleteMany(listId, [it.id, ...descendantIds(itemsRef.current, it.id)]);
-  }, [listId]);
+  };
 
-  const openTask = useCallback((it: ItemState) => {
+  const openTask = (it: ItemState) => {
     nav.navigate('TaskDetail', { listId, itemId: it.id });
-  }, [nav, listId]);
+  };
 
-  const setPriority = useCallback(async (it: ItemState, priority: number) => {
+  const setPriority = async (it: ItemState, priority: number) => {
     if (priority === it.priority) return;
     try {
       await enqueue({ ...stamp(), kind: 'item.priority', listId, itemId: it.id, priority });
     } catch {
       toastError("Couldn't update priority");
     }
-  }, [listId]);
+  };
 
-  const onReorder = useCallback(({ from, to }: { from: number; to: number }) => {
+  const onReorder = ({ from, to }: { from: number; to: number }) => {
     setDragging(false);
     // Indices refer to the data the list was rendered with — the frozen rows during a drag.
     const dragRows = rendered.current.listData;
@@ -377,33 +361,22 @@ export function ListDetailScreen() {
       setFrozen({ rows: reorderItems(dragRows, from, to), sourceRows: rendered.current.rows });
       void enqueue({ ...stamp(), kind: 'item.move', listId, itemId: draggedId, ...target }).catch(() => toastError("Couldn't move item"));
     }
-  }, [completedMode, heldCompleted, listId]);
+  };
 
-  // Every prop the list gets is kept stable: a new one re-renders each cell, and a cell re-render
-  // re-runs its Reanimated hooks — ~300ms for a long list, several times per tick.
-  const freezeForDrag = useCallback(() => {
+  const freezeForDrag = () => {
     setFrozen({ rows: rendered.current.listData, sourceRows: rendered.current.rows });
     setDragging(true);
-  }, []);
-  const onDragStart = useCallback(() => {
+  };
+  const onDragStart = () => {
     'worklet';
     runOnJS(hapticImpact)(); // "pickup" thunk when a row is grabbed to reorder
     runOnJS(freezeForDrag)();
-  }, [freezeForDrag]);
-  const onDragEnd = useCallback(() => {
+  };
+  const onDragEnd = () => {
     'worklet';
     runOnJS(setDragging)(false);
-  }, []);
-  const contentContainerStyle = useMemo(() => ({ paddingBottom: insets.bottom + spacing.md }), [insets.bottom]);
-  const refreshControl = useMemo(
-    () => <RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} />,
-    [refreshing, refresh],
-  );
-  const listEmpty = useMemo(
-    () => (pulled ? <Text style={styles.empty}>No tasks yet.</Text> : <ActivityIndicator style={styles.loading} color={c.textSubtle} />),
-    [pulled, styles, c],
-  );
-  const renderItem = useCallback(({ item: row, index }: { item: (typeof listData)[number]; index: number }) =>
+  };
+  const renderItem = ({ item: row, index }: { item: (typeof listData)[number]; index: number }) =>
     !row?.item ? null : (
       <>
         {index === firstCompletedIndex ? <Text style={styles.completedHeader}>COMPLETED</Text> : null}
@@ -428,8 +401,7 @@ export function ListDetailScreen() {
           onDelete={onDelete}
         />
       </>
-    ),
-  [firstCompletedIndex, canEdit, completedMode, isShopping, assigneeNames, simplePriority, flashes, expanded, styles, c, toggle, openTask, toggleExpand, setPriority, onDelete]);
+    );
 
   return (
     <View style={styles.fill}>
@@ -462,12 +434,12 @@ export function ListDetailScreen() {
         maxToRenderPerBatch={10}
         windowSize={5}
         itemLayoutAnimation={listLayoutAnimation}
-        contentContainerStyle={contentContainerStyle}
+        contentContainerStyle={{ paddingBottom: insets.bottom + spacing.md }}
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
         onReorder={onReorder}
-        refreshControl={refreshControl}
-        ListEmptyComponent={listEmpty}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} />}
+        ListEmptyComponent={pulled ? <Text style={styles.empty}>No tasks yet.</Text> : <ActivityIndicator style={styles.loading} color={c.textSubtle} />}
         renderItem={renderItem}
       />
     </View>

@@ -11,7 +11,7 @@ const backend = process.env.BACKEND_ORIGIN ?? "http://localhost:5180";
 const proxied = ["/api", "/auth", "/signin-oidc", "/signout-callback-oidc", "/livez", "/readyz"];
 
 export default defineConfig({
-  plugins: [react(), babel({ presets: [reactCompilerPreset()] }), tailwindcss()],
+  plugins: [react(), babel({ presets: [reactCompilerPreset({ panicThreshold: "all_errors" })] }), tailwindcss()],
   server: {
     port: 5173,
     proxy: Object.fromEntries(

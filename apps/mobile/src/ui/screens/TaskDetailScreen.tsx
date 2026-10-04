@@ -89,7 +89,7 @@ export function TaskDetailScreen() {
   const subtasksDone = subtasks.filter(s => s.completed).length;
   const due = formatDue(item?.dueAt);
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
 
   // Header shows a sync dot for this task so saves are visibly persisted (nothing when synced).
   useLayoutEffect(() => {

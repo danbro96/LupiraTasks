@@ -58,12 +58,9 @@ export function useMemberList(listId: string) {
   });
 
   const list = metaQuery.data;
-  const items = useMemo(() => itemsQuery.data ?? [], [itemsQuery.data]);
-  const members = useMemo(() => list?.members ?? [], [list]);
-  const tagsById = useMemo(
-    () => new Map<string, TagDto>((list?.tags ?? []).map(t => [t.id, t])),
-    [list],
-  );
+  const items = itemsQuery.data ?? [];
+  const members = list?.members ?? [];
+  const tagsById = new Map<string, TagDto>((list?.tags ?? []).map(t => [t.id, t]));
 
   const myRole = list?.access;
   const canEdit = myRole === 'Owner' || myRole === 'Editor';
@@ -194,45 +191,42 @@ export function useMemberList(listId: string) {
     ...optimistic<{ ids: string[] }>((curr, { ids }) => curr.filter(it => !ids.includes(it.id))),
   });
 
-  const actions = useMemo(
-    () => ({
-      addTask(title: string, parentItemId: string | null = null) {
-        const sortOrder = parentItemId ? nextChildSortOrder(items, parentItemId) : topSortOrder(items);
-        addMut.mutate({ id: newId(), title, sortOrder, parentItemId });
-      },
-      rename(itemId: string, title: string) {
-        updateMut.mutate({ itemId, body: { title, titleProvided: true } });
-      },
-      setNotes(itemId: string, notes: string | null) {
-        updateMut.mutate({ itemId, body: { notes, notesProvided: true } });
-      },
-      setDue(itemId: string, dueAt: string | null) {
-        updateMut.mutate({ itemId, body: { dueAt, dueAtProvided: true } });
-      },
-      setQuantity(itemId: string, quantity: number | null, unit: string | null) {
-        updateMut.mutate({ itemId, body: { quantity, unit, quantityProvided: true } });
-      },
-      setPriority(itemId: string, priority: number) {
-        updateMut.mutate({ itemId, body: { priority, priorityProvided: true } });
-      },
-      setAssignee(itemId: string, email: string | null) {
-        updateMut.mutate({ itemId, body: { assigneeEmail: email, assigneeEmailProvided: true } });
-      },
-      toggleTag(itemId: string, tagId: string, on: boolean) {
-        updateMut.mutate({ itemId, body: on ? { addTagIds: [tagId] } : { removeTagIds: [tagId] } });
-      },
-      toggleComplete(item: { id: string; completed: boolean }) {
-        toggleMut.mutate({ id: item.id, completed: item.completed });
-      },
-      move(itemId: string, sortOrder: string, parentItemId: string | null) {
-        moveMut.mutate({ itemId, sortOrder, parentItemId });
-      },
-      remove(item: { id: string }) {
-        deleteMut.mutate({ ids: [item.id, ...descendantIds(items, item.id)] });
-      },
-    }),
-    [items, addMut, updateMut, toggleMut, moveMut, deleteMut],
-  );
+  const actions = {
+    addTask(title: string, parentItemId: string | null = null) {
+      const sortOrder = parentItemId ? nextChildSortOrder(items, parentItemId) : topSortOrder(items);
+      addMut.mutate({ id: newId(), title, sortOrder, parentItemId });
+    },
+    rename(itemId: string, title: string) {
+      updateMut.mutate({ itemId, body: { title, titleProvided: true } });
+    },
+    setNotes(itemId: string, notes: string | null) {
+      updateMut.mutate({ itemId, body: { notes, notesProvided: true } });
+    },
+    setDue(itemId: string, dueAt: string | null) {
+      updateMut.mutate({ itemId, body: { dueAt, dueAtProvided: true } });
+    },
+    setQuantity(itemId: string, quantity: number | null, unit: string | null) {
+      updateMut.mutate({ itemId, body: { quantity, unit, quantityProvided: true } });
+    },
+    setPriority(itemId: string, priority: number) {
+      updateMut.mutate({ itemId, body: { priority, priorityProvided: true } });
+    },
+    setAssignee(itemId: string, email: string | null) {
+      updateMut.mutate({ itemId, body: { assigneeEmail: email, assigneeEmailProvided: true } });
+    },
+    toggleTag(itemId: string, tagId: string, on: boolean) {
+      updateMut.mutate({ itemId, body: on ? { addTagIds: [tagId] } : { removeTagIds: [tagId] } });
+    },
+    toggleComplete(item: { id: string; completed: boolean }) {
+      toggleMut.mutate({ id: item.id, completed: item.completed });
+    },
+    move(itemId: string, sortOrder: string, parentItemId: string | null) {
+      moveMut.mutate({ itemId, sortOrder, parentItemId });
+    },
+    remove(item: { id: string }) {
+      deleteMut.mutate({ ids: [item.id, ...descendantIds(items, item.id)] });
+    },
+  };
 
   return { query, list, items, canEdit, tagsById, members, actions, changes };
 }

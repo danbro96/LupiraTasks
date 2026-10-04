@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Linking, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import * as AuthSession from 'expo-auth-session';
@@ -88,7 +88,7 @@ export function LoginScreen() {
   }
   const debugEnabled = usePrefs(s => s.debugEnabled);
   const c = useColors();
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = makeStyles(c);
 
   // Surface the static config once so it can be compared to the Authentik provider.
   useEffect(() => {
