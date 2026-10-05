@@ -15,8 +15,10 @@ import { useAuth } from '../../state/auth-store';
 import type { RootStackParamList } from './types';
 import { StyleSheet, View } from 'react-native';
 import { IconButton } from '@danbro96/lupira-expo-paper/components/IconButton';
+import { HeaderActions } from '@danbro96/lupira-expo-paper/components/HeaderActions';
+import { useStackScreenOptions } from '@danbro96/lupira-expo-paper/hooks/useStackScreenOptions';
 import { ICONS } from '../icons';
-import { SettingsButton } from '@danbro96/lupira-expo-paper/components/SettingsButton';
+import { AccountMenu } from '../components/AccountMenu';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -24,7 +26,7 @@ export function RootStack() {
   const authed = useAuth(s => !!s.token && !!s.user);
 
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={useStackScreenOptions()}>
       {authed ? (
         <>
           <Stack.Screen
@@ -34,8 +36,8 @@ export function RootStack() {
               title: 'Lupira Tasks',
               headerRight: () => (
                 <View style={styles.headerBtns}>
-                  <IconButton name={ICONS.add} accessibilityLabel="New list" onPress={() => navigation.navigate('CreateList')} />
-                  <SettingsButton />
+                  <HeaderActions actions={[{ icon: ICONS.add, label: 'New list', onPress: () => navigation.navigate('CreateList') }]} />
+                  <AccountMenu />
                 </View>
               ),
             })}
@@ -72,5 +74,5 @@ export function RootStack() {
 }
 
 const styles = StyleSheet.create({
-  headerBtns: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  headerBtns: { flexDirection: 'row', alignItems: 'center' },
 });

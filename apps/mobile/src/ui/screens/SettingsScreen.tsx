@@ -1,19 +1,18 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { List, Switch, Text } from 'react-native-paper';
+import { List, Switch } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-import { Button } from '@danbro96/lupira-expo-paper/components/Button';
+import { Screen } from '@danbro96/lupira-expo-paper/components/Screen';
+import { IdentityHeader } from '@danbro96/lupira-expo-paper/components/IdentityHeader';
+import { VersionLine } from '@danbro96/lupira-expo-paper/components/VersionLine';
 import { SegmentedPicker } from '@danbro96/lupira-expo-paper/components/SegmentedPicker';
 import { SyncBanner } from '../components/SyncBanner';
-import { useConfirm } from '@danbro96/lupira-expo-paper/components/ConfirmDialog';
 import { useAuth } from '../../state/auth-store';
 import { usePrefs, type RowSpacing, type TextSize } from '../../state/prefs-store';
 import { APP_VERSION } from '../../config';
 import { UPDATE_LABEL } from '@danbro96/lupira-expo-diagnostics/buildInfo';
-import { radii, spacing, useColors, type Palette } from '../theme';
-import { ICONS } from '../icons';
+import { spacing } from '../theme';
 
 const TEXT_SIZES = ['small', 'default', 'large'] as const;
 const TEXT_SIZE_LABELS: Record<TextSize, string> = { small: 'Small', default: 'Default', large: 'Large' };
@@ -26,37 +25,14 @@ export function SettingsScreen() {
   const debugEnabled = usePrefs(s => s.debugEnabled);
   const textSize = usePrefs(s => s.textSize);
   const rowSpacing = usePrefs(s => s.rowSpacing);
-  const confirm = useConfirm();
-  const c = useColors();
-  const styles = makeStyles(c);
-
-  async function signOut() {
-    const ok = await confirm({
-      title: 'Sign out?',
-      message: 'You will need to sign in with Authentik again to get back in.',
-      confirmLabel: 'Sign out',
-      destructive: true,
-    });
-    if (ok) await useAuth.getState().clearSession();
-  }
 
   return (
-    <View style={styles.fill}>
-      <SyncBanner />
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.identity}>
-          <View style={styles.avatar}>
-            <MaterialIcons name={ICONS.account} size={32} color={c.onPrimary} />
-          </View>
-          {user?.displayName ? <Text variant="titleLarge">{user.displayName}</Text> : null}
-          <Text variant="bodySmall" style={styles.email}>{user?.sub ?? 'Not signed in'}</Text>
-        </View>
+    <Screen banner={<SyncBanner />}>
+      <ScrollView>
+        <IdentityHeader name={user?.displayName ?? user?.sub ?? 'Not signed in'} sub={user?.displayName ? user.sub : undefined} />
 
         <List.Subheader>Account</List.Subheader>
         <List.Item title="Archived lists" onPress={() => nav.navigate('ArchivedLists')} />
-        <View style={styles.action}>
-          <Button title="Sign out" variant="destructive" onPress={() => void signOut()} />
-        </View>
 
         <List.Subheader>Display</List.Subheader>
         <List.Item title="Task text size" />
@@ -78,9 +54,6 @@ export function SettingsScreen() {
           />
         </View>
 
-        <List.Subheader>About</List.Subheader>
-        <Text variant="labelSmall" style={styles.version}>Lupira Tasks v{APP_VERSION} · {UPDATE_LABEL}</Text>
-
         <List.Subheader>Developer</List.Subheader>
         <List.Item
           title="Enable debug"
@@ -96,27 +69,14 @@ export function SettingsScreen() {
         {debugEnabled ? (
           <List.Item title="Developer options" onPress={() => nav.navigate('Developer')} />
         ) : null}
+
+        <List.Subheader>About</List.Subheader>
+        <VersionLine app="Lupira Tasks" version={APP_VERSION} updateLabel={UPDATE_LABEL} />
       </ScrollView>
-    </View>
+    </Screen>
   );
 }
 
-const makeStyles = (c: Palette) =>
-  StyleSheet.create({
-    fill: { flex: 1, backgroundColor: c.bg },
-    content: { paddingBottom: spacing.xxl },
-    identity: { alignItems: 'center', paddingTop: spacing.xl, paddingBottom: spacing.lg },
-    avatar: {
-      width: 72,
-      height: 72,
-      borderRadius: radii.round,
-      backgroundColor: c.primary,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: spacing.lg,
-    },
-    email: { color: c.textMuted },
-    action: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
-    picker: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
-    version: { color: c.textSubtle, paddingHorizontal: spacing.lg },
-  });
+const styles = StyleSheet.create({
+  picker: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
+});

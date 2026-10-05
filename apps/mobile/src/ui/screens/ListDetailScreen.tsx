@@ -1,7 +1,6 @@
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, RefreshControl, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -211,7 +210,6 @@ export function ListDetailScreen() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const c = useColors();
   const styles = makeStyles(c, TEXT_SIZE_SCALE[textSize], ROW_SPACING_PAD[rowSpacing]);
-  const insets = useSafeAreaInsets();
   // Gate the reorder drag behind a long-press so it doesn't claim the quick horizontal swipes used
   // for swipe-to-delete (slightly longer than the row's 500ms delayLongPress, per the lib's guidance).
   const [dragGesture] = useState(() => Gesture.Pan().activateAfterLongPress(520));
@@ -435,7 +433,7 @@ export function ListDetailScreen() {
         maxToRenderPerBatch={10}
         windowSize={5}
         itemLayoutAnimation={listLayoutAnimation}
-        contentContainerStyle={{ paddingBottom: insets.bottom + spacing.md }}
+        contentContainerStyle={{ paddingBottom: spacing.md }}
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
         onReorder={onReorder}
