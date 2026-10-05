@@ -1,20 +1,17 @@
-import type { ItemDto } from '@lupira/tasks-api/models';
-import { type ItemState, ZERO_GUID } from './itemState';
-
-// Server snapshot → mirror ItemState mapping. Pure (no SQLite/API), so the seeding rules are
-// unit-testable on their own.
+import type { ItemSyncChange } from '@lupira/tasks-api/models';
+import type { ItemState } from './itemState';
 
 /**
- * The /sync endpoint returns current values, not events, so we seed every per-field guard at
- * the item's `updatedAt`: a pending local edit with a later `occurredAt` then wins on rebase,
- * an older one loses (v1 uses a single uniform guard per item — good enough at family scale;
- * per-field guards are a later refinement).
+ * A pulled item as the reducer's state. The guards come from the server per field, so a pending local edit
+ * rebases against the write that actually owns each field rather than the item's last change.
  */
-export function itemResponseToState(r: ItemDto): ItemState {
-  const ts = r.updatedAt;
+export function itemFromWire({ item: r, guards: g }: ItemSyncChange): ItemState {
   const tagTs: Record<string, string> = {};
   const tagCmd: Record<string, string> = {};
-  for (const t of r.tags) { tagTs[t] = ts; tagCmd[t] = ZERO_GUID; }
+  for (const [tagId, guard] of Object.entries(g.tags)) {
+    tagTs[tagId] = guard.ts;
+    tagCmd[tagId] = guard.cmd;
+  }
   return {
     id: r.id, listId: r.listId, parentItemId: r.parentItemId ?? null,
     title: r.title, notes: r.notes ?? null,
@@ -25,9 +22,14 @@ export function itemResponseToState(r: ItemDto): ItemState {
     tags: [...r.tags], sortOrder: r.sortOrder,
     createdBy: r.createdBy?.principalId ?? null, createdAt: r.createdAt, updatedAt: r.updatedAt,
     deleted: false,
-    nameTs: ts, nameCmd: ZERO_GUID, notesTs: ts, notesCmd: ZERO_GUID,
-    assigneeTs: ts, assigneeCmd: ZERO_GUID, dueTs: ts, dueCmd: ZERO_GUID,
-    qtyTs: ts, qtyCmd: ZERO_GUID, priorityTs: ts, priorityCmd: ZERO_GUID, completedTs: ts, completedCmd: ZERO_GUID, moveTs: ts, moveCmd: ZERO_GUID,
+    nameTs: g.name.ts, nameCmd: g.name.cmd,
+    notesTs: g.notes.ts, notesCmd: g.notes.cmd,
+    assigneeTs: g.assignee.ts, assigneeCmd: g.assignee.cmd,
+    dueTs: g.due.ts, dueCmd: g.due.cmd,
+    qtyTs: g.qty.ts, qtyCmd: g.qty.cmd,
+    priorityTs: g.priority.ts, priorityCmd: g.priority.cmd,
+    completedTs: g.status.ts, completedCmd: g.status.cmd,
+    moveTs: g.move.ts, moveCmd: g.move.cmd,
     tagTs, tagCmd,
   };
 }

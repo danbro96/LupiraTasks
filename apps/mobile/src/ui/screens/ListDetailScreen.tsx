@@ -19,21 +19,18 @@ import { TextField } from '@danbro96/lupira-expo-paper/components/TextField';
 import { SyncBanner } from '../components/SyncBanner';
 import { SyncDot } from '../components/SyncDot';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
-import { useItems, useLists } from '../hooks/useMirror';
+import { useList } from '../../state/lists';
+import { useItems, useRemoteChanges } from '../../state/items';
+import { useOpStatus } from '../../state/outbox';
+import { syncNow } from '../../state/syncStatus';
+import * as commands from '../../state/commands';
 import { useListPolling } from '../hooks/useListPolling';
-import { useOpStatus } from '../hooks/useOutboxStatus';
 import { useMyRole, canEditWithRole } from '../hooks/useMyRole';
-import { usePendingDeletes, requestItemDeleteMany } from '../state/pendingDeletes';
 import { ROW_SPACING_PAD, TEXT_SIZE_SCALE, usePrefs } from '../../state/prefs-store';
 import { collapseDescendants, descendantIds, rowsForMode, siblingReorder, topSortOrder } from '@lupira/tasks-domain/itemTree';
 import { changeLabel, type ItemChange, type ItemChangeKind } from '@lupira/tasks-domain/itemChange';
 import { qtyLabel } from '@lupira/tasks-domain/itemFormat';
 import { oneLine } from '@lupira/tasks-domain/text';
-import { enqueue } from '../../sync/outbox';
-import { getDb } from '../../data/db/expoDb';
-import { pullList } from '../../sync/sync';
-import { newId } from '@lupira/tasks-domain/ids';
-import { stamp } from '../../domain/ops';
 import { formatDue } from '@lupira/tasks-domain/dueDate';
 import { spacing, useColors, type Palette } from '../theme';
 import { ICONS } from '../icons';
@@ -191,14 +188,13 @@ export function ListDetailScreen() {
   const { params } = useRoute<RouteProp<RootStackParamList, 'ListDetail'>>();
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const listId = params.listId;
-  const { items, changes } = useItems(listId);
-  const { lists } = useLists();
-  const list = lists.find(l => l.id === listId);
+  const { items } = useItems(listId);
+  const changes = useRemoteChanges(listId, items);
+  const { list } = useList(listId);
   const color = list?.color ?? null;
   const isShopping = list?.kind === ListKind.Shopping;
   const simplePriority = list?.simplePriority ?? true;
   const assigneeNames = new Map((list?.members ?? []).map(m => [m.principalId, m.displayName ?? m.email] as const));
-  const pendingDeletes = usePendingDeletes();
   const role = useMyRole(listId);
   const canEdit = canEditWithRole(role);
   const completedMode = usePrefs(s => s.completedMode[listId] ?? 'inline');
@@ -217,8 +213,8 @@ export function ListDetailScreen() {
   // Pull on focus (not just mount): native-stack keeps this screen mounted when TaskDetail /
   // ListSettings are pushed on top, so a mount-only effect would leave tasks stale on return.
   useFocusEffect(() => {
-    // Background refresh: errors surface via the sync banner, not an unhandled rejection.
-    void getDb().then(db => pullList(db, listId)).catch(() => {}).finally(() => setPulled(true));
+    // Background refresh: errors surface via the sync banner.
+    void syncNow().then(() => setPulled(true));
   });
 
   useListPolling(listId);
@@ -260,8 +256,7 @@ export function ListDetailScreen() {
     [flashes],
   );
 
-  const visibleItems = items.filter(i => !pendingDeletes.has(i.id));
-  const rows = rowsForMode(visibleItems, expanded, completedMode, heldCompleted);
+  const rows = rowsForMode(items, expanded, completedMode, heldCompleted);
 
   // Freeze the rendered data while a drag is active: a mirror reload landing mid-gesture (a sync
   // pull or another device's edit) would otherwise swap the rows under the drag and snap it.
@@ -281,9 +276,8 @@ export function ListDetailScreen() {
 
   async function refresh() {
     setRefreshing(true);
-    await getDb().then(db => pullList(db, listId))
-      .catch(() => toastError('Sync failed'))
-      .finally(() => setRefreshing(false));
+    if (!(await syncNow())) toastError('Sync failed');
+    setRefreshing(false);
   }
 
   async function addItem() {
@@ -293,7 +287,7 @@ export function ListDetailScreen() {
     // New tasks from the list view are always top-level and go to the top.
     const sortOrder = topSortOrder(items);
     try {
-      await enqueue(await getDb(), { ...stamp(), kind: 'item.create', listId, itemId: newId(), title: t, sortOrder, parentItemId: null });
+      await commands.addItem(listId, t, sortOrder, null);
     } catch {
       toastError("Couldn't add item");
     }
@@ -301,9 +295,8 @@ export function ListDetailScreen() {
 
   const toggle = async (it: ItemState) => {
     if (!it.completed) hapticSuccess(); // satisfying tick when checking a task off
-    const kind = it.completed ? 'item.reopen' : 'item.complete';
     try {
-      await enqueue(await getDb(), { ...stamp(), kind, listId, itemId: it.id });
+      await commands.setCompleted(listId, it.id, !it.completed);
     } catch {
       toastError("Couldn't update item");
     }
@@ -321,7 +314,7 @@ export function ListDetailScreen() {
 
   const onDelete = (it: ItemState) => {
     hapticImpact();
-    requestItemDeleteMany(listId, [it.id, ...descendantIds(itemsRef.current, it.id)]);
+    commands.deleteItems(listId, [it.id, ...descendantIds(itemsRef.current, it.id)]).catch(() => toastError("Couldn't delete item"));
   };
 
   const openTask = (it: ItemState) => {
@@ -331,7 +324,7 @@ export function ListDetailScreen() {
   const setPriority = async (it: ItemState, priority: number) => {
     if (priority === it.priority) return;
     try {
-      await enqueue(await getDb(), { ...stamp(), kind: 'item.priority', listId, itemId: it.id, priority });
+      await commands.setPriority(listId, it.id, priority);
     } catch {
       toastError("Couldn't update priority");
     }
@@ -358,7 +351,7 @@ export function ListDetailScreen() {
     const target = siblingReorder(scope, draggedId);
     if (target) {
       setFrozen({ rows: reorderItems(dragRows, from, to), sourceRows: rendered.current.rows });
-      void getDb().then(db => enqueue(db, { ...stamp(), kind: 'item.move', listId, itemId: draggedId, ...target })).catch(() => toastError("Couldn't move item"));
+      commands.moveItem(listId, draggedId, target).catch(() => toastError("Couldn't move item"));
     }
   };
 

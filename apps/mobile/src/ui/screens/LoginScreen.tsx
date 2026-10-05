@@ -5,7 +5,6 @@ import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { OIDC_CLIENT_ID, OIDC_ISSUER, OIDC_REDIRECT_PATH, OIDC_SCHEME, OIDC_SCOPES } from '../../data/auth/oidcConfig';
-import { decodeJwt } from '@danbro96/lupira-expo-oidc/oidc';
 import { oidc } from '../../data/auth/oidc';
 import { logDebug, clearDebugLog } from '@danbro96/lupira-expo-diagnostics/log';
 import { Button } from '@danbro96/lupira-expo-paper/components/Button';
@@ -45,18 +44,7 @@ async function exchangeCodeForSession(
       'exchange:ok',
       `accessToken=${!!token.accessToken} idToken=${!!token.idToken} refresh=${!!token.refreshToken} expiresIn=${token.expiresIn ?? 'n/a'}`,
     );
-    const claims = decodeJwt(token.idToken ?? token.accessToken);
-    const email = (claims.email as string) ?? (claims.preferred_username as string) ?? (claims.sub as string) ?? '';
-    const name = (claims.name as string) ?? (claims.given_name as string) ?? undefined;
-    logDebug('decode', `email=${email ? 'present' : 'EMPTY'} name=${name ? 'present' : 'none'}`);
-    await useAuth.getState().setSession(
-      {
-        accessToken: token.accessToken,
-        refreshToken: token.refreshToken,
-        expiresAt: Date.now() + (token.expiresIn ?? 3600) * 1000,
-      },
-      { sub: email, displayName: name },
-    );
+    await useAuth.getState().setSession(token);
     logDebug('setSession', 'authed=true');
   } catch (e) {
     const err = e as { code?: string; description?: string; message?: string };

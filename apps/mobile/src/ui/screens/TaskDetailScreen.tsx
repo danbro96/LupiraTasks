@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, List, Text } from 'react-native-paper';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
@@ -17,21 +17,23 @@ import { SyncBanner } from '../components/SyncBanner';
 import { SyncDot } from '../components/SyncDot';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { hapticSuccess } from '@danbro96/lupira-expo-feedback/haptics';
-import { useItems, useLists } from '../hooks/useMirror';
+import { useList } from '../../state/lists';
+import { useItems } from '../../state/items';
+import { useOpStatus } from '../../state/outbox';
+import { useDirectory } from '../../state/directory';
+import * as commands from '../../state/commands';
 import { useMyRole, canEditWithRole } from '../hooks/useMyRole';
-import { useOpStatus } from '../hooks/useOutboxStatus';
-import { useDirectory } from '../hooks/useDirectory';
-import { requestItemDeleteMany } from '../state/pendingDeletes';
 import { childrenOf, nextChildSortOrder, descendantIds } from '@lupira/tasks-domain/itemTree';
 import { priorityLabel } from '@lupira/tasks-domain/itemFormat';
-import { enqueue } from '../../sync/outbox';
-import { getDb } from '../../data/db/expoDb';
-import { newId } from '@lupira/tasks-domain/ids';
-import { stamp } from '../../domain/ops';
 import { oneLine } from '@lupira/tasks-domain/text';
 import { dueInDays, dueNextWeekend, dueOnDate, formatDue } from '@lupira/tasks-domain/dueDate';
 import { radii, spacing, useColors, type Palette } from '../theme';
 import { ICONS } from '../icons';
+
+const parseQuantity = (raw: string): number | null => {
+  const parsed = raw.trim() === '' ? null : Number(raw.trim());
+  return parsed != null && Number.isFinite(parsed) ? parsed : null;
+};
 
 const DUE_QUICK: { label: string; iso: () => string }[] = [
   { label: 'Today', iso: () => dueInDays(0) },
@@ -46,9 +48,8 @@ export function TaskDetailScreen() {
   const { listId, itemId } = params;
 
   const { items, loading } = useItems(listId);
-  const { lists } = useLists();
+  const { list } = useList(listId);
   const item = items.find(i => i.id === itemId);
-  const list = lists.find(l => l.id === listId);
   const canEdit = canEditWithRole(useMyRole(listId));
   const isShopping = list?.kind === ListKind.Shopping;
   const status = useOpStatus(itemId);
@@ -63,8 +64,7 @@ export function TaskDetailScreen() {
   const [assigneeMenu, setAssigneeMenu] = useState(false);
   const [iosDate, setIosDate] = useState<Date | null>(null);
 
-  // Latest field values + last-persisted baselines, so we can flush unsaved edits on unmount
-  // (hardware/gesture back doesn't reliably fire onBlur) without re-enqueueing saved text.
+  // Latest field values + last-saved baselines, so a save only queues what actually changed.
   const titleRef = useRef(title);
   const notesRef = useRef(notes);
   const qtyRef = useRef(qty);
@@ -104,25 +104,35 @@ export function TaskDetailScreen() {
     });
   }, [nav, status, styles]);
 
-  useEffect(() => {
-    return () => {
-      const t = titleRef.current.trim();
-      if (t && t !== savedTitle.current) {
-        void getDb().then(db => enqueue(db, { ...stamp(), kind: 'item.rename', listId, itemId, title: t })).catch(() => {});
-      }
-      const n = notesRef.current.trim() || null;
-      if ((n ?? null) !== (savedNotes.current || null)) {
-        void getDb().then(db => enqueue(db, { ...stamp(), kind: 'item.notes', listId, itemId, notes: n })).catch(() => {});
-      }
-      const parsed = qtyRef.current.trim() === '' ? null : Number(qtyRef.current.trim());
-      const quantity = parsed != null && Number.isFinite(parsed) ? parsed : null;
-      const u = unitRef.current.trim() || null;
-      const savedQ = savedQty.current === '' ? null : Number(savedQty.current);
-      if (quantity !== savedQ || (u ?? null) !== (savedUnit.current || null)) {
-        void getDb().then(db => enqueue(db, { ...stamp(), kind: 'item.quantity', listId, itemId, quantity, unit: u })).catch(() => {});
-      }
-    };
-  }, [listId, itemId]);
+  // One path for blur and the unmount flush (hardware/gesture back doesn't reliably fire onBlur).
+  const saveTitle = useCallback(() => {
+    const t = oneLine(titleRef.current).trim();
+    if (!t || t === savedTitle.current) return;
+    savedTitle.current = t;
+    commands.renameItem(listId, itemId, t).catch(() => toastError("Couldn't rename task"));
+  }, [listId, itemId, titleRef, savedTitle]);
+
+  const saveNotes = useCallback(() => {
+    const n = notesRef.current.trim() || null;
+    if (n === (savedNotes.current || null)) return;
+    savedNotes.current = n ?? '';
+    commands.setNotes(listId, itemId, n).catch(() => toastError("Couldn't save notes"));
+  }, [listId, itemId, notesRef, savedNotes]);
+
+  const saveQuantity = useCallback(() => {
+    const quantity = parseQuantity(qtyRef.current);
+    const u = unitRef.current.trim() || null;
+    if (quantity === parseQuantity(savedQty.current) && u === (savedUnit.current || null)) return;
+    savedQty.current = quantity != null ? String(quantity) : '';
+    savedUnit.current = u ?? '';
+    commands.setQuantity(listId, itemId, quantity, u).catch(() => toastError("Couldn't set quantity"));
+  }, [listId, itemId, qtyRef, unitRef, savedQty, savedUnit]);
+
+  useEffect(() => () => {
+    saveTitle();
+    saveNotes();
+    saveQuantity();
+  }, [saveTitle, saveNotes, saveQuantity]);
 
   // Seed editable fields once the item loads (hooks read asynchronously), and adopt refreshed
   // server values into fields the user hasn't touched (input still equals the last-saved
@@ -167,73 +177,32 @@ export function TaskDetailScreen() {
     }
   }
 
-  function saveTitle() {
-    const t = oneLine(titleRef.current).trim();
-    if (!t || t === savedTitle.current) return;
-    savedTitle.current = t;
-    void run(async () => enqueue(await getDb(), { ...stamp(), kind: 'item.rename', listId, itemId, title: t }), "Couldn't rename task");
-  }
-
-  function saveNotes() {
-    const n = notesRef.current.trim() || null;
-    if ((n ?? null) === (savedNotes.current || null)) return;
-    savedNotes.current = n ?? '';
-    void run(async () => enqueue(await getDb(), { ...stamp(), kind: 'item.notes', listId, itemId, notes: n }), "Couldn't save notes");
-  }
-
-  function saveQuantity() {
-    const parsed = qty.trim() === '' ? null : Number(qty.trim());
-    const qVal = parsed != null && Number.isFinite(parsed) ? parsed : null;
-    const u = unit.trim() || null;
-    if (qVal === (item!.quantity ?? null) && u === (item!.unit ?? null)) return;
-    savedQty.current = qVal != null ? String(qVal) : '';
-    savedUnit.current = u ?? '';
-    void run(async () => enqueue(await getDb(), { ...stamp(), kind: 'item.quantity', listId, itemId, quantity: qVal, unit: u }), "Couldn't set quantity");
-  }
-
-  const setDue = (iso: string | null) =>
-    run(async () => enqueue(await getDb(), { ...stamp(), kind: 'item.due', listId, itemId, dueAt: iso }), "Couldn't set due date");
+  const setDue = (iso: string | null) => run(() => commands.setDue(listId, itemId, iso), "Couldn't set due date");
 
   const setAssignee = (member: { principalId: string; email: string } | null) =>
-    run(
-      async () => enqueue(await getDb(), { ...stamp(), kind: 'item.assign', listId, itemId, assigneePrincipalId: member?.principalId ?? null, assigneeEmail: member?.email ?? null }),
-      "Couldn't assign task",
-    );
+    run(() => commands.assignItem(listId, itemId, member), "Couldn't assign task");
 
-  const setPriority = (priority: number) =>
-    run(async () => enqueue(await getDb(), { ...stamp(), kind: 'item.priority', listId, itemId, priority }), "Couldn't set priority");
+  const setPriority = (priority: number) => run(() => commands.setPriority(listId, itemId, priority), "Couldn't set priority");
 
   const toggleComplete = () => {
     if (!item!.completed) hapticSuccess();
-    return run(async () => enqueue(await getDb(), { ...stamp(), kind: item!.completed ? 'item.reopen' : 'item.complete', listId, itemId }), "Couldn't update task");
+    return run(() => commands.setCompleted(listId, itemId, !item!.completed), "Couldn't update task");
   };
 
   const toggleSub = (st: { id: string; completed: boolean }) => {
     if (!st.completed) hapticSuccess();
-    return run(async () => enqueue(await getDb(), { ...stamp(), kind: st.completed ? 'item.reopen' : 'item.complete', listId, itemId: st.id }), "Couldn't update subtask");
+    return run(() => commands.setCompleted(listId, st.id, !st.completed), "Couldn't update subtask");
   };
 
   async function addSubtask() {
     const t = oneLine(subTitle).trim();
     if (!t) return;
     setSubTitle('');
-    await run(
-      async () =>
-        enqueue(await getDb(), {
-          ...stamp(),
-          kind: 'item.create',
-          listId,
-          itemId: newId(),
-          title: t,
-          sortOrder: nextChildSortOrder(items, itemId),
-          parentItemId: itemId,
-        }),
-      "Couldn't add subtask",
-    );
+    await run(() => commands.addItem(listId, t, nextChildSortOrder(items, itemId), itemId), "Couldn't add subtask");
   }
 
   function onDelete() {
-    requestItemDeleteMany(listId, [itemId, ...descendantIds(items, itemId)], 'Task deleted');
+    commands.deleteItems(listId, [itemId, ...descendantIds(items, itemId)], 'Task deleted').catch(() => toastError("Couldn't delete task"));
     nav.goBack();
   }
 

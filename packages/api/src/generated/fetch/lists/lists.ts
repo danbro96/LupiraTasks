@@ -9,37 +9,12 @@ import type {
   CreateListRequest,
   ListDto,
   ListListsParams,
-  ProblemDetails,
   SetListOrderRequest,
   UpdateListRequest,
   UpdateMemberRoleRequest
 } from '../../models';
 
 import { apiRequest } from '../../../transport';
-
-export type listListsResponse200 = {
-  data: ListDto[]
-  status: 200
-}
-
-export type listListsResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type listListsResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type listListsResponseSuccess = (listListsResponse200) & {
-  headers: Headers;
-};
-export type listListsResponseError = (listListsResponse401 | listListsResponse500) & {
-  headers: Headers;
-};
-
-export type listListsResponse = (listListsResponseSuccess | listListsResponseError)
 
 export const getListListsUrl = (params?: ListListsParams,) => {
   const normalizedParams = new URLSearchParams();
@@ -60,9 +35,9 @@ export const getListListsUrl = (params?: ListListsParams,) => {
  * `?archived=true` returns the caller's archived lists instead of the active ones.
  * @summary List the lists the caller is a member of.
  */
-export const listLists = async (params?: ListListsParams, options?: Parameters<typeof apiRequest>[1]): Promise<listListsResponse> => {
+export const listLists = async (params?: ListListsParams, options?: Parameters<typeof apiRequest>[1]): Promise<ListDto[]> => {
 
-  return apiRequest<listListsResponse>(getListListsUrl(params),
+  return apiRequest<ListDto[]>(getListListsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -71,35 +46,6 @@ export const listLists = async (params?: ListListsParams, options?: Parameters<t
   }
 );}
 
-
-export type createListResponse200 = {
-  data: ListDto
-  status: 200
-}
-
-export type createListResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type createListResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type createListResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type createListResponseSuccess = (createListResponse200) & {
-  headers: Headers;
-};
-export type createListResponseError = (createListResponse400 | createListResponse401 | createListResponse500) & {
-  headers: Headers;
-};
-
-export type createListResponse = (createListResponseSuccess | createListResponseError)
 
 export const getCreateListUrl = () => {
 
@@ -113,7 +59,7 @@ export const getCreateListUrl = () => {
  * Body `{ id (GUIDv7), name, kind, color? }`. `kind` is `Todo`, `Shopping`, or `Agent` (agent/system-owned lists). Re-sending an existing id is an idempotent success.
  * @summary Create a list; the caller becomes Owner.
  */
-export const createList = async (createListRequest: CreateListRequest, options?: Parameters<typeof apiRequest>[1]): Promise<createListResponse> => {
+export const createList = async (createListRequest: CreateListRequest, options?: Parameters<typeof apiRequest>[1]): Promise<ListDto> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -129,7 +75,7 @@ export const createList = async (createListRequest: CreateListRequest, options?:
     }
     return headers;
   };
-return apiRequest<createListResponse>(getCreateListUrl(),
+return apiRequest<ListDto>(getCreateListUrl(),
   {
     ...options,
     method: 'POST',
@@ -138,35 +84,6 @@ return apiRequest<createListResponse>(getCreateListUrl(),
   }
 );}
 
-
-export type getListResponse200 = {
-  data: ListDto
-  status: 200
-}
-
-export type getListResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type getListResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type getListResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type getListResponseSuccess = (getListResponse200) & {
-  headers: Headers;
-};
-export type getListResponseError = (getListResponse401 | getListResponse404 | getListResponse500) & {
-  headers: Headers;
-};
-
-export type getListResponse = (getListResponseSuccess | getListResponseError)
 
 export const getGetListUrl = (listId: string,) => {
 
@@ -179,9 +96,9 @@ export const getGetListUrl = (listId: string,) => {
 /**
  * @summary Get a list with its members and tags (Viewer+).
  */
-export const getList = async (listId: string, options?: Parameters<typeof apiRequest>[1]): Promise<getListResponse> => {
+export const getList = async (listId: string, options?: Parameters<typeof apiRequest>[1]): Promise<ListDto> => {
 
-  return apiRequest<getListResponse>(getGetListUrl(listId),
+  return apiRequest<ListDto>(getGetListUrl(listId),
   {
     ...options,
     method: 'GET'
@@ -190,40 +107,6 @@ export const getList = async (listId: string, options?: Parameters<typeof apiReq
   }
 );}
 
-
-export type updateListResponse200 = {
-  data: ListDto
-  status: 200
-}
-
-export type updateListResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type updateListResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type updateListResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type updateListResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type updateListResponseSuccess = (updateListResponse200) & {
-  headers: Headers;
-};
-export type updateListResponseError = (updateListResponse400 | updateListResponse401 | updateListResponse404 | updateListResponse500) & {
-  headers: Headers;
-};
-
-export type updateListResponse = (updateListResponseSuccess | updateListResponseError)
 
 export const getUpdateListUrl = (listId: string,) => {
 
@@ -238,7 +121,7 @@ export const getUpdateListUrl = (listId: string,) => {
  * @summary Rename / recolor a list, or set its priority mode (Editor+).
  */
 export const updateList = async (listId: string,
-    updateListRequest: UpdateListRequest, options?: Parameters<typeof apiRequest>[1]): Promise<updateListResponse> => {
+    updateListRequest: UpdateListRequest, options?: Parameters<typeof apiRequest>[1]): Promise<ListDto> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -254,7 +137,7 @@ export const updateList = async (listId: string,
     }
     return headers;
   };
-return apiRequest<updateListResponse>(getUpdateListUrl(listId),
+return apiRequest<ListDto>(getUpdateListUrl(listId),
   {
     ...options,
     method: 'PATCH',
@@ -263,35 +146,6 @@ return apiRequest<updateListResponse>(getUpdateListUrl(listId),
   }
 );}
 
-
-export type deleteListResponse204 = {
-  data: void
-  status: 204
-}
-
-export type deleteListResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type deleteListResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type deleteListResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type deleteListResponseSuccess = (deleteListResponse204) & {
-  headers: Headers;
-};
-export type deleteListResponseError = (deleteListResponse401 | deleteListResponse404 | deleteListResponse500) & {
-  headers: Headers;
-};
-
-export type deleteListResponse = (deleteListResponseSuccess | deleteListResponseError)
 
 export const getDeleteListUrl = (listId: string,) => {
 
@@ -304,9 +158,9 @@ export const getDeleteListUrl = (listId: string,) => {
 /**
  * @summary Delete a list (Owner). Tombstone — stream retained.
  */
-export const deleteList = async (listId: string, options?: Parameters<typeof apiRequest>[1]): Promise<deleteListResponse> => {
+export const deleteList = async (listId: string, options?: Parameters<typeof apiRequest>[1]): Promise<void> => {
 
-  return apiRequest<deleteListResponse>(getDeleteListUrl(listId),
+  return apiRequest<void>(getDeleteListUrl(listId),
   {
     ...options,
     method: 'DELETE'
@@ -315,35 +169,6 @@ export const deleteList = async (listId: string, options?: Parameters<typeof api
   }
 );}
 
-
-export type archiveListResponse200 = {
-  data: ListDto
-  status: 200
-}
-
-export type archiveListResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type archiveListResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type archiveListResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type archiveListResponseSuccess = (archiveListResponse200) & {
-  headers: Headers;
-};
-export type archiveListResponseError = (archiveListResponse401 | archiveListResponse404 | archiveListResponse500) & {
-  headers: Headers;
-};
-
-export type archiveListResponse = (archiveListResponseSuccess | archiveListResponseError)
 
 export const getArchiveListUrl = (listId: string,) => {
 
@@ -356,9 +181,9 @@ export const getArchiveListUrl = (listId: string,) => {
 /**
  * @summary Archive a list (Owner). Soft — items retained.
  */
-export const archiveList = async (listId: string, options?: Parameters<typeof apiRequest>[1]): Promise<archiveListResponse> => {
+export const archiveList = async (listId: string, options?: Parameters<typeof apiRequest>[1]): Promise<ListDto> => {
 
-  return apiRequest<archiveListResponse>(getArchiveListUrl(listId),
+  return apiRequest<ListDto>(getArchiveListUrl(listId),
   {
     ...options,
     method: 'POST'
@@ -367,40 +192,6 @@ export const archiveList = async (listId: string, options?: Parameters<typeof ap
   }
 );}
 
-
-export type addListMemberResponse200 = {
-  data: ListDto
-  status: 200
-}
-
-export type addListMemberResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type addListMemberResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type addListMemberResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type addListMemberResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type addListMemberResponseSuccess = (addListMemberResponse200) & {
-  headers: Headers;
-};
-export type addListMemberResponseError = (addListMemberResponse400 | addListMemberResponse401 | addListMemberResponse404 | addListMemberResponse500) & {
-  headers: Headers;
-};
-
-export type addListMemberResponse = (addListMemberResponseSuccess | addListMemberResponseError)
 
 export const getAddListMemberUrl = (listId: string,) => {
 
@@ -415,7 +206,7 @@ export const getAddListMemberUrl = (listId: string,) => {
  * @summary Add a member by email (any member; defaults to Editor).
  */
 export const addListMember = async (listId: string,
-    addMemberRequest: AddMemberRequest, options?: Parameters<typeof apiRequest>[1]): Promise<addListMemberResponse> => {
+    addMemberRequest: AddMemberRequest, options?: Parameters<typeof apiRequest>[1]): Promise<ListDto> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -431,7 +222,7 @@ export const addListMember = async (listId: string,
     }
     return headers;
   };
-return apiRequest<addListMemberResponse>(getAddListMemberUrl(listId),
+return apiRequest<ListDto>(getAddListMemberUrl(listId),
   {
     ...options,
     method: 'POST',
@@ -440,45 +231,6 @@ return apiRequest<addListMemberResponse>(getAddListMemberUrl(listId),
   }
 );}
 
-
-export type updateListMemberResponse200 = {
-  data: ListDto
-  status: 200
-}
-
-export type updateListMemberResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type updateListMemberResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type updateListMemberResponse403 = {
-  data: ProblemDetails
-  status: 403
-}
-
-export type updateListMemberResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type updateListMemberResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type updateListMemberResponseSuccess = (updateListMemberResponse200) & {
-  headers: Headers;
-};
-export type updateListMemberResponseError = (updateListMemberResponse400 | updateListMemberResponse401 | updateListMemberResponse403 | updateListMemberResponse404 | updateListMemberResponse500) & {
-  headers: Headers;
-};
-
-export type updateListMemberResponse = (updateListMemberResponseSuccess | updateListMemberResponseError)
 
 export const getUpdateListMemberUrl = (listId: string,
     principalId: string,) => {
@@ -494,7 +246,7 @@ export const getUpdateListMemberUrl = (listId: string,
  */
 export const updateListMember = async (listId: string,
     principalId: string,
-    updateMemberRoleRequest: UpdateMemberRoleRequest, options?: Parameters<typeof apiRequest>[1]): Promise<updateListMemberResponse> => {
+    updateMemberRoleRequest: UpdateMemberRoleRequest, options?: Parameters<typeof apiRequest>[1]): Promise<ListDto> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -510,7 +262,7 @@ export const updateListMember = async (listId: string,
     }
     return headers;
   };
-return apiRequest<updateListMemberResponse>(getUpdateListMemberUrl(listId,principalId),
+return apiRequest<ListDto>(getUpdateListMemberUrl(listId,principalId),
   {
     ...options,
     method: 'PATCH',
@@ -519,45 +271,6 @@ return apiRequest<updateListMemberResponse>(getUpdateListMemberUrl(listId,princi
   }
 );}
 
-
-export type removeListMemberResponse204 = {
-  data: void
-  status: 204
-}
-
-export type removeListMemberResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type removeListMemberResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type removeListMemberResponse403 = {
-  data: ProblemDetails
-  status: 403
-}
-
-export type removeListMemberResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type removeListMemberResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type removeListMemberResponseSuccess = (removeListMemberResponse204) & {
-  headers: Headers;
-};
-export type removeListMemberResponseError = (removeListMemberResponse400 | removeListMemberResponse401 | removeListMemberResponse403 | removeListMemberResponse404 | removeListMemberResponse500) & {
-  headers: Headers;
-};
-
-export type removeListMemberResponse = (removeListMemberResponseSuccess | removeListMemberResponseError)
 
 export const getRemoveListMemberUrl = (listId: string,
     principalId: string,) => {
@@ -572,9 +285,9 @@ export const getRemoveListMemberUrl = (listId: string,
  * @summary Remove a member by principal id, or leave (self). Last owner leaving deletes the list for everyone.
  */
 export const removeListMember = async (listId: string,
-    principalId: string, options?: Parameters<typeof apiRequest>[1]): Promise<removeListMemberResponse> => {
+    principalId: string, options?: Parameters<typeof apiRequest>[1]): Promise<void> => {
 
-  return apiRequest<removeListMemberResponse>(getRemoveListMemberUrl(listId,principalId),
+  return apiRequest<void>(getRemoveListMemberUrl(listId,principalId),
   {
     ...options,
     method: 'DELETE'
@@ -583,40 +296,6 @@ export const removeListMember = async (listId: string,
   }
 );}
 
-
-export type reorderListItemsResponse200 = {
-  data: ListDto
-  status: 200
-}
-
-export type reorderListItemsResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type reorderListItemsResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type reorderListItemsResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type reorderListItemsResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type reorderListItemsResponseSuccess = (reorderListItemsResponse200) & {
-  headers: Headers;
-};
-export type reorderListItemsResponseError = (reorderListItemsResponse400 | reorderListItemsResponse401 | reorderListItemsResponse404 | reorderListItemsResponse500) & {
-  headers: Headers;
-};
-
-export type reorderListItemsResponse = (reorderListItemsResponseSuccess | reorderListItemsResponseError)
 
 export const getReorderListItemsUrl = (listId: string,) => {
 
@@ -631,7 +310,7 @@ export const getReorderListItemsUrl = (listId: string,) => {
  * @summary Set the caller's own position for this list (Viewer+).
  */
 export const reorderListItems = async (listId: string,
-    setListOrderRequest: SetListOrderRequest, options?: Parameters<typeof apiRequest>[1]): Promise<reorderListItemsResponse> => {
+    setListOrderRequest: SetListOrderRequest, options?: Parameters<typeof apiRequest>[1]): Promise<ListDto> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -647,7 +326,7 @@ export const reorderListItems = async (listId: string,
     }
     return headers;
   };
-return apiRequest<reorderListItemsResponse>(getReorderListItemsUrl(listId),
+return apiRequest<ListDto>(getReorderListItemsUrl(listId),
   {
     ...options,
     method: 'POST',
@@ -656,35 +335,6 @@ return apiRequest<reorderListItemsResponse>(getReorderListItemsUrl(listId),
   }
 );}
 
-
-export type restoreListResponse200 = {
-  data: ListDto
-  status: 200
-}
-
-export type restoreListResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type restoreListResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type restoreListResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type restoreListResponseSuccess = (restoreListResponse200) & {
-  headers: Headers;
-};
-export type restoreListResponseError = (restoreListResponse401 | restoreListResponse404 | restoreListResponse500) & {
-  headers: Headers;
-};
-
-export type restoreListResponse = (restoreListResponseSuccess | restoreListResponseError)
 
 export const getRestoreListUrl = (listId: string,) => {
 
@@ -697,9 +347,9 @@ export const getRestoreListUrl = (listId: string,) => {
 /**
  * @summary Restore an archived list (Owner).
  */
-export const restoreList = async (listId: string, options?: Parameters<typeof apiRequest>[1]): Promise<restoreListResponse> => {
+export const restoreList = async (listId: string, options?: Parameters<typeof apiRequest>[1]): Promise<ListDto> => {
 
-  return apiRequest<restoreListResponse>(getRestoreListUrl(listId),
+  return apiRequest<ListDto>(getRestoreListUrl(listId),
   {
     ...options,
     method: 'POST'

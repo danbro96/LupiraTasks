@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { applyListOp, applyListOps } from './listDoc';
+import { applyListOp, reduceList } from './listDoc';
 import type { ListDto, MemberDto, PersonRef } from '@lupira/tasks-api/models';
 import { ListRole } from '@lupira/tasks-api/models';
-import type { ClientOp } from './ops';
+import type { ClientOp, ListOp } from './ops';
 
 const LIST = '11111111-1111-1111-1111-111111111111';
 const OWNER_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
@@ -108,31 +108,37 @@ describe('applyListOp', () => {
   });
 });
 
-describe('applyListOps (rebase fold)', () => {
+describe('reduceList', () => {
+  const fold = (start: ListDto | null, ops: ListOp[]) => ops.reduce<ListDto | null>((d, op) => reduceList(d, op, ownerRef), start);
+
   it('composes ops in order', () => {
     const ops = [
       { ...base, kind: 'list.rename', listId: LIST, name: 'Renamed' },
       { ...base, kind: 'list.recolor', listId: LIST, color: '#123456' },
-    ] as ClientOp[];
-    const d = applyListOps(doc([owner()]), ops, ownerRef);
+    ] as ListOp[];
+    const d = fold(doc([owner()]), ops);
     expect(d?.name).toBe('Renamed');
     expect(d?.color).toBe('#123456');
   });
 
-  it('returns null as soon as an op deletes the list', () => {
+  it('stays null once an op deletes the list', () => {
     const ops = [
       { ...base, kind: 'list.delete', listId: LIST },
       { ...base, kind: 'list.rename', listId: LIST, name: 'Never' },
-    ] as ClientOp[];
-    expect(applyListOps(doc([owner()]), ops, ownerRef)).toBeNull();
+    ] as ListOp[];
+    expect(fold(doc([owner()]), ops)).toBeNull();
   });
 
-  it('passes item ops and list.create through unchanged', () => {
-    const ops = [
-      { ...base, kind: 'item.complete', listId: LIST, itemId: 'i1' },
-      { ...base, kind: 'list.create', listId: LIST, name: 'X', listKind: 'Todo', color: null },
-    ] as ClientOp[];
+  it('creates an owned list from nothing, and keeps an existing doc on a repeated create', () => {
+    const create = { ...base, kind: 'list.create', listId: LIST, name: 'X', listKind: 'Todo', color: null } as ListOp;
+    const created = reduceList(null, create, ownerRef);
+    expect(created).toMatchObject({ id: LIST, name: 'X', access: ListRole.Owner, owner: ownerRef });
+    expect(created?.members.map(m => m.principalId)).toEqual([OWNER_ID]);
     const before = doc([owner()]);
-    expect(applyListOps(before, ops, ownerRef)).toEqual(before);
+    expect(reduceList(before, create, ownerRef)).toBe(before);
+  });
+
+  it('ignores edits to a list that does not exist', () => {
+    expect(reduceList(null, { ...base, kind: 'list.rename', listId: LIST, name: 'Y' } as ListOp, ownerRef)).toBeNull();
   });
 });

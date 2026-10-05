@@ -27,7 +27,7 @@ export function SettingsScreen() {
   return (
     <Screen banner={<SyncBanner />}>
       <ScrollView>
-        <IdentityHeader name={user?.displayName ?? user?.sub ?? 'Not signed in'} sub={user?.displayName ? user.sub : undefined} />
+        <IdentityHeader name={user?.name ?? user?.sub ?? 'Not signed in'} sub={user?.name ? user.sub : undefined} />
 
         <List.Subheader>Account</List.Subheader>
         <List.Item title="Archived lists" onPress={() => nav.navigate('ArchivedLists')} />

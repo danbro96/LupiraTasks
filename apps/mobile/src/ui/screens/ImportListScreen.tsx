@@ -3,7 +3,6 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-na
 import { Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { generateKeyBetween } from 'fractional-indexing';
 import { ListKind } from '@lupira/tasks-api/models';
 import type { RootStackParamList } from '../navigation/types';
 import { Button } from '@danbro96/lupira-expo-paper/components/Button';
@@ -11,10 +10,7 @@ import { SegmentedPicker } from '@danbro96/lupira-expo-paper/components/Segmente
 import { TextField } from '@danbro96/lupira-expo-paper/components/TextField';
 import { SyncBanner } from '../components/SyncBanner';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
-import { enqueueMany } from '../../sync/outbox';
-import { getDb } from '../../data/db/expoDb';
-import { newId } from '@lupira/tasks-domain/ids';
-import { stamp, type ClientOp } from '../../domain/ops';
+import * as commands from '../../state/commands';
 import { parseImport, type ImportedTask } from '../../domain/importTasks';
 import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
 import { spacing, useColors, type Palette } from '../theme';
@@ -23,32 +19,6 @@ const KINDS = [ListKind.Todo, ListKind.Shopping] as const;
 // Keyed by the full ListKind union (SegmentedPicker widens its label callback to ListKind). Agent lists
 // aren't user-importable, so the label is inert — KINDS controls which chips actually render.
 const KIND_LABELS: Record<ListKind, string> = { [ListKind.Todo]: 'To-do', [ListKind.Shopping]: 'Shopping', [ListKind.Agent]: 'Agent' };
-
-/** Build the full op batch for an imported list: create the list, then each task in order
- *  (sequential fractional keys; parents tracked per nesting level), with follow-up ops for
- *  completed / notes / quantity / due. */
-function buildImportOps(name: string, kind: ListKind, tasks: ImportedTask[]): ClientOp[] {
-  const listId = newId();
-  const ops: ClientOp[] = [{ ...stamp(), kind: 'list.create', listId, name, listKind: kind, color: null }];
-  const lastIdAtLevel: string[] = [];
-  let prevKey: string | null = null;
-  for (const t of tasks) {
-    const itemId = newId();
-    const parentItemId = t.level > 0 ? (lastIdAtLevel[t.level - 1] ?? null) : null;
-    // One global ascending key chain: within any sibling group the subsequence stays ordered.
-    prevKey = generateKeyBetween(prevKey, null);
-    ops.push({ ...stamp(), kind: 'item.create', listId, itemId, title: t.title, sortOrder: prevKey, parentItemId });
-    if (t.completed) ops.push({ ...stamp(), kind: 'item.complete', listId, itemId });
-    if (t.notes) ops.push({ ...stamp(), kind: 'item.notes', listId, itemId, notes: t.notes });
-    if (t.quantity != null || t.unit) {
-      ops.push({ ...stamp(), kind: 'item.quantity', listId, itemId, quantity: t.quantity, unit: t.unit });
-    }
-    if (t.dueAt) ops.push({ ...stamp(), kind: 'item.due', listId, itemId, dueAt: t.dueAt });
-    lastIdAtLevel[t.level] = itemId;
-    lastIdAtLevel.length = t.level + 1; // deeper levels now belong to a previous branch
-  }
-  return ops;
-}
 
 async function enqueueImport(
   name: string,
@@ -59,7 +29,7 @@ async function enqueueImport(
 ) {
   setBusy(true);
   try {
-    await enqueueMany(await getDb(), buildImportOps(name, kind, tasks));
+    await commands.importList(name, kind, tasks);
     onImported();
   } catch (e) {
     toastError("Couldn't import list");

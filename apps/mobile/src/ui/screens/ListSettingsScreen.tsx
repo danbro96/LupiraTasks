@@ -13,13 +13,12 @@ import { ShareLinks } from '../components/ShareLinks';
 import { useConfirm } from '@danbro96/lupira-expo-paper/components/ConfirmDialog';
 import { toast, toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { SyncBanner } from '../components/SyncBanner';
-import { useItems, useLists } from '../hooks/useMirror';
+import { useLists } from '../../state/lists';
+import { useItems } from '../../state/items';
 import { useMyRole } from '../hooks/useMyRole';
 import { useAuth } from '../../state/auth-store';
 import { usePrefs } from '../../state/prefs-store';
-import { enqueue } from '../../sync/outbox';
-import { getDb } from '../../data/db/expoDb';
-import { stamp } from '../../domain/ops';
+import * as commands from '../../state/commands';
 import { tasksToJson } from '../../domain/exportTasks';
 import type { CompletedMode } from '@lupira/tasks-domain/itemTree';
 import { spacing, useColors, type Palette } from '../theme';
@@ -43,7 +42,7 @@ export function ListSettingsScreen() {
     () => new Map<string, string>((list?.tags ?? []).map(t => [t.id, t.label] as const)),
     [list],
   );
-  const me = useAuth(s => s.user?.principalId) ?? '';
+  const me = useAuth(s => s.principalId) ?? '';
   const myRole = useMyRole(listId);
   const [name, setName] = useState(list?.name ?? '');
   const [newEmail, setNewEmail] = useState('');
@@ -88,14 +87,14 @@ export function ListSettingsScreen() {
       return;
     }
     if (n === list!.name) return;
-    await run(async () => enqueue(await getDb(), { ...stamp(), kind: 'list.rename', listId, name: n }), "Couldn't rename list", 'List name saved');
+    await run(() => commands.renameList(listId, n), "Couldn't rename list", 'List name saved');
   }
 
   const setColor = (color: string | null) =>
-    run(async () => enqueue(await getDb(), { ...stamp(), kind: 'list.recolor', listId, color }), "Couldn't change color");
+    run(() => commands.recolorList(listId, color), "Couldn't change color");
 
   const setSimplePriority = (simple: boolean) =>
-    run(async () => enqueue(await getDb(), { ...stamp(), kind: 'list.setSimplePriority', listId, simplePriority: simple }), "Couldn't change priority mode");
+    run(() => commands.setSimplePriority(listId, simple), "Couldn't change priority mode");
 
   async function addMember() {
     const email = newEmail.trim();
@@ -110,14 +109,14 @@ export function ListSettingsScreen() {
     }
     setNewEmail('');
     await run(
-      async () => enqueue(await getDb(), { ...stamp(), kind: 'list.memberAdd', listId, email, role: inviteRole }),
+      () => commands.addMember(listId, email, inviteRole),
       "Couldn't add member",
       `Added ${email}`,
     );
   }
 
   const changeRole = (principalId: string, role: ListRole) =>
-    run(async () => enqueue(await getDb(), { ...stamp(), kind: 'list.memberRoleChange', listId, principalId, role }), "Couldn't change role");
+    run(() => commands.changeMemberRole(listId, principalId, role), "Couldn't change role");
 
   async function confirmRoleChange(principalId: string, role: ListRole) {
     // Downgrading your own role is how an owner accidentally locks themselves out — confirm it.
@@ -141,7 +140,7 @@ export function ListSettingsScreen() {
       confirmLabel: 'Remove',
       destructive: true,
     });
-    if (ok) await run(async () => enqueue(await getDb(), { ...stamp(), kind: 'list.memberRemove', listId, principalId }), "Couldn't remove member");
+    if (ok) await run(() => commands.removeMember(listId, principalId), "Couldn't remove member");
   }
 
   function exportJson() {
@@ -150,7 +149,7 @@ export function ListSettingsScreen() {
 
   function archive() {
     void run(async () => {
-      await enqueue(await getDb(), { ...stamp(), kind: 'list.archive', listId });
+      await commands.archiveList(listId);
       nav.popToTop();
     }, "Couldn't archive list");
   }
@@ -164,7 +163,7 @@ export function ListSettingsScreen() {
     });
     if (!ok) return;
     await run(async () => {
-      await enqueue(await getDb(), { ...stamp(), kind: 'list.delete', listId });
+      await commands.deleteList(listId);
       nav.popToTop();
     }, "Couldn't delete list");
   }
@@ -178,7 +177,7 @@ export function ListSettingsScreen() {
     });
     if (!ok) return;
     await run(async () => {
-      await enqueue(await getDb(), { ...stamp(), kind: 'list.leave', listId, principalId: me });
+      await commands.leaveList(listId, me);
       nav.popToTop();
     }, "Couldn't leave list");
   }

@@ -14,14 +14,11 @@ import { SyncDot } from '../components/SyncDot';
 import { DebugPanel } from '../components/DebugPanel';
 import { hapticImpact } from '@danbro96/lupira-expo-feedback/haptics';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
-import { useLists } from '../hooks/useMirror';
-import { useOutboxStatus, type OpStatus } from '../hooks/useOutboxStatus';
-import { useSyncStatus } from '../../sync/syncStatus';
-import { syncAll } from '../../sync/sync';
-import { enqueueMany } from '../../sync/outbox';
-import { getDb } from '../../data/db/expoDb';
+import { useLists } from '../../state/lists';
+import { useOutboxStatus, type OpStatus } from '../../state/outbox';
+import { syncNow, useFirstSyncDone } from '../../state/syncStatus';
+import * as commands from '../../state/commands';
 import { planListReorder } from '@lupira/tasks-domain/listOrder';
-import { stamp } from '../../domain/ops';
 import { radii, spacing, useColors, type Palette } from '../theme';
 import { ICONS } from '../icons';
 
@@ -61,7 +58,7 @@ export function ListsScreen() {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { lists } = useLists();
   const opStatus = useOutboxStatus();
-  const firstSyncDone = useSyncStatus(s => s.firstSyncDone);
+  const firstSyncDone = useFirstSyncDone();
   const [refreshing, setRefreshing] = useState(false);
   const c = useColors();
   const styles = makeStyles(c);
@@ -85,9 +82,8 @@ export function ListsScreen() {
 
   async function refresh() {
     setRefreshing(true);
-    await syncAll()
-      .catch(() => toastError('Sync failed'))
-      .finally(() => setRefreshing(false));
+    if (!(await syncNow())) toastError('Sync failed');
+    setRefreshing(false);
   }
 
   function freezeForDrag() {
@@ -102,9 +98,8 @@ export function ListsScreen() {
     const targets = planListReorder(dragLists, from, to);
     if (targets.length === 0) return;
     setFrozen({ lists: reorderItems(dragLists, from, to), sourceLists: rendered.current.lists });
-    // One transaction, one mirror bump — the first drag materializes every list's key at once.
-    void getDb().then(db => enqueueMany(db, targets.map(t => ({ ...stamp(), kind: 'list.reorder' as const, ...t }))))
-      .catch(() => toastError("Couldn't reorder lists"));
+    // One enqueue for all: the first drag materializes every list's key at once.
+    commands.reorderLists(targets).catch(() => toastError("Couldn't reorder lists"));
   }
 
   return (

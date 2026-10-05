@@ -1,5 +1,5 @@
 import type { ListDto, MemberDto, PersonRef } from '@lupira/tasks-api/models';
-import type { ClientOp } from './ops';
+import type { ClientOp, ListOp } from './ops';
 
 // Pure optimistic patch of a mirrored list doc for `list.*` ops — the list equivalent of the
 // item LWW reducer. Returns the patched ListDto, or `null` when the change deletes the list
@@ -81,16 +81,27 @@ export function applyListOp(doc: ListDto, op: ClientOp, actor: PersonRef | null)
   }
 }
 
-/**
- * Fold pending ops over a pulled doc (the rebase of `list.*` ops onto a server base). Returns
- * null when any op deletes the list locally — the pull must not resurrect it.
- */
-export function applyListOps(doc: ListDto, ops: ClientOp[], actor: PersonRef | null): ListDto | null {
-  let cur = doc;
-  for (const op of ops) {
-    const next = applyListOp(cur, op, actor);
-    if (next === null) return null;
-    cur = next;
-  }
-  return cur;
+/** A best-effort doc for a list created on this device, so it shows before the server has it. `actor` is null
+ *  until `/me` resolves the principal id; owner and members stay empty until the next pull then. */
+export function createdList(op: Extract<ListOp, { kind: 'list.create' }>, actor: PersonRef | null): ListDto {
+  return {
+    id: op.listId,
+    name: op.name,
+    kind: op.listKind,
+    color: op.color,
+    simplePriority: true,
+    owner: actor ?? { principalId: '', email: '', displayName: null },
+    access: 'Owner',
+    isArchived: false,
+    createdAt: op.occurredAt,
+    updatedAt: op.occurredAt,
+    tags: [],
+    members: actor ? [{ principalId: actor.principalId, email: actor.email, displayName: actor.displayName ?? null, role: 'Owner', addedAt: op.occurredAt, addedBy: actor }] : [],
+  };
+}
+
+/** The list reducer: `null` = no list (not created yet, or deleted locally). */
+export function reduceList(doc: ListDto | null, op: ListOp, actor: PersonRef | null): ListDto | null {
+  if (op.kind === 'list.create') return doc ?? createdList(op, actor);
+  return doc && applyListOp(doc, op, actor);
 }

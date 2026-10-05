@@ -1,15 +1,14 @@
 import { ListRole } from '@lupira/tasks-api/models';
 import { useAuth } from '../../state/auth-store';
-import { useListsState } from '../../state/lists-store';
+import { useList } from '../../state/lists';
 
 /**
  * The current user's role on a list: `undefined` if not a member / list not in the mirror,
  * `null` while the mirror hasn't been read yet — callers must not render "view-only" for that.
  */
 export function useMyRole(listId: string): ListRole | undefined | null {
-  const loaded = useListsState(s => s.loaded);
-  const list = useListsState(s => s.active.find(l => l.id === listId));
-  const me = useAuth(s => s.user?.principalId);
+  const { list, loaded } = useList(listId);
+  const me = useAuth(s => s.principalId);
   if (!loaded) return null;
   if (!list || !me) return undefined;
   // Server-authoritative role (`list.access`), gated on membership so an optimistic self-leave —

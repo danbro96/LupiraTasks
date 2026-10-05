@@ -5,8 +5,8 @@ export function AccountMenu() {
   const user = useAuth(s => s.user);
   return (
     <AccountButton
-      name={user?.displayName ?? user?.sub ?? 'Account'}
-      sub={user?.displayName ? user.sub : undefined}
+      name={user?.name ?? user?.sub ?? 'Account'}
+      sub={user?.name ? user.sub : undefined}
       signOutMessage="You will need to sign in with Authentik again to get back in."
       onSignOut={() => void useAuth.getState().clearSession()}
     />

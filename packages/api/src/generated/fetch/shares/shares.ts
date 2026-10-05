@@ -6,47 +6,12 @@
  */
 import type {
   CreateShareRequest,
-  ProblemDetails,
   RedeemShareRequest,
   RedeemShareResponse,
   ShareDto
 } from '../../models';
 
 import { apiRequest } from '../../../transport';
-
-export type createShareResponse200 = {
-  data: ShareDto
-  status: 200
-}
-
-export type createShareResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type createShareResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type createShareResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type createShareResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type createShareResponseSuccess = (createShareResponse200) & {
-  headers: Headers;
-};
-export type createShareResponseError = (createShareResponse400 | createShareResponse401 | createShareResponse404 | createShareResponse500) & {
-  headers: Headers;
-};
-
-export type createShareResponse = (createShareResponseSuccess | createShareResponseError)
 
 export const getCreateShareUrl = (listId: string,) => {
 
@@ -61,7 +26,7 @@ export const getCreateShareUrl = (listId: string,) => {
  * @summary Mint a public share link for a list (Owner).
  */
 export const createShare = async (listId: string,
-    createShareRequest: CreateShareRequest, options?: Parameters<typeof apiRequest>[1]): Promise<createShareResponse> => {
+    createShareRequest: CreateShareRequest, options?: Parameters<typeof apiRequest>[1]): Promise<ShareDto> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -77,7 +42,7 @@ export const createShare = async (listId: string,
     }
     return headers;
   };
-return apiRequest<createShareResponse>(getCreateShareUrl(listId),
+return apiRequest<ShareDto>(getCreateShareUrl(listId),
   {
     ...options,
     method: 'POST',
@@ -86,35 +51,6 @@ return apiRequest<createShareResponse>(getCreateShareUrl(listId),
   }
 );}
 
-
-export type listSharesResponse200 = {
-  data: ShareDto[]
-  status: 200
-}
-
-export type listSharesResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type listSharesResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type listSharesResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type listSharesResponseSuccess = (listSharesResponse200) & {
-  headers: Headers;
-};
-export type listSharesResponseError = (listSharesResponse401 | listSharesResponse404 | listSharesResponse500) & {
-  headers: Headers;
-};
-
-export type listSharesResponse = (listSharesResponseSuccess | listSharesResponseError)
 
 export const getListSharesUrl = (listId: string,) => {
 
@@ -127,9 +63,9 @@ export const getListSharesUrl = (listId: string,) => {
 /**
  * @summary List a list's active share links (Owner).
  */
-export const listShares = async (listId: string, options?: Parameters<typeof apiRequest>[1]): Promise<listSharesResponse> => {
+export const listShares = async (listId: string, options?: Parameters<typeof apiRequest>[1]): Promise<ShareDto[]> => {
 
-  return apiRequest<listSharesResponse>(getListSharesUrl(listId),
+  return apiRequest<ShareDto[]>(getListSharesUrl(listId),
   {
     ...options,
     method: 'GET'
@@ -138,35 +74,6 @@ export const listShares = async (listId: string, options?: Parameters<typeof api
   }
 );}
 
-
-export type deleteShareResponse204 = {
-  data: void
-  status: 204
-}
-
-export type deleteShareResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type deleteShareResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type deleteShareResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type deleteShareResponseSuccess = (deleteShareResponse204) & {
-  headers: Headers;
-};
-export type deleteShareResponseError = (deleteShareResponse401 | deleteShareResponse404 | deleteShareResponse500) & {
-  headers: Headers;
-};
-
-export type deleteShareResponse = (deleteShareResponseSuccess | deleteShareResponseError)
 
 export const getDeleteShareUrl = (listId: string,
     shareId: string,) => {
@@ -181,9 +88,9 @@ export const getDeleteShareUrl = (listId: string,
  * @summary Revoke a share link (Owner). The token is rejected on its next use.
  */
 export const deleteShare = async (listId: string,
-    shareId: string, options?: Parameters<typeof apiRequest>[1]): Promise<deleteShareResponse> => {
+    shareId: string, options?: Parameters<typeof apiRequest>[1]): Promise<void> => {
 
-  return apiRequest<deleteShareResponse>(getDeleteShareUrl(listId,shareId),
+  return apiRequest<void>(getDeleteShareUrl(listId,shareId),
   {
     ...options,
     method: 'DELETE'
@@ -192,40 +99,6 @@ export const deleteShare = async (listId: string,
   }
 );}
 
-
-export type redeemShareResponse200 = {
-  data: RedeemShareResponse
-  status: 200
-}
-
-export type redeemShareResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type redeemShareResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type redeemShareResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type redeemShareResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type redeemShareResponseSuccess = (redeemShareResponse200) & {
-  headers: Headers;
-};
-export type redeemShareResponseError = (redeemShareResponse400 | redeemShareResponse401 | redeemShareResponse404 | redeemShareResponse500) & {
-  headers: Headers;
-};
-
-export type redeemShareResponse = (redeemShareResponseSuccess | redeemShareResponseError)
 
 export const getRedeemShareUrl = () => {
 
@@ -239,7 +112,7 @@ export const getRedeemShareUrl = () => {
  * Body `{ token }`. Adds the caller to the linked list — `ReadWrite` → Editor, `Read` → Viewer — and returns `{ listId, role }`. Idempotent: an existing member keeps their current role. Used by the web client to cash in a share link after SSO.
  * @summary Redeem a share link as the authenticated caller (join the list).
  */
-export const redeemShare = async (redeemShareRequest: RedeemShareRequest, options?: Parameters<typeof apiRequest>[1]): Promise<redeemShareResponse> => {
+export const redeemShare = async (redeemShareRequest: RedeemShareRequest, options?: Parameters<typeof apiRequest>[1]): Promise<RedeemShareResponse> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -255,7 +128,7 @@ export const redeemShare = async (redeemShareRequest: RedeemShareRequest, option
     }
     return headers;
   };
-return apiRequest<redeemShareResponse>(getRedeemShareUrl(),
+return apiRequest<RedeemShareResponse>(getRedeemShareUrl(),
   {
     ...options,
     method: 'POST',

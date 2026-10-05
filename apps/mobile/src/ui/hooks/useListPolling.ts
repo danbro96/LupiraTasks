@@ -1,16 +1,13 @@
 import { AppState } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { LIST_POLL_MS } from '../../config';
-import { useSyncStatus } from '../../sync/syncStatus';
-import { drain } from '../../sync/outbox';
-import { getDb } from '../../data/db/expoDb';
-import { pullList } from '../../sync/sync';
+import { onlineManager } from '@tanstack/react-query';
+import { syncNow } from '../../state/syncStatus';
 import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
 
 /**
- * Keep an open list fresh: while its screen is focused and the app is foregrounded, push pending
- * local edits and re-pull every LIST_POLL_MS. The pull always re-applies the server base; the read
- * hooks (useMirror) are what suppress a re-render when the rows came back unchanged.
+ * Keep an open list fresh: while its screen is focused and the app is foregrounded, sync every
+ * LIST_POLL_MS. A sync pushes, then pulls only what changed since the last cursor.
  */
 export function useListPolling(listId: string): void {
   useFocusEffect(() => {
@@ -23,7 +20,7 @@ export function useListPolling(listId: string): void {
     const schedule = () => { timer = setTimeout(() => void tick(), LIST_POLL_MS); };
 
     const tick = async () => {
-      const { online, pending } = useSyncStatus.getState();
+      const online = onlineManager.isOnline();
       const state = AppState.currentState;
       // Skip the request while offline or backgrounded, but keep the chain alive — a regained
       // connection or a foreground already triggers a full sync of its own. Logged because both
@@ -31,15 +28,9 @@ export function useListPolling(listId: string): void {
       if (!online || state !== 'active') {
         logDebug('poll:skip', online ? `appState=${state}` : 'offline');
       } else {
-        try {
-          const db = await getDb();
-          if (pending > 0) await drain(db); // push before pull, as runSync does
-          await pullList(db, listId);
-          logDebug('poll', listId);
-        } catch (e) {
-          // Surfaced by the sync banner; a failed tick must not break the loop.
-          logDebug('poll:error', e instanceof Error ? e.message : String(e));
-        }
+        // Failures are surfaced by the sync banner, never thrown, so the loop survives them.
+        await syncNow();
+        logDebug('poll', listId);
       }
       if (!stopped) schedule();
     };

@@ -11,18 +11,6 @@ import type {
 
 import { apiRequest } from '../../../transport';
 
-export type exchangeShareTokenResponse200 = {
-  data: GuestSessionInfo
-  status: 200
-}
-
-export type exchangeShareTokenResponseSuccess = (exchangeShareTokenResponse200) & {
-  headers: Headers;
-};
-;
-
-export type exchangeShareTokenResponse = (exchangeShareTokenResponseSuccess)
-
 export const getExchangeShareTokenUrl = () => {
 
 
@@ -31,7 +19,7 @@ export const getExchangeShareTokenUrl = () => {
   return `/auth/guest`
 }
 
-export const exchangeShareToken = async (guestExchangeRequest: GuestExchangeRequest, options?: Parameters<typeof apiRequest>[1]): Promise<exchangeShareTokenResponse> => {
+export const exchangeShareToken = async (guestExchangeRequest: GuestExchangeRequest, options?: Parameters<typeof apiRequest>[1]): Promise<GuestSessionInfo> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -47,7 +35,7 @@ export const exchangeShareToken = async (guestExchangeRequest: GuestExchangeRequ
     }
     return headers;
   };
-return apiRequest<exchangeShareTokenResponse>(getExchangeShareTokenUrl(),
+return apiRequest<GuestSessionInfo>(getExchangeShareTokenUrl(),
   {
     ...options,
     method: 'POST',

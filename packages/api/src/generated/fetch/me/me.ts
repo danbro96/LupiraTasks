@@ -5,35 +5,10 @@
  * OpenAPI spec version: v1
  */
 import type {
-  MeResponse,
-  ProblemDetails
+  MeResponse
 } from '../../models';
 
 import { apiRequest } from '../../../transport';
-
-export type getMeResponse200 = {
-  data: MeResponse
-  status: 200
-}
-
-export type getMeResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type getMeResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type getMeResponseSuccess = (getMeResponse200) & {
-  headers: Headers;
-};
-export type getMeResponseError = (getMeResponse401 | getMeResponse500) & {
-  headers: Headers;
-};
-
-export type getMeResponse = (getMeResponseSuccess | getMeResponseError)
 
 export const getGetMeUrl = () => {
 
@@ -49,9 +24,9 @@ export const getGetMeUrl = () => {
  * returns `{ email, displayName, isAdmin }`. Call on app cold start.
  * @summary Provision and return the caller's profile.
  */
-export const getMe = async ( options?: Parameters<typeof apiRequest>[1]): Promise<getMeResponse> => {
+export const getMe = async ( options?: Parameters<typeof apiRequest>[1]): Promise<MeResponse> => {
 
-  return apiRequest<getMeResponse>(getGetMeUrl(),
+  return apiRequest<MeResponse>(getGetMeUrl(),
   {
     ...options,
     method: 'GET'

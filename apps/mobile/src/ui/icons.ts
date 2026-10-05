@@ -53,6 +53,7 @@ export const ICONS = {
   settings: 'settings',
   star: 'star',
   starOutline: 'star-border',
+  sync: 'sync',
   target: 'track-changes',
   tools: 'construction',
   tune: 'tune',

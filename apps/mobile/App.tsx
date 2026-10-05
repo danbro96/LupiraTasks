@@ -7,6 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, type LinkingOptions } from '@react-navigation/native';
 import { PaperProvider } from 'react-native-paper';
 import * as ExpoLinking from 'expo-linking';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { RootStack } from './src/ui/navigation/RootStack';
 import { useAutoUpdate } from '@danbro96/lupira-expo-diagnostics/useAutoUpdate';
 import type { RootStackParamList } from './src/ui/navigation/types';
@@ -14,7 +15,8 @@ import { ToastHost } from '@danbro96/lupira-expo-paper/components/ToastHost';
 import { ConfirmDialogHost } from '@danbro96/lupira-expo-paper/components/ConfirmDialog';
 import { useAuth } from './src/state/auth-store';
 import { usePrefs } from './src/state/prefs-store';
-import { startSync, syncAll } from './src/sync/sync';
+import { startSync } from './src/state/syncTriggers';
+import { persistOptions, queryClient } from './src/sync/queryClient';
 import { SENTRY_DSN } from './src/config';
 import { initSentry } from '@danbro96/lupira-expo-diagnostics/initSentry';
 import { lightColors, darkColors, navDark, navLight, paperDark, paperLight, type Palette } from './src/ui/theme';
@@ -51,15 +53,16 @@ function App() {
 
   useEffect(() => {
     void usePrefs.getState().load();
-    void (async () => {
-      await useAuth.getState().load();
-      await useAuth.getState().refreshIfNeeded();
-      // Initial load from the server (no-op if not signed in). Subsequent syncs fire on
-      // reconnect/foreground via startSync, and per-list on open/pull-to-refresh.
-      void syncAll();
-    })();
-    const stopSync = startSync();
-    return stopSync;
+    let stopSync: (() => void) | null = null;
+    let unmounted = false;
+    // Triggers start once the session is loaded, so their first sync runs signed in.
+    void useAuth.getState().load().then(() => {
+      if (!unmounted) stopSync = startSync();
+    });
+    return () => {
+      unmounted = true;
+      stopSync?.();
+    };
   }, []);
 
   if (!loaded) return null;
@@ -68,19 +71,21 @@ function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <PaperProvider theme={scheme === 'dark' ? paperDark : paperLight} settings={paperSettings}>
-          <Sentry.ErrorBoundary fallback={<ErrorFallback palette={palette} />}>
-            <ConfirmDialogHost>
-              <NavigationContainer theme={scheme === 'dark' ? navDark : navLight} linking={linking}>
-                <RootStack />
-              </NavigationContainer>
-            </ConfirmDialogHost>
-          </Sentry.ErrorBoundary>
-          <ToastHost />
-          <StatusBar style="auto" />
-        </PaperProvider>
-      </SafeAreaProvider>
+      <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
+        <SafeAreaProvider>
+          <PaperProvider theme={scheme === 'dark' ? paperDark : paperLight} settings={paperSettings}>
+            <Sentry.ErrorBoundary fallback={<ErrorFallback palette={palette} />}>
+              <ConfirmDialogHost>
+                <NavigationContainer theme={scheme === 'dark' ? navDark : navLight} linking={linking}>
+                  <RootStack />
+                </NavigationContainer>
+              </ConfirmDialogHost>
+            </Sentry.ErrorBoundary>
+            <ToastHost />
+            <StatusBar style="auto" />
+          </PaperProvider>
+        </SafeAreaProvider>
+      </PersistQueryClientProvider>
     </GestureHandlerRootView>
   );
 }

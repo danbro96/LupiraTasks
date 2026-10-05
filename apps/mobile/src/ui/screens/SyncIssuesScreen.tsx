@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Button } from '@danbro96/lupira-expo-paper/components/Button';
 import { toast } from '@danbro96/lupira-expo-feedback/toast';
-import { listParked, retryParked, discardParked, type ParkedOp } from '../../sync/outbox';
-import { getDb } from '../../data/db/expoDb';
-import { useSyncStatus } from '../../sync/syncStatus';
+import type { ParkedOp } from '@danbro96/lupira-sync-engine/types';
+import { useParkedChanges } from '../../state/outbox';
+import { useSyncStatus } from '../../state/syncStatus';
+import * as commands from '../../state/commands';
 import type { ClientOp } from '../../domain/ops';
 import { spacing, useColors, type Palette } from '../theme';
 import { ICONS } from '../icons';
@@ -40,30 +40,26 @@ const OP_LABELS: Record<ClientOp['kind'], string> = {
   'list.restore': 'Restore list',
 };
 
+const labelOf = (row: ParkedOp) => OP_LABELS[(row.op as ClientOp).kind];
+
 /**
- * Recovery view for changes the server rejected (parked outbox ops). Reached by tapping the
- * "N changes failed to sync" banner. The user can retry them all (e.g. after the conflicting
- * state resolves) or discard ones that can never succeed. Re-reads whenever the failed count
- * or mirror changes, so it self-updates as a retry drains.
+ * Recovery view for changes the server rejected (parked ops), reached from the sync banner. The user can
+ * retry them all (e.g. after the conflicting state resolves) or discard ones that can never succeed; it
+ * follows the queue, so it self-updates as a retry drains.
  */
 export function SyncIssuesScreen() {
-  const failed = useSyncStatus(s => s.failed);
-  const rev = useSyncStatus(s => s.mirrorRevision);
-  const [rows, setRows] = useState<ParkedOp[]>([]);
+  const rows = useParkedChanges() ?? [];
+  const lastError = useSyncStatus().lastError;
   const c = useColors();
   const styles = makeStyles(c);
 
-  useEffect(() => {
-    void getDb().then(listParked).then(setRows);
-  }, [failed, rev]);
-
   function onRetryAll() {
-    void getDb().then(db => retryParked(db));
+    void commands.retryChanges(rows.map(r => r.op.commandId));
     toast('Retrying failed changes…');
   }
 
   function onDiscard(row: ParkedOp) {
-    void getDb().then(db => discardParked(db, row.seq));
+    void commands.discardChange(row.op.commandId);
     toast('Change discarded');
   }
 
@@ -72,6 +68,7 @@ export function SyncIssuesScreen() {
       <View style={styles.empty}>
         <MaterialIcons name={ICONS.checkCircle} size={48} color={c.textDisabled} />
         <Text variant="bodyLarge" style={styles.emptyText}>All changes are synced.</Text>
+        {lastError ? <Text variant="labelSmall" style={styles.error}>{lastError}</Text> : null}
       </View>
     );
   }
@@ -80,7 +77,7 @@ export function SyncIssuesScreen() {
     <View style={styles.fill}>
       <FlatList
         data={rows}
-        keyExtractor={r => String(r.seq)}
+        keyExtractor={r => r.op.commandId}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <View style={styles.header}>
@@ -94,14 +91,14 @@ export function SyncIssuesScreen() {
         renderItem={({ item }) => (
           <View style={styles.row}>
             <View style={styles.rowText}>
-              <Text variant="bodyLarge">{OP_LABELS[item.op.kind]}</Text>
+              <Text variant="bodyLarge">{labelOf(item)}</Text>
               {item.lastError ? <Text variant="labelSmall" style={styles.error} numberOfLines={2}>{item.lastError}</Text> : null}
             </View>
             <Button
               variant="destructive"
               title="Discard"
               onPress={() => onDiscard(item)}
-              accessibilityLabel={`Discard ${OP_LABELS[item.op.kind]}`}
+              accessibilityLabel={`Discard ${labelOf(item)}`}
             />
           </View>
         )}

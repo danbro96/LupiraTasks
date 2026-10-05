@@ -3,10 +3,8 @@ import { Text } from 'react-native-paper';
 import { Button } from '@danbro96/lupira-expo-paper/components/Button';
 import { SyncBanner } from '../components/SyncBanner';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
-import { useArchivedLists } from '../hooks/useMirror';
-import { enqueue } from '../../sync/outbox';
-import { getDb } from '../../data/db/expoDb';
-import { stamp } from '../../domain/ops';
+import { useArchivedLists } from '../../state/lists';
+import * as commands from '../../state/commands';
 import { radii, spacing, useColors, type Palette } from '../theme';
 
 export function ArchivedListsScreen() {
@@ -15,7 +13,7 @@ export function ArchivedListsScreen() {
   const styles = makeStyles(c);
 
   function restore(listId: string) {
-    void getDb().then(db => enqueue(db, { ...stamp(), kind: 'list.restore', listId })).catch(() => toastError("Couldn't restore list"));
+    commands.restoreList(listId).catch(() => toastError("Couldn't restore list"));
   }
 
   return (

@@ -31,6 +31,6 @@
     }
   },
   "dependencies": {
-    "@danbro96/lupira-http": "0.1.0"
+    "@danbro96/lupira-http": "0.2.0"
   }
 }

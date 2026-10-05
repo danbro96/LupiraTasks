@@ -11,40 +11,10 @@ import type {
   ItemTimestampRequest,
   ListListItemsParams,
   MoveItemRequest,
-  ProblemDetails,
   UpdateItemRequest
 } from '../../models';
 
 import { apiRequest } from '../../../transport';
-
-export type listListItemsResponse200 = {
-  data: ItemDto[]
-  status: 200
-}
-
-export type listListItemsResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type listListItemsResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type listListItemsResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type listListItemsResponseSuccess = (listListItemsResponse200) & {
-  headers: Headers;
-};
-export type listListItemsResponseError = (listListItemsResponse401 | listListItemsResponse404 | listListItemsResponse500) & {
-  headers: Headers;
-};
-
-export type listListItemsResponse = (listListItemsResponseSuccess | listListItemsResponseError)
 
 export const getListListItemsUrl = (listId: string,
     params?: ListListItemsParams,) => {
@@ -67,9 +37,9 @@ export const getListListItemsUrl = (listId: string,
  * @summary List a list's items (Viewer+).
  */
 export const listListItems = async (listId: string,
-    params?: ListListItemsParams, options?: Parameters<typeof apiRequest>[1]): Promise<listListItemsResponse> => {
+    params?: ListListItemsParams, options?: Parameters<typeof apiRequest>[1]): Promise<ItemDto[]> => {
 
-  return apiRequest<listListItemsResponse>(getListListItemsUrl(listId,params),
+  return apiRequest<ItemDto[]>(getListListItemsUrl(listId,params),
   {
     ...options,
     method: 'GET'
@@ -78,40 +48,6 @@ export const listListItems = async (listId: string,
   }
 );}
 
-
-export type createListItemResponse200 = {
-  data: ItemDto
-  status: 200
-}
-
-export type createListItemResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type createListItemResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type createListItemResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type createListItemResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type createListItemResponseSuccess = (createListItemResponse200) & {
-  headers: Headers;
-};
-export type createListItemResponseError = (createListItemResponse400 | createListItemResponse401 | createListItemResponse404 | createListItemResponse500) & {
-  headers: Headers;
-};
-
-export type createListItemResponse = (createListItemResponseSuccess | createListItemResponseError)
 
 export const getCreateListItemUrl = (listId: string,) => {
 
@@ -126,7 +62,7 @@ export const getCreateListItemUrl = (listId: string,) => {
  * @summary Add an item (Editor+).
  */
 export const createListItem = async (listId: string,
-    createItemRequest: CreateItemRequest, options?: Parameters<typeof apiRequest>[1]): Promise<createListItemResponse> => {
+    createItemRequest: CreateItemRequest, options?: Parameters<typeof apiRequest>[1]): Promise<ItemDto> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -142,7 +78,7 @@ export const createListItem = async (listId: string,
     }
     return headers;
   };
-return apiRequest<createListItemResponse>(getCreateListItemUrl(listId),
+return apiRequest<ItemDto>(getCreateListItemUrl(listId),
   {
     ...options,
     method: 'POST',
@@ -151,40 +87,6 @@ return apiRequest<createListItemResponse>(getCreateListItemUrl(listId),
   }
 );}
 
-
-export type updateListItemResponse200 = {
-  data: ItemDto
-  status: 200
-}
-
-export type updateListItemResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type updateListItemResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type updateListItemResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type updateListItemResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type updateListItemResponseSuccess = (updateListItemResponse200) & {
-  headers: Headers;
-};
-export type updateListItemResponseError = (updateListItemResponse400 | updateListItemResponse401 | updateListItemResponse404 | updateListItemResponse500) & {
-  headers: Headers;
-};
-
-export type updateListItemResponse = (updateListItemResponseSuccess | updateListItemResponseError)
 
 export const getUpdateListItemUrl = (listId: string,
     itemId: string,) => {
@@ -201,7 +103,7 @@ export const getUpdateListItemUrl = (listId: string,
  */
 export const updateListItem = async (listId: string,
     itemId: string,
-    updateItemRequest: UpdateItemRequest, options?: Parameters<typeof apiRequest>[1]): Promise<updateListItemResponse> => {
+    updateItemRequest: UpdateItemRequest, options?: Parameters<typeof apiRequest>[1]): Promise<ItemDto> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -217,7 +119,7 @@ export const updateListItem = async (listId: string,
     }
     return headers;
   };
-return apiRequest<updateListItemResponse>(getUpdateListItemUrl(listId,itemId),
+return apiRequest<ItemDto>(getUpdateListItemUrl(listId,itemId),
   {
     ...options,
     method: 'PATCH',
@@ -226,35 +128,6 @@ return apiRequest<updateListItemResponse>(getUpdateListItemUrl(listId,itemId),
   }
 );}
 
-
-export type deleteListItemResponse204 = {
-  data: void
-  status: 204
-}
-
-export type deleteListItemResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type deleteListItemResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type deleteListItemResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type deleteListItemResponseSuccess = (deleteListItemResponse204) & {
-  headers: Headers;
-};
-export type deleteListItemResponseError = (deleteListItemResponse401 | deleteListItemResponse404 | deleteListItemResponse500) & {
-  headers: Headers;
-};
-
-export type deleteListItemResponse = (deleteListItemResponseSuccess | deleteListItemResponseError)
 
 export const getDeleteListItemUrl = (listId: string,
     itemId: string,
@@ -279,9 +152,9 @@ export const getDeleteListItemUrl = (listId: string,
  */
 export const deleteListItem = async (listId: string,
     itemId: string,
-    params?: DeleteListItemParams, options?: Parameters<typeof apiRequest>[1]): Promise<deleteListItemResponse> => {
+    params?: DeleteListItemParams, options?: Parameters<typeof apiRequest>[1]): Promise<void> => {
 
-  return apiRequest<deleteListItemResponse>(getDeleteListItemUrl(listId,itemId,params),
+  return apiRequest<void>(getDeleteListItemUrl(listId,itemId,params),
   {
     ...options,
     method: 'DELETE'
@@ -290,35 +163,6 @@ export const deleteListItem = async (listId: string,
   }
 );}
 
-
-export type completeItemResponse200 = {
-  data: ItemDto
-  status: 200
-}
-
-export type completeItemResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type completeItemResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type completeItemResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type completeItemResponseSuccess = (completeItemResponse200) & {
-  headers: Headers;
-};
-export type completeItemResponseError = (completeItemResponse401 | completeItemResponse404 | completeItemResponse500) & {
-  headers: Headers;
-};
-
-export type completeItemResponse = (completeItemResponseSuccess | completeItemResponseError)
 
 export const getCompleteItemUrl = (listId: string,
     itemId: string,) => {
@@ -334,7 +178,7 @@ export const getCompleteItemUrl = (listId: string,
  */
 export const completeItem = async (listId: string,
     itemId: string,
-    nullItemTimestampRequest?: null | ItemTimestampRequest, options?: Parameters<typeof apiRequest>[1]): Promise<completeItemResponse> => {
+    nullItemTimestampRequest?: null | ItemTimestampRequest, options?: Parameters<typeof apiRequest>[1]): Promise<ItemDto> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -350,7 +194,7 @@ export const completeItem = async (listId: string,
     }
     return headers;
   };
-return apiRequest<completeItemResponse>(getCompleteItemUrl(listId,itemId),
+return apiRequest<ItemDto>(getCompleteItemUrl(listId,itemId),
   {
     ...options,
     method: 'POST',
@@ -359,40 +203,6 @@ return apiRequest<completeItemResponse>(getCompleteItemUrl(listId,itemId),
   }
 );}
 
-
-export type moveItemResponse200 = {
-  data: ItemDto
-  status: 200
-}
-
-export type moveItemResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type moveItemResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type moveItemResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type moveItemResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type moveItemResponseSuccess = (moveItemResponse200) & {
-  headers: Headers;
-};
-export type moveItemResponseError = (moveItemResponse400 | moveItemResponse401 | moveItemResponse404 | moveItemResponse500) & {
-  headers: Headers;
-};
-
-export type moveItemResponse = (moveItemResponseSuccess | moveItemResponseError)
 
 export const getMoveItemUrl = (listId: string,
     itemId: string,) => {
@@ -409,7 +219,7 @@ export const getMoveItemUrl = (listId: string,
  */
 export const moveItem = async (listId: string,
     itemId: string,
-    moveItemRequest: MoveItemRequest, options?: Parameters<typeof apiRequest>[1]): Promise<moveItemResponse> => {
+    moveItemRequest: MoveItemRequest, options?: Parameters<typeof apiRequest>[1]): Promise<ItemDto> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -425,7 +235,7 @@ export const moveItem = async (listId: string,
     }
     return headers;
   };
-return apiRequest<moveItemResponse>(getMoveItemUrl(listId,itemId),
+return apiRequest<ItemDto>(getMoveItemUrl(listId,itemId),
   {
     ...options,
     method: 'POST',
@@ -434,35 +244,6 @@ return apiRequest<moveItemResponse>(getMoveItemUrl(listId,itemId),
   }
 );}
 
-
-export type reopenItemResponse200 = {
-  data: ItemDto
-  status: 200
-}
-
-export type reopenItemResponse401 = {
-  data: ProblemDetails
-  status: 401
-}
-
-export type reopenItemResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type reopenItemResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-
-export type reopenItemResponseSuccess = (reopenItemResponse200) & {
-  headers: Headers;
-};
-export type reopenItemResponseError = (reopenItemResponse401 | reopenItemResponse404 | reopenItemResponse500) & {
-  headers: Headers;
-};
-
-export type reopenItemResponse = (reopenItemResponseSuccess | reopenItemResponseError)
 
 export const getReopenItemUrl = (listId: string,
     itemId: string,) => {
@@ -478,7 +259,7 @@ export const getReopenItemUrl = (listId: string,
  */
 export const reopenItem = async (listId: string,
     itemId: string,
-    nullItemTimestampRequest?: null | ItemTimestampRequest, options?: Parameters<typeof apiRequest>[1]): Promise<reopenItemResponse> => {
+    nullItemTimestampRequest?: null | ItemTimestampRequest, options?: Parameters<typeof apiRequest>[1]): Promise<ItemDto> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -494,7 +275,7 @@ export const reopenItem = async (listId: string,
     }
     return headers;
   };
-return apiRequest<reopenItemResponse>(getReopenItemUrl(listId,itemId),
+return apiRequest<ItemDto>(getReopenItemUrl(listId,itemId),
   {
     ...options,
     method: 'POST',

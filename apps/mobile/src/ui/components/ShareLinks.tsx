@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Button as PaperButton, Card, List, Text } from 'react-native-paper';
 import * as Clipboard from 'expo-clipboard';
 import { ShareAccess, type ShareDto } from '@lupira/tasks-api/models';
-import { createShareLink, listShareLinks, revokeShareLink } from '../../data/shares';
+import { createShareLink, revokeShareLink, useShareLinks } from '../../state/shareLinks';
 import { toast, toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { spacing, useColors, type Palette } from '../theme';
 import { Button } from '@danbro96/lupira-expo-paper/components/Button';
@@ -13,16 +13,10 @@ import { useConfirm } from '@danbro96/lupira-expo-paper/components/ConfirmDialog
 const ACCESS_OPTIONS: ShareAccess[] = [ShareAccess.Read, ShareAccess.ReadWrite];
 const ACCESS_LABELS: Record<ShareAccess, string> = { Read: 'Read', ReadWrite: 'Read & write' };
 
-async function createAndCopyShareLink(
-  listId: string,
-  access: ShareAccess,
-  onCreated: (share: ShareDto) => void,
-  setBusy: (busy: boolean) => void,
-) {
+async function createAndCopyShareLink(listId: string, access: ShareAccess, setBusy: (busy: boolean) => void) {
   setBusy(true);
   try {
     const share = await createShareLink(listId, access);
-    onCreated(share);
     await Clipboard.setStringAsync(share.url);
     toast('Link created & copied');
   } catch {
@@ -37,27 +31,18 @@ export function ShareLinks({ listId }: { listId: string }) {
   const confirm = useConfirm();
   const c = useColors();
   const styles = makeStyles(c);
-  const [shares, setShares] = useState<ShareDto[] | null>(null);
+  const query = useShareLinks(listId);
   const [access, setAccess] = useState<ShareAccess>(ShareAccess.Read);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    let alive = true;
-    listShareLinks(listId)
-      .then(s => alive && setShares(s))
-      .catch(() => {
-        if (!alive) return;
-        setShares([]);
-        toastError("Couldn't load share links");
-      });
-    return () => {
-      alive = false;
-    };
-  }, [listId]);
+    if (query.isError) toastError("Couldn't load share links");
+  }, [query.isError]);
+  const shares: ShareDto[] | null = query.data ?? (query.isError ? [] : null);
 
   async function create() {
     if (busy) return;
-    await createAndCopyShareLink(listId, access, share => setShares(prev => [share, ...(prev ?? [])]), setBusy);
+    await createAndCopyShareLink(listId, access, setBusy);
   }
 
   async function copy(url: string) {
@@ -74,10 +59,7 @@ export function ShareLinks({ listId }: { listId: string }) {
     });
     if (!ok) return;
     await revokeShareLink(listId, shareId)
-      .then(() => {
-        setShares(prev => (prev ?? []).filter(s => s.shareId !== shareId));
-        toast('Link revoked');
-      })
+      .then(() => toast('Link revoked'))
       .catch(() => toastError("Couldn't revoke link"));
   }
 

@@ -11,10 +11,7 @@ import { TextField } from '@danbro96/lupira-expo-paper/components/TextField';
 import { ColorSwatches } from '../components/ColorSwatches';
 import { SyncBanner } from '../components/SyncBanner';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
-import { enqueue } from '../../sync/outbox';
-import { getDb } from '../../data/db/expoDb';
-import { newId } from '@lupira/tasks-domain/ids';
-import { stamp } from '../../domain/ops';
+import * as commands from '../../state/commands';
 import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
 import { spacing, useColors, type Palette } from '../theme';
 
@@ -41,7 +38,7 @@ export function CreateListScreen() {
       return;
     }
     try {
-      await enqueue(await getDb(), { ...stamp(), kind: 'list.create', listId: newId(), name: n, listKind: kind, color });
+      await commands.createList(n, kind, color);
       nav.goBack();
     } catch (e) {
       toastError("Couldn't create list");

@@ -1,5 +1,5 @@
 import { StyleSheet, View } from 'react-native';
-import type { OpStatus } from '../hooks/useOutboxStatus';
+import type { OpStatus } from '../../state/outbox';
 import { useColors } from '../theme';
 
 /** Tiny per-row sync indicator: amber = queued (pending), red = failed to sync. Nothing when synced. */

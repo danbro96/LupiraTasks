@@ -7,9 +7,9 @@
 **Mobile-app-first product.** `apps/mobile` (Expo/RN) is primary; read `apps/mobile/CLAUDE.md` before touching it. The web client mirrors its screen flow — check `apps/mobile/src/ui/screens` before changing web UI. The web is **online-only** (React Query, server is truth); only the app has the offline mirror.
 
 ## Workspaces
-- `packages/domain` (`@lupira/tasks-domain`) — pure shared rules, TS source. Only `fractional-indexing` and `uuid` allowed. Holds `dueDate`, `listOrder`, `text`, `itemTree`, `itemChange` (generic over the actor: principal id in the mirror, `PersonRef` from the API), `ids`, `itemFormat`. The mirror's own machinery (`itemState`, `itemLww`, `ops`, `listDoc`, `outboxScope`) stays in the app.
+- `packages/domain` (`@lupira/tasks-domain`) — pure shared rules, TS source. Only `fractional-indexing` and `uuid` allowed. Holds `dueDate`, `listOrder`, `text`, `itemTree`, `itemChange` (generic over the actor: principal id in the mirror, `PersonRef` from the API), `ids`, `itemFormat`. The mirror's own machinery (`itemState`, `itemLww`, `itemMap`, `ops`, `listDoc`) stays in the app.
 - `packages/tokens` (`@lupira/tasks-tokens`) — the Tasks-only palette keys extending `@danbro96/lupira-tokens-core`'s `Palette`, plus `listColorOptions`; each app has a one-line theme adapter.
-- `packages/api` (`@lupira/tasks-api`) — generated client in three flavours: `query/*` (member), `shared/*` (account-less share surface), `fetch/*` (the app's sync layer).
+- `packages/api` (`@lupira/tasks-api`) — generated client in three flavours: `query/*` (member), `shared/*` (account-less share surface), `fetch/*` (the app's sync engine and online queries). Every flavour resolves to the response body.
 - **The transport is installed, not imported.** The generated clients call `@danbro96/lupira-http`'s seam. `installApiTransports()` in `apps/web/src/data/api/fetcher.ts` installs `@danbro96/lupira-web-session`'s cookie transport from `main.tsx`; mobile installs the bearer mutator from `src/data/api/installTransport.ts`, imported as a side effect in `index.ts` (ES imports hoist).
 - Shared frontend plumbing comes from LupiraPlatform `@danbro96/lupira-*` packages (`~/Nextcloud/Familj/DevOps/Guides/platform-packages.md`); `@lupira/tasks-*` hold only what is Tasks-specific.
 
@@ -34,4 +34,4 @@
 - SPA layering `data → state → ui` (eslint-plugin-boundaries); `data/` transport + session, `state/` React Query hooks, `ui/` components/screens/navigation/theme.
 - `index.css` holds only the dnd-kit row/grip structure and remote-flash keyframes. Custom palette keys: `border`, `remoteChange`, `text.subtle`. TaskDetail keeps blur-to-save with per-field dirty checks. **dnd-kit rows, grips and the flash overlay stay plain DOM** (dnd-kit writes inline transforms).
 - Surfaces: member `/`, `/lists/:listId`; share `/s/:token` (logged in → auto-redeem via `POST /api/shares/redeem` → `/lists/:listId`).
-- Mobile layering `domain → data → sync → state → ui`; SQLite mirror + outbox.
+- Mobile layering `domain → data → sync → state → ui`; the shared sync engine (SQLite docs + outbox) with React Query reads.
