@@ -35,6 +35,21 @@ public sealed class AllowlistTests(BffTestFactory factory) : IClassFixture<BffTe
     }
 
     [Theory]
+    [InlineData("/api/sync/lists", "/sync/lists")]
+    [InlineData("/api/sync/items", "/sync/items")]
+    public async Task Uniform_sync_feeds_proxy_with_the_api_prefix_stripped(string path, string upstreamPath)
+    {
+        var client = Client();
+        client.DefaultRequestHeaders.Authorization = new("Bearer", BffTestFactory.MintToken());
+
+        var res = await client.GetAsync(path);
+
+        res.EnsureSuccessStatusCode();
+        var echo = await res.Content.ReadFromJsonAsync<UpstreamEcho>();
+        Assert.Equal(upstreamPath, echo!.Path);
+    }
+
+    [Theory]
     // Not in the allowlist: the agent/MCP-facing surface the two clients never call.
     [InlineData("/api/items")]
     [InlineData("/api/lists/11111111-1111-1111-1111-111111111111/items/22222222-2222-2222-2222-222222222222/relations")]

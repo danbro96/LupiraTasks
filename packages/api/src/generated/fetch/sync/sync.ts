@@ -6,7 +6,11 @@
  */
 import type {
   ProblemDetails,
+  SyncItemsParams,
   SyncListParams,
+  SyncListsParams,
+  SyncPageOfItemSyncChange,
+  SyncPageOfListDto,
   SyncResponse
 } from '../../models';
 
@@ -68,6 +72,126 @@ export const syncList = async (listId: string,
     params?: SyncListParams, options?: Parameters<typeof apiRequest>[1]): Promise<syncListResponse> => {
 
   return apiRequest<syncListResponse>(getSyncListUrl(listId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+export type syncItemsResponse200 = {
+  data: SyncPageOfItemSyncChange
+  status: 200
+}
+
+export type syncItemsResponse400 = {
+  data: ProblemDetails
+  status: 400
+}
+
+export type syncItemsResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type syncItemsResponse500 = {
+  data: ProblemDetails
+  status: 500
+}
+
+export type syncItemsResponseSuccess = (syncItemsResponse200) & {
+  headers: Headers;
+};
+export type syncItemsResponseError = (syncItemsResponse400 | syncItemsResponse401 | syncItemsResponse500) & {
+  headers: Headers;
+};
+
+export type syncItemsResponse = (syncItemsResponseSuccess | syncItemsResponseError)
+
+export const getSyncItemsUrl = (params?: SyncItemsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/sync/items?${stringifiedParams}` : `/api/sync/items`
+}
+
+/**
+ * Omit `since` for a full sync; then pass back each returned `cursor`, looping while `hasMore`. `reset: true` = drop the mirror before applying the page (first page of a full sync, or the caller gained or lost a list). `limit` defaults to 200, max 500. `deleted` holds the ids of deleted items.
+ * @summary Items of the caller's readable lists that changed since a cursor, with per-field guards.
+ */
+export const syncItems = async (params?: SyncItemsParams, options?: Parameters<typeof apiRequest>[1]): Promise<syncItemsResponse> => {
+
+  return apiRequest<syncItemsResponse>(getSyncItemsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+export type syncListsResponse200 = {
+  data: SyncPageOfListDto
+  status: 200
+}
+
+export type syncListsResponse400 = {
+  data: ProblemDetails
+  status: 400
+}
+
+export type syncListsResponse401 = {
+  data: ProblemDetails
+  status: 401
+}
+
+export type syncListsResponse500 = {
+  data: ProblemDetails
+  status: 500
+}
+
+export type syncListsResponseSuccess = (syncListsResponse200) & {
+  headers: Headers;
+};
+export type syncListsResponseError = (syncListsResponse400 | syncListsResponse401 | syncListsResponse500) & {
+  headers: Headers;
+};
+
+export type syncListsResponse = (syncListsResponseSuccess | syncListsResponseError)
+
+export const getSyncListsUrl = (params?: SyncListsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/sync/lists?${stringifiedParams}` : `/api/sync/lists`
+}
+
+/**
+ * Omit `since` for a full sync; then pass back each returned `cursor`, looping while `hasMore`. `reset: true` = drop the mirror before applying the page (first page of a full sync, or the caller gained or lost a list). `limit` defaults to 200, max 500. Lists leave the mirror through `reset`, so `deleted` is always empty.
+ * @summary Lists the caller can read that changed since a cursor, for an offline mirror.
+ */
+export const syncLists = async (params?: SyncListsParams, options?: Parameters<typeof apiRequest>[1]): Promise<syncListsResponse> => {
+
+  return apiRequest<syncListsResponse>(getSyncListsUrl(params),
   {
     ...options,
     method: 'GET'

@@ -40,6 +40,8 @@
       "GET /lists/{listId}/sync",
       "GET /me",
       "POST /shares/redeem",
+      "GET /sync/items",
+      "GET /sync/lists",
       "GET /users/directory"
     ]
   },

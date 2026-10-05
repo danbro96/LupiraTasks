@@ -61,6 +61,14 @@ describe('the allowlist', () => {
     expect(specOps).toHaveLength(allowed.size);
   });
 
+  it('publishes the uniform sync feeds next to the per-list one', () => {
+    expect(specOps.filter((op) => op.includes('/sync')).sort()).toEqual([
+      'GET /api/lists/{listId}/sync',
+      'GET /api/sync/items',
+      'GET /api/sync/lists',
+    ]);
+  });
+
   // These answer to a different credential than the family session the BFF holds, or aren't a browser
   // surface at all. None appear in the OpenAPI document, so the allowlist excludes them structurally —
   // this fails loudly if one is ever re-added by hand.
