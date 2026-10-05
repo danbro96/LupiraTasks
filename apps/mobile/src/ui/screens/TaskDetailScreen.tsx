@@ -389,6 +389,7 @@ export function TaskDetailScreen() {
         {canEdit ? (
           <View style={styles.subAddRow}>
             <TextField
+              style={styles.grow}
               placeholder="Add subtask…"
               value={subTitle}
               onChangeText={setSubTitle}
@@ -457,6 +458,7 @@ const makeStyles = (c: Palette) =>
     qtyRow: { flexDirection: 'row', gap: spacing.sm },
     qtyInput: { flex: 1 },
     unitInput: { flex: 2 },
+    grow: { flex: 1 },
     subRow: { paddingHorizontal: 0, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: c.divider },
     subDone: { color: c.textDisabled, textDecorationLine: 'line-through' },
     subAddRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },

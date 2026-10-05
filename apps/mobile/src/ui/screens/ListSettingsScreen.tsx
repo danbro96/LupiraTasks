@@ -189,7 +189,7 @@ export function ListSettingsScreen() {
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text variant="labelMedium" style={styles.section}>NAME</Text>
         <View style={styles.row}>
-          <TextField value={name} onChangeText={setName} onSubmitEditing={saveName} returnKeyType="done" accessibilityLabel="List name" />
+          <TextField style={styles.grow} value={name} onChangeText={setName} onSubmitEditing={saveName} returnKeyType="done" accessibilityLabel="List name" />
           <Button title="Save" onPress={saveName} />
         </View>
 
@@ -250,6 +250,7 @@ export function ListSettingsScreen() {
           <View style={styles.invite}>
             <View style={styles.row}>
               <TextField
+                style={styles.grow}
                 placeholder="Add member by email…"
                 autoCapitalize="none"
                 keyboardType="email-address"
@@ -290,6 +291,7 @@ const makeStyles = (c: Palette) =>
     content: { padding: spacing.lg, paddingBottom: 48 },
     section: { color: c.textSubtle, marginTop: spacing.xl, marginBottom: spacing.sm },
     row: { flexDirection: 'row', gap: spacing.sm },
+    grow: { flex: 1 },
     displayLabel: { marginBottom: spacing.sm },
     displayLabelGap: { marginTop: spacing.lg },
     member: { paddingVertical: spacing.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: c.divider },

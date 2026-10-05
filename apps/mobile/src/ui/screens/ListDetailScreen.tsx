@@ -409,6 +409,7 @@ export function ListDetailScreen() {
       {canEdit ? (
         <View style={styles.addRow}>
           <TextField
+            style={styles.grow}
             placeholder="Add task…"
             value={title}
             onChangeText={setTitle}
@@ -450,6 +451,7 @@ const makeStyles = (c: Palette, fontScale = 1, rowPad = 14) => {
     fill: { flex: 1, backgroundColor: c.bg },
     colorStripe: { height: 5 },
     addRow: { flexDirection: 'row', padding: spacing.md, gap: spacing.sm },
+    grow: { flex: 1 },
     readonly: { fontSize: 13, color: c.textMuted, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
     row: {
       flexDirection: 'row',
