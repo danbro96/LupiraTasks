@@ -5,6 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { Screen } from '@danbro96/lupira-expo-paper/components/Screen';
 import { IdentityHeader } from '@danbro96/lupira-expo-paper/components/IdentityHeader';
+import { SignOutButton } from '@danbro96/lupira-expo-paper/components/SignOutButton';
 import { VersionLine } from '@danbro96/lupira-expo-diagnostics/VersionLine';
 import { SegmentedPicker } from '@danbro96/lupira-expo-paper/components/SegmentedPicker';
 import { SyncBanner } from '../components/SyncBanner';
@@ -31,6 +32,10 @@ export function SettingsScreen() {
 
         <List.Subheader>Account</List.Subheader>
         <List.Item title="Archived lists" onPress={() => nav.navigate('ArchivedLists')} />
+        <SignOutButton
+          message="You will need to sign in with Authentik again to get back in."
+          onSignOut={() => void useAuth.getState().clearSession()}
+        />
 
         <List.Subheader>Display</List.Subheader>
         <List.Item title="Task text size" />
