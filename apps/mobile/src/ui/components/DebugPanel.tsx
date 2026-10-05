@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDebugLog, clearDebugLog } from '@danbro96/lupira-expo-diagnostics/log';
-import { darkColors as d } from '../theme';
+import { darkColors as d, spacing } from '../theme';
 
 /** Collapsible on-device debug log (dev-only, fixed dark). Renders the shared debug buffer newest-first. */
 export function DebugPanel() {
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   debug: { position: 'absolute', left: 8, right: 8, maxHeight: 260, backgroundColor: d.bg, borderRadius: 8, padding: 8 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   title: { color: d.textMuted, fontSize: 12, fontWeight: '700' },
-  actions: { flexDirection: 'row', gap: 16 },
+  actions: { flexDirection: 'row', gap: spacing.lg },
   action: { color: d.primary, fontSize: 12 },
   scroll: { maxHeight: 220 },
   line: { color: d.text, fontSize: 11, fontFamily: 'monospace', marginBottom: 2 },
