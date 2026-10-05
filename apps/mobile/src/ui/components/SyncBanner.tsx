@@ -54,10 +54,10 @@ export function SyncBanner() {
       accessibilityLiveRegion="polite"
     >
       {/* The banner tones are dark in both schemes, so the label stays light. */}
-      <Text variant="bodySmall" style={[styles.light, styles.message]} numberOfLines={1}>
+      <Text variant="bodySmall" style={[{ color: c.onStatus }, styles.message]} numberOfLines={1}>
         <Glyph name={ICON_BY_KIND[state.kind]} size={14} />  {state.text}
       </Text>
-      {reviewable && <Text style={styles.light}><Glyph name={ICONS.chevronRight} size={16} /></Text>}
+      {reviewable && <Text style={{ color: c.onStatus }}><Glyph name={ICONS.chevronRight} size={16} /></Text>}
     </Pressable>
   );
 }
@@ -67,6 +67,5 @@ const styles = StyleSheet.create({
   overlay: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1 },
   bar: { height: 2 },
   strip: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 28, paddingHorizontal: 12, paddingVertical: 4 },
-  light: { color: '#fff' },
   message: { flex: 1 },
 });

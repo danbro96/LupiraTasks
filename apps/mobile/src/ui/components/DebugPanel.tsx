@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDebugLog, clearDebugLog } from '@danbro96/lupira-expo-diagnostics/log';
+import { darkColors as d } from '../theme';
 
-/** Collapsible on-device debug log (dev-only). Renders the shared debug buffer newest-first. */
+/** Collapsible on-device debug log (dev-only, fixed dark). Renders the shared debug buffer newest-first. */
 export function DebugPanel() {
   const entries = useDebugLog(s => s.entries);
   const [show, setShow] = useState(false);
@@ -52,12 +53,12 @@ export function DebugPanel() {
 }
 
 const styles = StyleSheet.create({
-  debug: { position: 'absolute', left: 8, right: 8, maxHeight: 260, backgroundColor: '#0d1117', borderRadius: 8, padding: 8 },
+  debug: { position: 'absolute', left: 8, right: 8, maxHeight: 260, backgroundColor: d.bg, borderRadius: 8, padding: 8 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  title: { color: '#9aa0ac', fontSize: 12, fontWeight: '700' },
+  title: { color: d.textMuted, fontSize: 12, fontWeight: '700' },
   actions: { flexDirection: 'row', gap: 16 },
-  action: { color: '#6ea8fe', fontSize: 12 },
+  action: { color: d.primary, fontSize: 12 },
   scroll: { maxHeight: 220 },
-  line: { color: '#d4d8e0', fontSize: 11, fontFamily: 'monospace', marginBottom: 2 },
-  lineMuted: { color: '#6e7686', fontSize: 11, fontStyle: 'italic' },
+  line: { color: d.text, fontSize: 11, fontFamily: 'monospace', marginBottom: 2 },
+  lineMuted: { color: d.textSubtle, fontSize: 11, fontStyle: 'italic' },
 });

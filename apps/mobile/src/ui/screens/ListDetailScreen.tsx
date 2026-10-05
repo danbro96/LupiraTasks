@@ -175,7 +175,7 @@ const TaskRow = memo(function TaskRow({ item, depth, hasChildren, canEdit, dragg
   return (
     <View style={styles.swipeContainer}>
       <Animated.View style={[styles.swipeDelete, deleteBgStyle]} pointerEvents="none">
-        <MaterialIcons name={ICONS.delete} size={22} color="#fff" />
+        <MaterialIcons name={ICONS.delete} size={22} color={palette.onStatus} />
       </Animated.View>
       <GestureDetector gesture={swipe}>
         <Animated.View style={rowStyle} exiting={SlideOutLeft.duration(180)}>{inner}</Animated.View>

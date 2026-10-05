@@ -10,6 +10,8 @@ export interface Palette extends CorePalette {
   bannerSyncing: string;
   toastBg: string;
   toastAction: string;
+  /** Label or icon on a status-coloured surface (sync banner, swipe-to-delete). Light in both schemes. */
+  onStatus: string;
 }
 
 export const lightColors: Palette = {
@@ -22,6 +24,7 @@ export const lightColors: Palette = {
   bannerSyncing: '#0f766e',
   toastBg: '#2b2f36',
   toastAction: '#2dd4bf',
+  onStatus: '#ffffff',
 };
 
 export const darkColors: Palette = {
@@ -34,6 +37,7 @@ export const darkColors: Palette = {
   bannerSyncing: '#115e59',
   toastBg: '#2b2f36',
   toastAction: '#2dd4bf',
+  onStatus: '#ffffff',
 };
 
 /** The selectable list colors offered in List settings. `null` = no color. */
