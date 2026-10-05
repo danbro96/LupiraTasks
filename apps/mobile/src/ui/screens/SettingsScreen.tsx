@@ -5,13 +5,11 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { Screen } from '@danbro96/lupira-expo-paper/components/Screen';
 import { IdentityHeader } from '@danbro96/lupira-expo-paper/components/IdentityHeader';
-import { VersionLine } from '@danbro96/lupira-expo-paper/components/VersionLine';
+import { VersionLine } from '@danbro96/lupira-expo-diagnostics/VersionLine';
 import { SegmentedPicker } from '@danbro96/lupira-expo-paper/components/SegmentedPicker';
 import { SyncBanner } from '../components/SyncBanner';
 import { useAuth } from '../../state/auth-store';
 import { usePrefs, type RowSpacing, type TextSize } from '../../state/prefs-store';
-import { APP_VERSION } from '../../config';
-import { UPDATE_LABEL } from '@danbro96/lupira-expo-diagnostics/buildInfo';
 import { spacing } from '../theme';
 
 const TEXT_SIZES = ['small', 'default', 'large'] as const;
@@ -71,7 +69,7 @@ export function SettingsScreen() {
         ) : null}
 
         <List.Subheader>About</List.Subheader>
-        <VersionLine app="Lupira Tasks" version={APP_VERSION} updateLabel={UPDATE_LABEL} />
+        <VersionLine />
       </ScrollView>
     </Screen>
   );

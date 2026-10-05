@@ -1,4 +1,3 @@
-import Constants from 'expo-constants';
 
 /** 'dev' = this backend's bypass; here that means an `X-Dev-User` header. */
 export type AuthMode = 'oidc' | 'dev';
@@ -35,7 +34,6 @@ export const DEFAULT_AUTH_MODE: AuthMode =
 export const LIST_POLL_MS = 5_000;
 
 // Human-readable app version, shown on the Settings screen.
-export const APP_VERSION = Constants.expoConfig?.version ?? '0.0.0';
 
 // Sentry DSN — a public client (ingest) key, safe to commit. Empty disables crash
 // reporting. The CLI auth token (for source-map upload) is the secret one and lives in

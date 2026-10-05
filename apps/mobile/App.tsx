@@ -16,23 +16,12 @@ import { useAuth } from './src/state/auth-store';
 import { usePrefs } from './src/state/prefs-store';
 import { startSync, syncAll } from './src/sync/sync';
 import { SENTRY_DSN } from './src/config';
-import { UPDATE_CHANNEL, UPDATE_ID } from '@danbro96/lupira-expo-diagnostics/buildInfo';
+import { initSentry } from '@danbro96/lupira-expo-diagnostics/initSentry';
 import { lightColors, darkColors, navDark, navLight, paperDark, paperLight, type Palette } from './src/ui/theme';
 import { paperSettings } from '@danbro96/lupira-expo-paper/theme/paperSettings';
 
-// Crash analytics. SENTRY_DSN is a public client key in src/config.ts — Sentry no-ops when empty.
-// release/dist tie events to a version (and let source maps resolve); environment separates dev
-// noise from production crashes.
-const sentryDsn = SENTRY_DSN;
-Sentry.init({
-  dsn: sentryDsn,
-  enabled: !!sentryDsn,
-  tracesSampleRate: 0.2,
-  sendDefaultPii: false,
-  environment: __DEV__ ? 'development' : 'production',
-});
-Sentry.setTag('update_id', UPDATE_ID ?? 'none');
-Sentry.setTag('update_channel', UPDATE_CHANNEL ?? 'none');
+// SENTRY_DSN is a public client key in src/config.ts; Sentry no-ops when empty.
+initSentry(SENTRY_DSN);
 
 // Deep links: lupiratasks://task/<listId>/<itemId> (minted by e.g. the calendar's TaskCard). The OIDC
 // callback (lupiratasks://oauthredirect) must never reach navigation — expo-auth-session owns it; when
