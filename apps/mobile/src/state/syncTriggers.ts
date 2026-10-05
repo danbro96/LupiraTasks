@@ -13,5 +13,5 @@ defineSyncTask(BACKGROUND_TASK, engine, () => useAuth.getState().load());
 export function startSync(): () => void {
   connectOnlineManager();
   connectFocusManager();
-  return startSyncTriggers(engine, { backgroundTaskName: BACKGROUND_TASK });
+  return startSyncTriggers(engine, { backgroundTaskName: BACKGROUND_TASK, registerBackgroundTask: !__DEV__ });
 }
