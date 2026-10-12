@@ -1,43 +1,39 @@
-import { darkColors as coreDark, lightColors as coreLight, type Palette as CorePalette } from '@danbro96/lupira-tokens-core/color';
+import {
+  darkBanner,
+  darkColors as coreDark,
+  lightBanner,
+  lightColors as coreLight,
+  type BannerPalette,
+  type Palette as CorePalette,
+} from '@danbro96/lupira-tokens-core/color';
 
-export interface Palette extends CorePalette {
+export interface Palette extends CorePalette, BannerPalette {
   pending: string;
   failed: string;
   /** Backdrop for a row that just changed because someone else edited it. */
   remoteChange: string;
-  bannerOffline: string;
-  bannerUnreachable: string;
-  bannerSyncing: string;
   toastBg: string;
   toastAction: string;
-  /** Label or icon on a status-coloured surface (sync banner, swipe-to-delete). Light in both schemes. */
-  onStatus: string;
 }
 
 export const lightColors: Palette = {
   ...coreLight,
+  ...lightBanner,
   pending: '#d8a200',
   failed: '#b3261e',
   remoteChange: '#dce9f9',
-  bannerOffline: '#5b4b18',
-  bannerUnreachable: '#7a1f1f',
-  bannerSyncing: '#0f766e',
   toastBg: '#2b2f36',
   toastAction: '#2dd4bf',
-  onStatus: '#ffffff',
 };
 
 export const darkColors: Palette = {
   ...coreDark,
+  ...darkBanner,
   pending: '#d8a200',
   failed: '#f2675e',
   remoteChange: '#25384f',
-  bannerOffline: '#5b4b18',
-  bannerUnreachable: '#7a1f1f',
-  bannerSyncing: '#115e59',
   toastBg: '#2b2f36',
   toastAction: '#2dd4bf',
-  onStatus: '#ffffff',
 };
 
 /** The selectable list colors offered in List settings. `null` = no color. */

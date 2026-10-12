@@ -21,7 +21,7 @@ export function useOpStatus(id: string): OpStatus | undefined {
   return useQuery({ ...statusQuery, select: map => map.get(id) }).data;
 }
 
-/** Changes the server rejected, for Sync issues. */
+/** Changes the server rejected, for the Sync screen. */
 export function useParkedChanges(): ParkedOp[] | undefined {
   return useQuery(mirrorQuery([OUTBOX_ROOT, 'parked'], () => engine.parked())).data;
 }

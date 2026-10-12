@@ -43,5 +43,4 @@ export const SENTRY_DSN = 'https://3843e53f862b5ccf98db1b15c0b2b573@o45113415757
 /** Extra screens the Developer screen links to. */
 export const DIAGNOSTIC_ROUTES: { route: string; label: string }[] = [
   { route: 'DebugLog', label: 'Debug log' },
-  { route: 'SyncIssues', label: 'Sync issues' },
 ];

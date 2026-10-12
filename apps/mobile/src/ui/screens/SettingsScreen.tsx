@@ -8,10 +8,13 @@ import { IdentityHeader } from '@danbro96/lupira-expo-paper/components/IdentityH
 import { SignOutButton } from '@danbro96/lupira-expo-paper/components/SignOutButton';
 import { VersionLine } from '@danbro96/lupira-expo-diagnostics/VersionLine';
 import { SegmentedPicker } from '@danbro96/lupira-expo-paper/components/SegmentedPicker';
+import { changeCount, syncStatusLine } from '@danbro96/lupira-expo-paper/status';
+import { useOnline } from '@danbro96/lupira-expo-query/online';
 import { SyncBanner } from '../components/SyncBanner';
 import { useAuth } from '../../state/auth-store';
+import { useSyncStatus } from '../../state/syncStatus';
 import { usePrefs, type RowSpacing, type TextSize } from '../../state/prefs-store';
-import { spacing } from '../theme';
+import { spacing, useColors } from '../theme';
 
 const TEXT_SIZES = ['small', 'default', 'large'] as const;
 const TEXT_SIZE_LABELS: Record<TextSize, string> = { small: 'Small', default: 'Default', large: 'Large' };
@@ -24,6 +27,10 @@ export function SettingsScreen() {
   const debugEnabled = usePrefs(s => s.debugEnabled);
   const textSize = usePrefs(s => s.textSize);
   const rowSpacing = usePrefs(s => s.rowSpacing);
+  const status = useSyncStatus();
+  const online = useOnline();
+  const c = useColors();
+  const sync = status.parked > 0 ? `${syncStatusLine(status, online)} · ${changeCount(status.parked)} not saved` : syncStatusLine(status, online);
 
   return (
     <Screen banner={<SyncBanner />}>
@@ -32,6 +39,12 @@ export function SettingsScreen() {
 
         <List.Subheader>Account</List.Subheader>
         <List.Item title="Archived lists" onPress={() => nav.navigate('ArchivedLists')} />
+        <List.Item
+          title="Sync"
+          description={sync}
+          descriptionStyle={status.parked > 0 ? { color: c.danger } : undefined}
+          onPress={() => nav.navigate('SyncIssues')}
+        />
         <SignOutButton
           message="You will need to sign in with Authentik again to get back in."
           onSignOut={() => void useAuth.getState().clearSession()}

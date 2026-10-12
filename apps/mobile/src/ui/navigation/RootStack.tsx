@@ -59,7 +59,7 @@ export function RootStack() {
           <Stack.Screen name="ListSettings" component={ListSettingsScreen} options={{ title: 'List settings' }} />
           <Stack.Screen name="TaskDetail" component={TaskDetailScreen} options={{ title: 'Task' }} />
           <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
-          <Stack.Screen name="SyncIssues" component={SyncIssuesScreen} options={{ title: 'Sync issues' }} />
+          <Stack.Screen name="SyncIssues" component={SyncIssuesScreen} options={{ title: 'Sync' }} />
           <Stack.Screen name="CreateList" component={CreateListScreen} options={{ title: 'New list', presentation: 'modal' }} />
           <Stack.Screen name="ImportList" component={ImportListScreen} options={{ title: 'Import list', presentation: 'modal' }} />
           <Stack.Screen name="ArchivedLists" component={ArchivedListsScreen} options={{ title: 'Archived lists' }} />
