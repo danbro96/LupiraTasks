@@ -32,7 +32,7 @@
       [
         "@sentry/react-native/expo",
         {
-          "url": "https://sentry.io/",
+          "url": "https://de.sentry.io/",
           "project": "lupira-tasks",
           "organization": "brostrom"
         }
