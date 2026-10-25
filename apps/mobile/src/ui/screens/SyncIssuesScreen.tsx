@@ -7,6 +7,7 @@ import { syncNow, useSyncStatus } from '../../state/syncStatus';
 import * as commands from '../../state/commands';
 import type { ClientOp } from '../../domain/ops';
 import { SYNC_LABELS } from '../components/SyncBanner';
+import { run } from '../run';
 
 // Human label per op kind. A Record over the union forces every new op kind to get a label.
 const OP_LABELS: Record<ClientOp['kind'], string> = {
@@ -51,16 +52,13 @@ export function SyncIssuesScreen() {
       opLabel={labelOf}
       online={online}
       progressLabels={SYNC_LABELS}
-      onSync={() => void syncNow()}
-      onRetry={commandId => void commands.retryChanges([commandId])}
+      onSync={() => run(syncNow, 'Sync failed')}
+      onRetry={commandId => run(() => commands.retryChanges([commandId]), "Couldn't retry change")}
       onRetryAll={() => {
-        void commands.retryChanges(rows.map(r => r.op.commandId));
+        run(() => commands.retryChanges(rows.map(r => r.op.commandId)), "Couldn't retry changes");
         toast('Retrying failed changes…');
       }}
-      onDiscard={commandId => {
-        void commands.discardChange(commandId);
-        toast('Change discarded');
-      }}
+      onDiscard={commandId => run(() => commands.discardChange(commandId), "Couldn't discard change", 'Change discarded')}
     />
   );
 }

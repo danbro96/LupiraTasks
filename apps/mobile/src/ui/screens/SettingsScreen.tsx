@@ -15,6 +15,7 @@ import { useAuth } from '../../state/auth-store';
 import { useSyncStatus } from '../../state/syncStatus';
 import { usePrefs, type RowSpacing, type TextSize } from '../../state/prefs-store';
 import { spacing, useColors } from '../theme';
+import { run } from '../run';
 
 const TEXT_SIZES = ['small', 'default', 'large'] as const;
 const TEXT_SIZE_LABELS: Record<TextSize, string> = { small: 'Small', default: 'Default', large: 'Large' };
@@ -47,7 +48,7 @@ export function SettingsScreen() {
         />
         <SignOutButton
           message="You will need to sign in with Authentik again to get back in."
-          onSignOut={() => void useAuth.getState().clearSession()}
+          onSignOut={() => run(() => useAuth.getState().clearSession(), "Couldn't sign out")}
         />
 
         <List.Subheader>Display</List.Subheader>
@@ -56,7 +57,7 @@ export function SettingsScreen() {
           <SegmentedPicker
             options={TEXT_SIZES}
             selected={textSize}
-            onSelect={v => void usePrefs.getState().setTextSize(v)}
+            onSelect={v => run(() => usePrefs.getState().setTextSize(v), "Couldn't save setting")}
             getLabel={v => TEXT_SIZE_LABELS[v]}
           />
         </View>
@@ -65,7 +66,7 @@ export function SettingsScreen() {
           <SegmentedPicker
             options={ROW_SPACINGS}
             selected={rowSpacing}
-            onSelect={v => void usePrefs.getState().setRowSpacing(v)}
+            onSelect={v => run(() => usePrefs.getState().setRowSpacing(v), "Couldn't save setting")}
             getLabel={v => ROW_SPACING_LABELS[v]}
           />
         </View>
@@ -77,7 +78,7 @@ export function SettingsScreen() {
           right={() => (
             <Switch
               value={debugEnabled}
-              onValueChange={v => void usePrefs.getState().setDebugEnabled(v)}
+              onValueChange={v => run(() => usePrefs.getState().setDebugEnabled(v), "Couldn't save setting")}
               accessibilityLabel="Enable debug"
             />
           )}

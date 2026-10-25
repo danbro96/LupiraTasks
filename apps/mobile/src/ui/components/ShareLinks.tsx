@@ -6,6 +6,7 @@ import { ShareAccess, type ShareDto } from '@lupira/tasks-api/models';
 import { createShareLink, revokeShareLink, useShareLinks } from '../../state/shareLinks';
 import { toast, toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { spacing, useColors, type Palette } from '../theme';
+import { run } from '../run';
 import { Button } from '@danbro96/lupira-expo-paper/components/Button';
 import { SegmentedPicker } from '@danbro96/lupira-expo-paper/components/SegmentedPicker';
 import { useConfirm } from '@danbro96/lupira-expo-paper/components/ConfirmDialog';
@@ -40,9 +41,9 @@ export function ShareLinks({ listId }: { listId: string }) {
   }, [query.isError]);
   const shares: ShareDto[] | null = query.data ?? (query.isError ? [] : null);
 
-  async function create() {
+  function create() {
     if (busy) return;
-    await createAndCopyShareLink(listId, access, setBusy);
+    run(() => createAndCopyShareLink(listId, access, setBusy), "Couldn't create share link");
   }
 
   async function copy(url: string) {
@@ -75,7 +76,7 @@ export function ShareLinks({ listId }: { listId: string }) {
         getLabel={a => ACCESS_LABELS[a]}
         style={styles.access}
       />
-      <Button title="Create share link" onPress={() => void create()} loading={busy} style={styles.create} />
+      <Button title="Create share link" onPress={create} loading={busy} style={styles.create} />
 
       {shares === null ? (
         <Text variant="bodySmall" style={styles.muted}>Loading…</Text>
@@ -91,10 +92,10 @@ export function ShareLinks({ listId }: { listId: string }) {
               <Text variant="bodySmall" style={styles.accessLabel}>{ACCESS_LABELS[s.access]}</Text>
             </Card.Content>
             <Card.Actions>
-              <PaperButton onPress={() => void copy(s.url)} accessibilityLabel="Copy link">
+              <PaperButton onPress={() => run(() => copy(s.url), "Couldn't copy link")} accessibilityLabel="Copy link">
                 Copy
               </PaperButton>
-              <PaperButton textColor={c.danger} onPress={() => void revoke(s.shareId)} accessibilityLabel="Revoke link">
+              <PaperButton textColor={c.danger} onPress={() => run(() => revoke(s.shareId), "Couldn't revoke link")} accessibilityLabel="Revoke link">
                 Revoke
               </PaperButton>
             </Card.Actions>

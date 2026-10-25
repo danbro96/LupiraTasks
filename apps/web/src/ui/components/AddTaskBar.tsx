@@ -18,12 +18,14 @@ export function AddTaskBar({ placeholder = 'Add task…', onAdd }: Props) {
     <Box
       component="form"
       sx={{ display: 'flex', gap: 1, p: '12px 16px' }}
-      onSubmit={handleSubmit(v => {
-        const t = oneLine(v.title).trim();
-        if (!t) return;
-        reset();
-        onAdd(t);
-      })}
+      onSubmit={e => {
+        handleSubmit(v => {
+          const t = oneLine(v.title).trim();
+          if (!t) return;
+          reset();
+          onAdd(t);
+        })(e).catch(reportError);
+      }}
     >
       <Controller
         name="title"

@@ -49,7 +49,7 @@ engine.status.subscribe(() => {
   const next = `${pending}/${parked}`;
   if (next === counts) return;
   counts = next;
-  void queryClient.invalidateQueries({ queryKey: [OUTBOX_ROOT] });
+  queryClient.invalidateQueries({ queryKey: [OUTBOX_ROOT] });
 });
 
 let opened: Promise<Db> | null = null;

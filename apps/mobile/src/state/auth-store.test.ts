@@ -7,6 +7,7 @@ vi.mock('expo-secure-store', () => ({
   setItemAsync: vi.fn(async (k: string, v: string) => void secure.set(k, v)),
   deleteItemAsync: vi.fn(async (k: string) => void secure.delete(k)),
 }));
+vi.mock('react-native', () => ({ AppState: {} }));
 vi.mock('expo-auth-session', () => ({}));
 vi.mock('expo-crypto', () => ({
   digestStringAsync: vi.fn().mockResolvedValue('hashed-id'),
@@ -14,7 +15,7 @@ vi.mock('expo-crypto', () => ({
 }));
 vi.mock('@sentry/react-native', () => ({ setUser: vi.fn(), captureMessage: vi.fn(), captureException: vi.fn() }));
 vi.mock('@danbro96/lupira-expo-feedback/toast', () => ({ toast: vi.fn() }));
-vi.mock('@danbro96/lupira-expo-diagnostics/log', () => ({ logDebug: vi.fn() }));
+vi.mock('@danbro96/lupira-expo-diagnostics/log', () => ({ logDebug: vi.fn(), detach: vi.fn() }));
 vi.mock('../data/auth/oidc', () => ({ oidc: { refreshTokens: vi.fn() } }));
 vi.mock('../sync/engine', () => ({ engine: { wipe: vi.fn().mockResolvedValue(undefined) } }));
 

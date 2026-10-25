@@ -19,6 +19,7 @@ import { TextField } from '@danbro96/lupira-expo-paper/components/TextField';
 import { SyncBanner } from '../components/SyncBanner';
 import { SyncDot } from '../components/SyncDot';
 import { toastError } from '@danbro96/lupira-expo-feedback/toast';
+import { detach } from '@danbro96/lupira-expo-diagnostics/log';
 import { useList } from '../../state/lists';
 import { useItems, useRemoteChanges } from '../../state/items';
 import { useOpStatus } from '../../state/outbox';
@@ -33,6 +34,7 @@ import { qtyLabel } from '@lupira/tasks-domain/itemFormat';
 import { oneLine } from '@lupira/tasks-domain/text';
 import { formatDue } from '@lupira/tasks-domain/dueDate';
 import { spacing, useColors, type Palette } from '../theme';
+import { run } from '../run';
 import { ICONS } from '../icons';
 
 const INDENT = spacing.lg; // left inset per nesting level
@@ -214,7 +216,7 @@ export function ListDetailScreen() {
   // ListSettings are pushed on top, so a mount-only effect would leave tasks stale on return.
   useFocusEffect(() => {
     // Background refresh: errors surface via the sync banner.
-    void syncNow().then(() => setPulled(true));
+    detach(syncNow().then(() => setPulled(true)), 'list:pull');
   });
 
   useListPolling(listId);
@@ -280,26 +282,18 @@ export function ListDetailScreen() {
     setRefreshing(false);
   }
 
-  async function addItem() {
+  function addItem() {
     const t = oneLine(title).trim();
     if (!t) return;
     setTitle('');
     // New tasks from the list view are always top-level and go to the top.
     const sortOrder = topSortOrder(items);
-    try {
-      await commands.addItem(listId, t, sortOrder, null);
-    } catch {
-      toastError("Couldn't add item");
-    }
+    commands.addItem(listId, t, sortOrder, null).catch(() => toastError("Couldn't add item"));
   }
 
-  const toggle = async (it: ItemState) => {
+  const toggle = (it: ItemState) => {
     if (!it.completed) hapticSuccess(); // satisfying tick when checking a task off
-    try {
-      await commands.setCompleted(listId, it.id, !it.completed);
-    } catch {
-      toastError("Couldn't update item");
-    }
+    commands.setCompleted(listId, it.id, !it.completed).catch(() => toastError("Couldn't update item"));
   };
 
   // Read through a ref: depending on `items` would hand every row a new callback on each change.
@@ -321,13 +315,9 @@ export function ListDetailScreen() {
     nav.navigate('TaskDetail', { listId, itemId: it.id });
   };
 
-  const setPriority = async (it: ItemState, priority: number) => {
+  const setPriority = (it: ItemState, priority: number) => {
     if (priority === it.priority) return;
-    try {
-      await commands.setPriority(listId, it.id, priority);
-    } catch {
-      toastError("Couldn't update priority");
-    }
+    commands.setPriority(listId, it.id, priority).catch(() => toastError("Couldn't update priority"));
   };
 
   const onReorder = ({ from, to }: { from: number; to: number }) => {
@@ -431,7 +421,7 @@ export function ListDetailScreen() {
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
         onReorder={onReorder}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => run(refresh, 'Sync failed')} />}
         ListEmptyComponent={pulled ? <Text style={styles.empty}>No tasks yet.</Text> : <ActivityIndicator style={styles.loading} color={c.textSubtle} />}
         renderItem={renderItem}
       />

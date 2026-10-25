@@ -11,7 +11,7 @@ import { TextField } from '@danbro96/lupira-expo-paper/components/TextField';
 import { ColorSwatches } from '../components/ColorSwatches';
 import { ShareLinks } from '../components/ShareLinks';
 import { useConfirm } from '@danbro96/lupira-expo-paper/components/ConfirmDialog';
-import { toast, toastError } from '@danbro96/lupira-expo-feedback/toast';
+import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { SyncBanner } from '../components/SyncBanner';
 import { useLists } from '../../state/lists';
 import { useItems } from '../../state/items';
@@ -22,6 +22,7 @@ import * as commands from '../../state/commands';
 import { tasksToJson } from '../../domain/exportTasks';
 import type { CompletedMode } from '@lupira/tasks-domain/itemTree';
 import { spacing, useColors, type Palette } from '../theme';
+import { run } from '../run';
 
 const ROLES: ListRole[] = [ListRole.Owner, ListRole.Editor, ListRole.Viewer];
 const COMPLETED_MODES = ['inline', 'below', 'hidden'] as const;
@@ -71,23 +72,14 @@ export function ListSettingsScreen() {
 
   const isOwner = myRole === ListRole.Owner;
 
-  async function run(action: () => Promise<void>, failMsg: string, successMsg?: string) {
-    try {
-      await action();
-      if (successMsg) toast(successMsg);
-    } catch {
-      toastError(failMsg);
-    }
-  }
-
-  async function saveName() {
+  function saveName() {
     const n = name.trim();
     if (!n) {
       toastError('Name cannot be empty');
       return;
     }
     if (n === list!.name) return;
-    await run(() => commands.renameList(listId, n), "Couldn't rename list", 'List name saved');
+    run(() => commands.renameList(listId, n), "Couldn't rename list", 'List name saved');
   }
 
   const setColor = (color: string | null) =>
@@ -96,7 +88,7 @@ export function ListSettingsScreen() {
   const setSimplePriority = (simple: boolean) =>
     run(() => commands.setSimplePriority(listId, simple), "Couldn't change priority mode");
 
-  async function addMember() {
+  function addMember() {
     const email = newEmail.trim();
     if (!email) return;
     if (!EMAIL_RE.test(email)) {
@@ -108,7 +100,7 @@ export function ListSettingsScreen() {
       return;
     }
     setNewEmail('');
-    await run(
+    run(
       () => commands.addMember(listId, email, inviteRole),
       "Couldn't add member",
       `Added ${email}`,
@@ -121,7 +113,7 @@ export function ListSettingsScreen() {
   async function confirmRoleChange(principalId: string, role: ListRole) {
     // Downgrading your own role is how an owner accidentally locks themselves out — confirm it.
     if (!(principalId === me && role !== ListRole.Owner)) {
-      void changeRole(principalId, role);
+      changeRole(principalId, role);
       return;
     }
     const ok = await confirm({
@@ -130,7 +122,7 @@ export function ListSettingsScreen() {
       confirmLabel: 'Change',
       destructive: true,
     });
-    if (ok) await changeRole(principalId, role);
+    if (ok) changeRole(principalId, role);
   }
 
   async function confirmRemove(principalId: string, label: string) {
@@ -140,15 +132,15 @@ export function ListSettingsScreen() {
       confirmLabel: 'Remove',
       destructive: true,
     });
-    if (ok) await run(() => commands.removeMember(listId, principalId), "Couldn't remove member");
+    if (ok) run(() => commands.removeMember(listId, principalId), "Couldn't remove member");
   }
 
   function exportJson() {
-    void Share.share({ message: tasksToJson({ name: list!.name, kind: list!.kind }, items, tagLabels) });
+    run(() => Share.share({ message: tasksToJson({ name: list!.name, kind: list!.kind }, items, tagLabels) }), "Couldn't export list");
   }
 
   function archive() {
-    void run(async () => {
+    run(async () => {
       await commands.archiveList(listId);
       nav.popToTop();
     }, "Couldn't archive list");
@@ -162,7 +154,7 @@ export function ListSettingsScreen() {
       destructive: true,
     });
     if (!ok) return;
-    await run(async () => {
+    run(async () => {
       await commands.deleteList(listId);
       nav.popToTop();
     }, "Couldn't delete list");
@@ -176,7 +168,7 @@ export function ListSettingsScreen() {
       destructive: true,
     });
     if (!ok) return;
-    await run(async () => {
+    run(async () => {
       await commands.leaveList(listId, me);
       nav.popToTop();
     }, "Couldn't leave list");
@@ -193,21 +185,21 @@ export function ListSettingsScreen() {
         </View>
 
         <Text variant="labelMedium" style={styles.section}>COLOR</Text>
-        <ColorSwatches value={list.color ?? null} onChange={c => void setColor(c)} />
+        <ColorSwatches value={list.color ?? null} onChange={setColor} />
 
         <Text variant="labelMedium" style={styles.section}>DISPLAY</Text>
         <Text variant="bodyLarge" style={styles.displayLabel}>Completed tasks</Text>
         <SegmentedPicker
           options={COMPLETED_MODES}
           selected={completedMode}
-          onSelect={m => void usePrefs.getState().setCompletedMode(listId, m)}
+          onSelect={m => run(() => usePrefs.getState().setCompletedMode(listId, m), "Couldn't save setting")}
           getLabel={m => COMPLETED_LABELS[m]}
         />
         <Text variant="bodyLarge" style={[styles.displayLabel, styles.displayLabelGap]}>Priority</Text>
         <SegmentedPicker
           options={PRIORITY_MODES}
           selected={list.simplePriority ? 'simple' : 'scale'}
-          onSelect={m => void setSimplePriority(m === 'simple')}
+          onSelect={m => setSimplePriority(m === 'simple')}
           getLabel={m => PRIORITY_LABELS[m]}
         />
 
@@ -226,7 +218,7 @@ export function ListSettingsScreen() {
                   <Button
                     variant="destructive"
                     title="Remove"
-                    onPress={() => void confirmRemove(m.principalId, label)}
+                    onPress={() => run(() => confirmRemove(m.principalId, label), "Couldn't remove member")}
                     accessibilityLabel={`Remove ${label}`}
                   />
                 ) : null}
@@ -235,7 +227,7 @@ export function ListSettingsScreen() {
                 <SegmentedPicker
                   options={ROLES}
                   selected={m.role}
-                  onSelect={r => void confirmRoleChange(m.principalId, r)}
+                  onSelect={r => run(() => confirmRoleChange(m.principalId, r), "Couldn't change role")}
                   style={styles.roleRow}
                 />
               ) : (
@@ -274,10 +266,10 @@ export function ListSettingsScreen() {
         {isOwner ? (
           <>
             <Button title="Archive list" variant="secondary" onPress={archive} style={styles.archiveBtn} />
-            <Button title="Delete list" variant="destructive" onPress={() => void confirmDelete()} style={styles.deleteBtn} />
+            <Button title="Delete list" variant="destructive" onPress={() => run(confirmDelete, "Couldn't delete list")} style={styles.deleteBtn} />
           </>
         ) : (
-          <Button title="Leave list" variant="destructive" onPress={() => void confirmLeave()} style={styles.leaveBtn} />
+          <Button title="Leave list" variant="destructive" onPress={() => run(confirmLeave, "Couldn't leave list")} style={styles.leaveBtn} />
         )}
       </ScrollView>
     </KeyboardAvoidingView>

@@ -6,8 +6,11 @@ import { useAuth } from './auth-store';
 
 const BACKGROUND_TASK = 'lupira-tasks-sync';
 
-// The headless run mounts no UI, so it loads the persisted session itself before syncing.
-defineSyncTask(BACKGROUND_TASK, engine, () => useAuth.getState().load());
+// The headless run mounts no UI, so it loads the persisted session itself and skips the sync when signed out.
+defineSyncTask(BACKGROUND_TASK, engine, async () => {
+  await useAuth.getState().load();
+  return useAuth.getState().isAuthenticated();
+});
 
 /** Sync now and on foreground, reconnect, sign-in and the background task. Returns the unsubscribe. */
 export function startSync(): () => void {

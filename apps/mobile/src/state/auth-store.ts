@@ -3,7 +3,7 @@ import * as Crypto from 'expo-crypto';
 import * as Sentry from '@sentry/react-native';
 import { createAuthStore, toAuthPort } from '@danbro96/lupira-expo-oidc/authStore';
 import { toast } from '@danbro96/lupira-expo-feedback/toast';
-import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
+import { detach, logDebug } from '@danbro96/lupira-expo-diagnostics/log';
 import { DEFAULT_API_URL, DEFAULT_AUTH_MODE } from '../config';
 import { setAuthPort } from '../data/api/authProvider';
 import { oidc } from '../data/auth/oidc';
@@ -66,7 +66,7 @@ async function setSentryUser(email: string | null): Promise<void> {
 }
 
 useAuth.subscribe((s, prev) => {
-  if (s.user?.sub !== prev.user?.sub) void setSentryUser(s.user?.sub ?? null);
+  if (s.user?.sub !== prev.user?.sub) detach(setSentryUser(s.user?.sub ?? null), 'sentry:user');
 });
 
 setAuthPort({

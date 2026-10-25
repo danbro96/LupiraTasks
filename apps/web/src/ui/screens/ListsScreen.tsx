@@ -118,7 +118,12 @@ export function ListsScreen() {
               ? 'Your session expired — try signing in again.'
               : 'Something went wrong reaching the server.'}
           </p>
-          <Button variant="outlined" onClick={() => void query.refetch()}>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              query.refetch().catch(reportError);
+            }}
+          >
             Retry
           </Button>
         </Centered>
@@ -140,7 +145,11 @@ export function ListsScreen() {
           failed={create.isError}
           onCancel={() => setCreating(false)}
           onCreate={(name, kind, color) =>
-            create.mutate({ name, kind, color }, { onSuccess: list => navigate(`/lists/${list.id}`) })
+            create.mutate({ name, kind, color }, {
+              onSuccess: list => {
+                Promise.resolve(navigate(`/lists/${list.id}`)).catch(reportError);
+              },
+            })
           }
         />
       ) : null}
@@ -173,10 +182,12 @@ function CreateListModal({
         </IconButton>
       </DialogTitle>
       <form
-        onSubmit={handleSubmit(v => {
-          const name = v.name.trim();
-          if (name) onCreate(name, v.kind, v.color);
-        })}
+        onSubmit={e => {
+          handleSubmit(v => {
+            const name = v.name.trim();
+            if (name) onCreate(name, v.kind, v.color);
+          })(e).catch(reportError);
+        }}
       >
         <DialogContent>
           <Controller

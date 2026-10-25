@@ -10,6 +10,7 @@ import * as ExpoLinking from 'expo-linking';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { RootStack } from './src/ui/navigation/RootStack';
 import { useAutoUpdate } from '@danbro96/lupira-expo-diagnostics/useAutoUpdate';
+import { detach } from '@danbro96/lupira-expo-diagnostics/log';
 import type { RootStackParamList } from './src/ui/navigation/types';
 import { ToastHost } from '@danbro96/lupira-expo-paper/components/ToastHost';
 import { ConfirmDialogHost } from '@danbro96/lupira-expo-paper/components/ConfirmDialog';
@@ -52,15 +53,17 @@ function App() {
   const scheme = useColorScheme();
 
   useEffect(() => {
-    void usePrefs.getState().load();
+    detach(usePrefs.getState().load(), 'prefs:load');
+    const stopAutoRefresh = useAuth.getState().startAutoRefresh();
     let stopSync: (() => void) | null = null;
     let unmounted = false;
     // Triggers start once the session is loaded, so their first sync runs signed in.
-    void useAuth.getState().load().then(() => {
+    detach(useAuth.getState().load().then(() => {
       if (!unmounted) stopSync = startSync();
-    });
+    }), 'auth:load');
     return () => {
       unmounted = true;
+      stopAutoRefresh();
       stopSync?.();
     };
   }, []);

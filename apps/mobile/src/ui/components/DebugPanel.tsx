@@ -3,6 +3,7 @@ import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDebugLog, clearDebugLog } from '@danbro96/lupira-expo-diagnostics/log';
 import { darkColors as d, spacing } from '../theme';
+import { run } from '../run';
 
 /** Collapsible on-device debug log (dev-only, fixed dark). Renders the shared debug buffer newest-first. */
 export function DebugPanel() {
@@ -21,9 +22,10 @@ export function DebugPanel() {
         <View style={styles.actions}>
           <Pressable
             onPress={() =>
-              void Share.share({
-                message: entries.map(e => `${e.t} ${e.stage} ${e.detail ?? ''}`.trim()).join('\n'),
-              })
+              run(
+                () => Share.share({ message: entries.map(e => `${e.t} ${e.stage} ${e.detail ?? ''}`.trim()).join('\n') }),
+                "Couldn't share log",
+              )
             }
             hitSlop={8}
           >

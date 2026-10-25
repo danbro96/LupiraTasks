@@ -14,6 +14,7 @@ import * as commands from '../../state/commands';
 import { parseImport, type ImportedTask } from '../../domain/importTasks';
 import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
 import { spacing, useColors, type Palette } from '../theme';
+import { run } from '../run';
 
 const KINDS = [ListKind.Todo, ListKind.Shopping] as const;
 // Keyed by the full ListKind union (SegmentedPicker widens its label callback to ListKind). Agent lists
@@ -72,7 +73,7 @@ export function ImportListScreen() {
         <Button variant="text" title="Cancel" onPress={() => nav.goBack()} />
       ),
       headerRight: () => (
-        <Button variant="text" title="Import" onPress={() => void importList()} disabled={!canImport} accessibilityLabel="Import list" />
+        <Button variant="text" title="Import" onPress={() => run(importList, "Couldn't import list")} disabled={!canImport} accessibilityLabel="Import list" />
       ),
     });
   }, [nav, parsed, name, kind, canImport]);

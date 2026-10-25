@@ -80,7 +80,7 @@ export function useSharedList(token: string, enabled: boolean) {
         }
       },
       onSettled: () => {
-        void qc.invalidateQueries({ queryKey: key });
+        qc.invalidateQueries({ queryKey: key });
       },
     };
   }

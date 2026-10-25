@@ -20,6 +20,7 @@ import { syncNow, useFirstSyncDone } from '../../state/syncStatus';
 import * as commands from '../../state/commands';
 import { planListReorder } from '@lupira/tasks-domain/listOrder';
 import { radii, spacing, useColors, type Palette } from '../theme';
+import { run } from '../run';
 import { ICONS } from '../icons';
 
 interface RowProps {
@@ -111,7 +112,7 @@ export function ListsScreen() {
         panGesture={dragGesture}
         shouldUpdateActiveItem
         itemLayoutAnimation={LinearTransition.duration(200)}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => run(refresh, 'Sync failed')} />}
         onDragStart={() => {
           'worklet';
           runOnJS(hapticImpact)(); // "pickup" thunk when a row is grabbed to reorder

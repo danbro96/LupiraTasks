@@ -28,6 +28,7 @@ import { priorityLabel } from '@lupira/tasks-domain/itemFormat';
 import { oneLine } from '@lupira/tasks-domain/text';
 import { dueInDays, dueNextWeekend, dueOnDate, formatDue } from '@lupira/tasks-domain/dueDate';
 import { radii, spacing, useColors, type Palette } from '../theme';
+import { run } from '../run';
 import { ICONS } from '../icons';
 
 const parseQuantity = (raw: string): number | null => {
@@ -169,14 +170,6 @@ export function TaskDetailScreen() {
     );
   }
 
-  async function run(action: () => Promise<void>, failMsg: string) {
-    try {
-      await action();
-    } catch {
-      toastError(failMsg);
-    }
-  }
-
   const setDue = (iso: string | null) => run(() => commands.setDue(listId, itemId, iso), "Couldn't set due date");
 
   const setAssignee = (member: { principalId: string; email: string } | null) =>
@@ -186,19 +179,19 @@ export function TaskDetailScreen() {
 
   const toggleComplete = () => {
     if (!item!.completed) hapticSuccess();
-    return run(() => commands.setCompleted(listId, itemId, !item!.completed), "Couldn't update task");
+    run(() => commands.setCompleted(listId, itemId, !item!.completed), "Couldn't update task");
   };
 
   const toggleSub = (st: { id: string; completed: boolean }) => {
     if (!st.completed) hapticSuccess();
-    return run(() => commands.setCompleted(listId, st.id, !st.completed), "Couldn't update subtask");
+    run(() => commands.setCompleted(listId, st.id, !st.completed), "Couldn't update subtask");
   };
 
-  async function addSubtask() {
+  function addSubtask() {
     const t = oneLine(subTitle).trim();
     if (!t) return;
     setSubTitle('');
-    await run(() => commands.addItem(listId, t, nextChildSortOrder(items, itemId), itemId), "Couldn't add subtask");
+    run(() => commands.addItem(listId, t, nextChildSortOrder(items, itemId), itemId), "Couldn't add subtask");
   }
 
   function onDelete() {
@@ -213,7 +206,7 @@ export function TaskDetailScreen() {
         value: current,
         mode: 'date',
         onChange: (e, d) => {
-          if (e.type === 'set' && d) void setDue(dueOnDate(d));
+          if (e.type === 'set' && d) setDue(dueOnDate(d));
         },
       });
     } else {
@@ -222,17 +215,17 @@ export function TaskDetailScreen() {
   }
 
   const dueActions: ActionItem[] = [
-    ...DUE_QUICK.map(q => ({ label: q.label, onPress: () => void setDue(q.iso()) })),
+    ...DUE_QUICK.map(q => ({ label: q.label, onPress: () => setDue(q.iso()) })),
     { label: 'Pick a date…', onPress: openNativeDate },
-    ...(item.dueAt ? [{ label: 'Clear due date', destructive: true, onPress: () => void setDue(null) }] : []),
+    ...(item.dueAt ? [{ label: 'Clear due date', destructive: true, onPress: () => setDue(null) }] : []),
   ];
 
   const assigneeActions: ActionItem[] = [
-    { label: 'Unassigned', selected: !item.assignedTo, onPress: () => void setAssignee(null) },
+    { label: 'Unassigned', selected: !item.assignedTo, onPress: () => setAssignee(null) },
     ...members.map(m => ({
       label: m.displayName ?? m.email,
       selected: item.assignedTo === m.principalId,
-      onPress: () => void setAssignee(m),
+      onPress: () => setAssignee(m),
     })),
   ];
 
@@ -262,11 +255,11 @@ export function TaskDetailScreen() {
         <List.Item
           style={styles.completeRow}
           title={item.completed ? 'Completed' : 'Mark complete'}
-          onPress={canEdit ? () => void toggleComplete() : undefined}
+          onPress={canEdit ? toggleComplete : undefined}
           disabled={!canEdit}
           accessibilityRole="checkbox"
           accessibilityState={{ checked: item.completed, disabled: !canEdit }}
-          left={() => <Checkbox checked={item.completed} disabled={!canEdit} onPress={() => void toggleComplete()} />}
+          left={() => <Checkbox checked={item.completed} disabled={!canEdit} onPress={toggleComplete} />}
         />
 
         <View style={styles.card}>
@@ -292,7 +285,7 @@ export function TaskDetailScreen() {
             simple={list?.simplePriority ?? true}
             value={item.priority}
             editable={canEdit}
-            onChange={p => void setPriority(p)}
+            onChange={setPriority}
           />
           <Text variant="bodyLarge" style={styles.priorityHint}>
             {priorityLabel(list?.simplePriority ?? true, item.priority)}
@@ -351,7 +344,7 @@ export function TaskDetailScreen() {
             titleStyle={st.completed ? styles.subDone : undefined}
             onPress={() => nav.push('TaskDetail', { listId, itemId: st.id })}
             accessibilityHint="Opens subtask"
-            left={() => <Checkbox checked={st.completed} disabled={!canEdit} onPress={() => void toggleSub(st)} />}
+            left={() => <Checkbox checked={st.completed} disabled={!canEdit} onPress={() => toggleSub(st)} />}
             right={() => <MaterialIcons name={ICONS.chevronRight} size={16} color={c.textDisabled} />}
           />
         ))}
@@ -398,7 +391,7 @@ export function TaskDetailScreen() {
             <Button
               title="Set date"
               onPress={() => {
-                if (iosDate) void setDue(dueOnDate(iosDate));
+                if (iosDate) setDue(dueOnDate(iosDate));
                 setIosDate(null);
               }}
               style={styles.iosSet}

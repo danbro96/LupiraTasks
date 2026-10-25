@@ -13,7 +13,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@danbro96/lupira-http": "0.2.1",
+    "@danbro96/lupira-http": "0.3.0",
     "@danbro96/lupira-tokens-core": "0.3.0",
     "@danbro96/lupira-web-mui": "0.2.1",
     "@danbro96/lupira-web-session": "0.2.0",
@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "@babel/core": "7.29.7",
-    "@danbro96/lupira-config-eslint": "0.2.0",
+    "@danbro96/lupira-config-eslint": "0.4.1",
     "@rolldown/plugin-babel": "0.2.4",
     "@tailwindcss/vite": "4.3.3",
     "@types/node": "^26.6.2",

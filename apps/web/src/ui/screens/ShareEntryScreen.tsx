@@ -26,8 +26,8 @@ export function ShareEntryScreen() {
   const redeem = useMutation({
     mutationFn: (t: string) => redeemShare({ token: t }),
     onSuccess: res => {
-      void qc.invalidateQueries({ queryKey: getListListsQueryKey() });
-      navigate(`/lists/${res.listId}`, { replace: true });
+      qc.invalidateQueries({ queryKey: getListListsQueryKey() });
+      Promise.resolve(navigate(`/lists/${res.listId}`, { replace: true })).catch(reportError);
     },
   });
   const { mutate: runRedeem } = redeem;
@@ -87,7 +87,9 @@ export function ShareEntryScreen() {
         <Button variant="outlined" onClick={() => setViewOnly(true)}>
           View without adding
         </Button>
-        <Button variant="outlined" onClick={() => navigate('/', { replace: true })}>
+        <Button variant="outlined" onClick={() => {
+            Promise.resolve(navigate('/', { replace: true })).catch(reportError);
+          }}>
           Go to my lists
         </Button>
       </Centered>

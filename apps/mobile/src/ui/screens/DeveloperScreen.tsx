@@ -2,6 +2,7 @@ import { DeveloperScreen as DiagnosticsScreen } from '@danbro96/lupira-expo-diag
 import { API_PRESETS, DIAGNOSTIC_ROUTES } from '../../config';
 import { useAuth } from '../../state/auth-store';
 import { useSyncStatus } from '../../state/syncStatus';
+import { run } from '../run';
 
 /** Reachable from Settings and from the login screen (switching backends must not require signing in first). */
 export function DeveloperScreen() {
@@ -13,7 +14,7 @@ export function DeveloperScreen() {
       diagnosticRoutes={DIAGNOSTIC_ROUTES}
       apiUrl={apiUrl}
       authMode={authMode}
-      onSelectBackend={(urls, mode) => void useAuth.getState().setBackend(urls, mode)}
+      onSelectBackend={(urls, mode) => run(() => useAuth.getState().setBackend(urls, mode), "Couldn't switch backend")}
       customUrlPlaceholder="http://host:8080"
       syncState={sync}
     />

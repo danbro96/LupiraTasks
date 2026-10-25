@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/react-native';
 import { generateKeyBetween } from 'fractional-indexing';
-import { toast } from '@danbro96/lupira-expo-feedback/toast';
+import { toast, toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { newId } from '@lupira/tasks-domain/ids';
 import type { ListOrderTarget } from '@lupira/tasks-domain/listOrder';
 import type { ListKind, ListRole } from '@lupira/tasks-api/models';
@@ -118,7 +118,12 @@ export async function deleteItems(listId: string, itemIds: string[], label?: str
   await enqueue(ops, UNDO_MS);
   toast(label ?? (itemIds.length > 1 ? `${itemIds.length} items deleted` : 'Item deleted'), {
     durationMs: UNDO_MS,
-    action: { label: 'Undo', onPress: () => void Promise.all(ops.map(op => engine.discard(op.commandId))) },
+    action: {
+      label: 'Undo',
+      onPress: () => {
+        Promise.all(ops.map(op => engine.discard(op.commandId))).catch(() => toastError("Couldn't undo"));
+      },
+    },
   });
 }
 

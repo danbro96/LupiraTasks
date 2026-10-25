@@ -3,7 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { LIST_POLL_MS } from '../../config';
 import { onlineManager } from '@tanstack/react-query';
 import { syncNow } from '../../state/syncStatus';
-import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
+import { detach, logDebug } from '@danbro96/lupira-expo-diagnostics/log';
 
 /**
  * Keep an open list fresh: while its screen is focused and the app is foregrounded, sync every
@@ -17,7 +17,7 @@ export function useListPolling(listId: string): void {
 
     // Self-scheduling timeout, not setInterval: at most one pull in flight, and a slow tick
     // stretches the cadence instead of stacking requests.
-    const schedule = () => { timer = setTimeout(() => void tick(), LIST_POLL_MS); };
+    const schedule = () => { timer = setTimeout(() => detach(tick(), 'poll'), LIST_POLL_MS); };
 
     const tick = async () => {
       const online = onlineManager.isOnline();

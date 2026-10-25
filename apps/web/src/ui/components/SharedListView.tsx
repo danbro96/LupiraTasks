@@ -26,7 +26,12 @@ export function SharedListView({ token }: { token: string }) {
     return (
       <Centered title={status === 429 ? 'Too many requests' : "Couldn't load this list"}>
         <p>{status === 429 ? 'Please wait a moment, then try again.' : 'Something went wrong reaching the server.'}</p>
-        <Button variant="outlined" onClick={() => void (guest.isError ? guest.refetch() : query.refetch())}>
+        <Button
+          variant="outlined"
+          onClick={() => {
+            (guest.isError ? guest.refetch() : query.refetch()).catch(reportError);
+          }}
+        >
           Retry
         </Button>
       </Centered>

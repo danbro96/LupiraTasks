@@ -31,19 +31,19 @@ export function CreateListScreen() {
   const c = useColors();
   const styles = makeStyles(c);
 
-  const create = useCallback(async () => {
+  const create = useCallback(() => {
     const n = name.trim();
     if (!n) {
       toastError('Name cannot be empty');
       return;
     }
-    try {
-      await commands.createList(n, kind, color);
-      nav.goBack();
-    } catch (e) {
-      toastError("Couldn't create list");
-      logDebug('createList:error', e instanceof Error ? e.message : String(e));
-    }
+    commands.createList(n, kind, color).then(
+      () => nav.goBack(),
+      (e: unknown) => {
+        toastError("Couldn't create list");
+        logDebug('createList:error', e instanceof Error ? e.message : String(e));
+      },
+    );
   }, [name, kind, color, nav]);
 
   // Modal actions live in the header (always visible, reachable with the keyboard up). Re-set as
@@ -55,7 +55,7 @@ export function CreateListScreen() {
         <Button variant="text" title="Cancel" onPress={() => nav.goBack()} />
       ),
       headerRight: () => (
-        <Button variant="text" title="Create" onPress={() => void create()} disabled={!canCreate} accessibilityLabel="Create list" />
+        <Button variant="text" title="Create" onPress={create} disabled={!canCreate} accessibilityLabel="Create list" />
       ),
     });
   }, [nav, name, create]);

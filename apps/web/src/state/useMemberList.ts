@@ -71,8 +71,8 @@ export function useMemberList(listId: string) {
     isError: metaQuery.isError || itemsQuery.isError,
     error: (metaQuery.error ?? itemsQuery.error) as unknown,
     refetch: () => {
-      void metaQuery.refetch();
-      void itemsQuery.refetch();
+      metaQuery.refetch().catch(reportError);
+      itemsQuery.refetch().catch(reportError);
     },
   };
 
@@ -95,8 +95,8 @@ export function useMemberList(listId: string) {
         }
       },
       onSettled: () => {
-        void qc.invalidateQueries({ queryKey: itemsKey });
-        void qc.invalidateQueries({ queryKey: getGetListQueryKey(listId) });
+        qc.invalidateQueries({ queryKey: itemsKey });
+        qc.invalidateQueries({ queryKey: getGetListQueryKey(listId) });
       },
     };
   }

@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Linking, StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
-import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { OIDC_CLIENT_ID, OIDC_ISSUER, OIDC_REDIRECT_PATH, OIDC_SCHEME, OIDC_SCOPES } from '../../data/auth/oidcConfig';
 import { oidc } from '../../data/auth/oidc';
-import { logDebug, clearDebugLog } from '@danbro96/lupira-expo-diagnostics/log';
+import { logDebug, clearDebugLog, detach } from '@danbro96/lupira-expo-diagnostics/log';
+import { useOidcLogin } from '@danbro96/lupira-expo-oidc/useOidcLogin';
+import { toastError } from '@danbro96/lupira-expo-feedback/toast';
 import { Button } from '@danbro96/lupira-expo-paper/components/Button';
 import { DebugPanel } from '../components/DebugPanel';
 import { useAuth } from '../../state/auth-store';
@@ -17,64 +18,15 @@ import { ICONS } from '../icons';
 // Required so the auth redirect back into the app dismisses the in-app browser.
 WebBrowser.maybeCompleteAuthSession();
 
-async function exchangeCodeForSession(
-  discovery: AuthSession.DiscoveryDocument,
-  request: AuthSession.AuthRequest,
-  code: string,
-  redirectUri: string,
-  setBusy: (busy: boolean) => void,
-  setError: (error: string | null) => void,
-) {
-  setBusy(true);
-  setError(null);
-  try {
-    const tokenEndpoint = discovery.tokenEndpoint;
-    logDebug('exchange:start', `endpoint=${tokenEndpoint ?? 'MISSING'} verifier=${!!request.codeVerifier}`);
-    if (!tokenEndpoint) {
-      setError('Discovery returned no token endpoint.');
-      return;
-    }
-    const token = await oidc.exchangeAuthCode({
-      tokenEndpoint,
-      code,
-      redirectUri,
-      codeVerifier: request.codeVerifier,
-    });
-    logDebug(
-      'exchange:ok',
-      `accessToken=${!!token.accessToken} idToken=${!!token.idToken} refresh=${!!token.refreshToken} expiresIn=${token.expiresIn ?? 'n/a'}`,
-    );
-    await useAuth.getState().setSession(token);
-    logDebug('setSession', 'authed=true');
-  } catch (e) {
-    const err = e as { code?: string; description?: string; message?: string };
-    logDebug('exchange:error', `${err.code ?? ''} ${err.description ?? ''} ${err.message ?? String(e)}`.trim());
-    setError(err.message ?? String(e));
-  } finally {
-    setBusy(false);
-  }
-}
-
 export function LoginScreen() {
-  const discovery = AuthSession.useAutoDiscovery(OIDC_ISSUER);
-  const redirectUri = AuthSession.makeRedirectUri({ scheme: OIDC_SCHEME, path: OIDC_REDIRECT_PATH });
-  const [request, response, promptAsync] = AuthSession.useAuthRequest(
-    { clientId: OIDC_CLIENT_ID, scopes: OIDC_SCOPES, redirectUri, usePKCE: true },
-    discovery,
-  );
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const responseError =
-    response?.type === 'error'
-      ? (response.error?.message ?? 'Sign-in failed.')
-      : response && response.type !== 'success'
-        ? `Sign-in did not complete (${response.type}).`
-        : null;
-  const [shownResponse, setShownResponse] = useState(response);
-  if (response !== shownResponse) {
-    setShownResponse(response);
-    if (responseError) setError(responseError);
-  }
+  const { status, error, retry, signIn, redirectUri } = useOidcLogin({
+    oidc,
+    scopes: OIDC_SCOPES,
+    scheme: OIDC_SCHEME,
+    path: OIDC_REDIRECT_PATH,
+    onTokens: tokens => useAuth.getState().setSession(tokens),
+    log: logDebug,
+  });
   const debugEnabled = usePrefs(s => s.debugEnabled);
   const c = useColors();
   const styles = makeStyles(c);
@@ -84,59 +36,14 @@ export function LoginScreen() {
     logDebug('config', `issuer=${OIDC_ISSUER} client=${OIDC_CLIENT_ID} redirectUri=${redirectUri}`);
   }, [redirectUri]);
 
-  useEffect(() => {
-    logDebug(discovery ? 'discovery:loaded' : 'discovery:loading', discovery?.tokenEndpoint ?? undefined);
-  }, [discovery]);
-
-  useEffect(() => {
-    if (request) logDebug('request:ready', `verifier=${!!request.codeVerifier}`);
-  }, [request]);
-
   // Diagnostic: log any deep link that reaches the app (the Authentik redirect should show
   // up here as lupiratasks://...?code=…). If it arrives but auth still 'dismiss'es, the issue
   // is session matching; if it never arrives, the redirect isn't returning to the app's task.
   useEffect(() => {
-    void Linking.getInitialURL().then(u => { if (u) logDebug('linking:initial', u); });
+    detach(Linking.getInitialURL().then(u => { if (u) logDebug('linking:initial', u); }), 'linking:initial');
     const sub = Linking.addEventListener('url', ({ url }) => logDebug('linking:url', url));
     return () => sub.remove();
   }, []);
-
-  async function handleSignIn() {
-    clearDebugLog();
-    logDebug('config', `issuer=${OIDC_ISSUER} client=${OIDC_CLIENT_ID} redirectUri=${redirectUri}`);
-    logDebug('prompt:open');
-    try {
-      // createTask:false (Android) keeps the auth tab in the app's task so the redirect can
-      // return into it — without this the redirect lands in a separate task and resolves
-      // 'dismiss' (expo/expo#23781).
-      const result = await promptAsync({ createTask: false });
-      logDebug('prompt:result', result.type);
-    } catch (e) {
-      logDebug('prompt:throw', String(e));
-    }
-  }
-
-  useEffect(() => {
-    if (!response) return;
-    logDebug('response', response.type);
-
-    if (response.type === 'error') {
-      logDebug('response:error', `${response.error?.code ?? ''} ${responseError}`.trim());
-      return;
-    }
-    if (response.type !== 'success') {
-      // dismiss / cancel / locked — no params to exchange. Stop with a visible reason.
-      logDebug('response:not-success', response.type);
-      return;
-    }
-    if (!discovery || !request) {
-      logDebug('response:guard', `discovery=${!!discovery} request=${!!request}`);
-      return;
-    }
-    logDebug('response:params', `code=${!!response.params.code} state=${!!response.params.state}`);
-
-    void exchangeCodeForSession(discovery, request, response.params.code, redirectUri, setBusy, setError);
-  }, [response, responseError, discovery, request, redirectUri]);
 
   return (
     <View style={styles.container}>
@@ -150,14 +57,20 @@ export function LoginScreen() {
 
       <Button
         title="Sign in with Authentik"
-        onPress={() => void handleSignIn()}
-        disabled={!request}
-        loading={busy}
+        onPress={() => {
+          clearDebugLog();
+          signIn().catch(() => toastError('Sign-in failed'));
+        }}
+        disabled={status !== 'ready'}
+        loading={status === 'busy'}
         style={styles.button}
         contentStyle={styles.buttonContent}
       />
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
+      {status === 'unavailable' ? (
+        <Button title="Retry" variant="text" onPress={retry} style={styles.retry} />
+      ) : null}
       {debugEnabled ? <Text style={styles.hint}>redirect: {redirectUri}</Text> : null}
 
       <DebugPanel />
@@ -181,5 +94,6 @@ const makeStyles = (c: Palette) =>
     button: { width: '100%', maxWidth: 360, borderRadius: radii.round },
     buttonContent: { paddingVertical: 8 },
     error: { marginTop: spacing.lg, color: c.danger, textAlign: 'center' },
+    retry: { marginTop: spacing.sm },
     hint: { marginTop: spacing.md, fontSize: 11, color: c.textDisabled },
   });

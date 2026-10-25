@@ -43,8 +43,12 @@ interface Props {
 export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
   const qc = useQueryClient();
   const sharesKey = getListSharesQueryKey(listId);
-  const invalidateList = () => void qc.invalidateQueries({ queryKey: getGetListQueryKey(listId) });
-  const invalidateShares = () => void qc.invalidateQueries({ queryKey: sharesKey });
+  const invalidateList = () => {
+    qc.invalidateQueries({ queryKey: getGetListQueryKey(listId) });
+  };
+  const invalidateShares = () => {
+    qc.invalidateQueries({ queryKey: sharesKey });
+  };
 
   const addForm = useForm<{ email: string; role: ListRole }>({ defaultValues: { email: '', role: 'Editor' } });
   const shareForm = useForm<{ access: ShareAccess }>({ defaultValues: { access: 'ReadWrite' } });
@@ -122,9 +126,11 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
         <Box
           component="form"
           sx={{ display: 'flex', gap: 1, p: '12px 16px' }}
-          onSubmit={addForm.handleSubmit(v => {
-            if (v.email.trim()) addMut.mutate();
-          })}
+          onSubmit={e => {
+            addForm.handleSubmit(v => {
+              if (v.email.trim()) addMut.mutate();
+            })(e).catch(reportError);
+          }}
         >
           <Controller
             name="email"
@@ -181,7 +187,9 @@ export function MembersPanel({ listId, members, isOwner, onClose }: Props) {
                 <Box key={s.shareId} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
                   <Typography component="span" variant="caption" sx={{ flex: 1, color: 'text.secondary', overflowWrap: 'anywhere', wordBreak: 'break-all' }}>{s.url}</Typography>
                   <Chip variant="outlined" label={s.access === 'ReadWrite' ? 'Edit' : 'Read'} />
-                  <MuiLink component="button" type="button" onClick={() => void navigator.clipboard?.writeText(s.url)}>
+                  <MuiLink component="button" type="button" onClick={() => {
+                    navigator.clipboard?.writeText(s.url).catch(reportError);
+                  }}>
                     Copy
                   </MuiLink>
                   <IconButton aria-label="Revoke link" onClick={() => revokeShareMut.mutate(s.shareId)}>
