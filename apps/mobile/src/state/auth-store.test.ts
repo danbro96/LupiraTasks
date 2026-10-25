@@ -72,8 +72,8 @@ describe('sign-out', () => {
 
 describe('account switch', () => {
   it('wipes the local data before a different account signs in, but not on rotation', async () => {
-    secure.set('lupira.tasks.userSub', 'u@example.com');
-    await useAuth.getState().load();
+    await useAuth.getState().setSession({ accessToken: jwt({ email: 'u@example.com' }), refreshToken: 'ref-1', expiresIn: 3600 });
+    vi.mocked(engine.wipe).mockClear();
     await useAuth.getState().setSession({ accessToken: jwt({ email: 'u@example.com' }), refreshToken: 'ref-2', expiresIn: 3600 });
     expect(engine.wipe).not.toHaveBeenCalled();
 

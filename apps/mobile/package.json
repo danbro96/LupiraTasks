@@ -15,9 +15,9 @@
     "build:android": "eas build --profile production --platform android"
   },
   "dependencies": {
-    "@danbro96/lupira-expo-diagnostics": "0.3.0",
+    "@danbro96/lupira-expo-diagnostics": "0.3.1",
     "@danbro96/lupira-expo-feedback": "1.0.0",
-    "@danbro96/lupira-expo-oidc": "0.4.1",
+    "@danbro96/lupira-expo-oidc": "0.4.2",
     "@danbro96/lupira-expo-paper": "0.8.1",
     "@danbro96/lupira-expo-query": "0.1.4",
     "@danbro96/lupira-expo-sqlite": "0.4.1",
