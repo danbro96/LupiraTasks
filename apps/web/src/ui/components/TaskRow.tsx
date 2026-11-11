@@ -61,7 +61,7 @@ export function TaskRow({
     disabled: !draggable,
   });
 
-  const due = formatDue(item.dueAt);
+  const due = formatDue(item);
   const qty = isShopping ? qtyLabel(item) : null;
   const tags = item.tags.map(id => tagsById.get(id)).filter((t): t is SharedTagDto => !!t);
 

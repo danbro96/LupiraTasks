@@ -26,7 +26,7 @@ import { useMyRole, canEditWithRole } from '../hooks/useMyRole';
 import { childrenOf, nextChildSortOrder, descendantIds } from '@lupira/tasks-domain/itemTree';
 import { priorityLabel } from '@lupira/tasks-domain/itemFormat';
 import { oneLine } from '@lupira/tasks-domain/text';
-import { dueInDays, dueNextWeekend, dueOnDate, formatDue } from '@lupira/tasks-domain/dueDate';
+import { dueAtTime, dueDateOf, dueInDays, dueNextWeekend, dueOnDate, formatDue, NO_DUE, withDay, type Due } from '@lupira/tasks-domain/dueDate';
 import { radii, spacing, useColors, type Palette } from '../theme';
 import { run } from '../run';
 import { ICONS } from '../icons';
@@ -36,12 +36,14 @@ const parseQuantity = (raw: string): number | null => {
   return parsed != null && Number.isFinite(parsed) ? parsed : null;
 };
 
-const DUE_QUICK: { label: string; iso: () => string }[] = [
-  { label: 'Today', iso: () => dueInDays(0) },
-  { label: 'Tomorrow', iso: () => dueInDays(1) },
-  { label: 'This weekend', iso: dueNextWeekend },
-  { label: 'Next week', iso: () => dueInDays(7) },
+const DUE_QUICK: { label: string; due: () => Due }[] = [
+  { label: 'Today', due: () => dueInDays(0) },
+  { label: 'Tomorrow', due: () => dueInDays(1) },
+  { label: 'This weekend', due: dueNextWeekend },
+  { label: 'Next week', due: () => dueInDays(7) },
 ];
+
+type PickerMode = 'date' | 'time';
 
 export function TaskDetailScreen() {
   const { params } = useRoute<RouteProp<RootStackParamList, 'TaskDetail'>>();
@@ -63,7 +65,7 @@ export function TaskDetailScreen() {
   const [subTitle, setSubTitle] = useState('');
   const [dueMenu, setDueMenu] = useState(false);
   const [assigneeMenu, setAssigneeMenu] = useState(false);
-  const [iosDate, setIosDate] = useState<Date | null>(null);
+  const [iosPicker, setIosPicker] = useState<{ mode: PickerMode; value: Date } | null>(null);
 
   // Latest field values + last-saved baselines, so a save only queues what actually changed.
   const titleRef = useRef(title);
@@ -89,7 +91,7 @@ export function TaskDetailScreen() {
     principalId ? (memberNames.get(principalId) ?? name(principalId)) : '';
   const subtasks = useMemo(() => childrenOf(items, itemId), [items, itemId]);
   const subtasksDone = subtasks.filter(s => s.completed).length;
-  const due = formatDue(item?.dueAt);
+  const due = formatDue(item);
   const c = useColors();
   const styles = makeStyles(c);
 
@@ -170,7 +172,8 @@ export function TaskDetailScreen() {
     );
   }
 
-  const setDue = (iso: string | null) => run(() => commands.setDue(listId, itemId, iso), "Couldn't set due date");
+  const setDue = (next: Due) => run(() => commands.setDue(listId, itemId, next), "Couldn't set due date");
+  const dueDay = dueDateOf(item);
 
   const setAssignee = (member: { principalId: string; email: string } | null) =>
     run(() => commands.assignItem(listId, itemId, member), "Couldn't assign task");
@@ -199,25 +202,30 @@ export function TaskDetailScreen() {
     nav.goBack();
   }
 
-  function openNativeDate() {
-    const current = item?.dueAt ? new Date(item.dueAt) : new Date();
+  const pick = (mode: PickerMode, d: Date) =>
+    setDue(mode === 'date' ? withDay(item, d) : dueAtTime(dueDay ?? d, d.getHours(), d.getMinutes()));
+
+  function openPicker(mode: PickerMode) {
+    const value = (mode === 'date' || item?.dueAt ? dueDay : null) ?? new Date();
     if (Platform.OS === 'android') {
       DateTimePickerAndroid.open({
-        value: current,
-        mode: 'date',
+        value,
+        mode,
         onChange: (e, d) => {
-          if (e.type === 'set' && d) setDue(dueOnDate(d));
+          if (e.type === 'set' && d) pick(mode, d);
         },
       });
     } else {
-      setIosDate(current);
+      setIosPicker({ mode, value });
     }
   }
 
   const dueActions: ActionItem[] = [
-    ...DUE_QUICK.map(q => ({ label: q.label, onPress: () => setDue(q.iso()) })),
-    { label: 'Pick a date…', onPress: openNativeDate },
-    ...(item.dueAt ? [{ label: 'Clear due date', destructive: true, onPress: () => setDue(null) }] : []),
+    ...DUE_QUICK.map(q => ({ label: q.label, onPress: () => setDue(q.due()) })),
+    { label: 'Pick a date…', onPress: () => openPicker('date') },
+    ...(dueDay ? [{ label: item.dueAt ? 'Change time…' : 'Add time…', onPress: () => openPicker('time') }] : []),
+    ...(dueDay && item.dueAt ? [{ label: 'Remove time', onPress: () => setDue(dueOnDate(dueDay)) }] : []),
+    ...(item.dueOn || item.dueAt ? [{ label: 'Clear due date', destructive: true, onPress: () => setDue(NO_DUE) }] : []),
   ];
 
   const assigneeActions: ActionItem[] = [
@@ -381,18 +389,23 @@ export function TaskDetailScreen() {
       <ActionMenu visible={dueMenu} title="Due date" actions={dueActions} onClose={() => setDueMenu(false)} />
       <ActionMenu visible={assigneeMenu} title="Assignee" actions={assigneeActions} onClose={() => setAssigneeMenu(false)} />
 
-      {/* iOS date picker (Android uses the imperative DateTimePickerAndroid dialog). */}
-      <Modal visible={iosDate !== null} transparent animationType="slide" onRequestClose={() => setIosDate(null)}>
-        <Pressable style={styles.iosBackdrop} onPress={() => setIosDate(null)}>
+      {/* iOS date/time picker (Android uses the imperative DateTimePickerAndroid dialog). */}
+      <Modal visible={iosPicker !== null} transparent animationType="slide" onRequestClose={() => setIosPicker(null)}>
+        <Pressable style={styles.iosBackdrop} onPress={() => setIosPicker(null)}>
           <Pressable style={styles.iosSheet} onPress={() => {}}>
-            {iosDate ? (
-              <RNDateTimePicker value={iosDate} mode="date" display="inline" onChange={(_e, d) => d && setIosDate(d)} />
+            {iosPicker ? (
+              <RNDateTimePicker
+                value={iosPicker.value}
+                mode={iosPicker.mode}
+                display={iosPicker.mode === 'date' ? 'inline' : 'spinner'}
+                onChange={(_e, d) => d && setIosPicker({ ...iosPicker, value: d })}
+              />
             ) : null}
             <Button
-              title="Set date"
+              title={iosPicker?.mode === 'time' ? 'Set time' : 'Set date'}
               onPress={() => {
-                if (iosDate) setDue(dueOnDate(iosDate));
-                setIosDate(null);
+                if (iosPicker) pick(iosPicker.mode, iosPicker.value);
+                setIosPicker(null);
               }}
               style={styles.iosSet}
             />

@@ -12,7 +12,7 @@ describe('parseImport — JSON round trip', () => {
     const items = [
       item({ id: 'P', title: 'Parent', sortOrder: 'a', notes: 'remember', quantity: 2, unit: 'kg' }),
       item({ id: 'C', title: 'Child', parentItemId: 'P', sortOrder: 'a', completed: true, dueAt: '2026-06-20T09:00:00.000Z' }),
-      item({ id: 'Q', title: 'Sibling', sortOrder: 'b' }),
+      item({ id: 'Q', title: 'Sibling', sortOrder: 'b', dueOn: '2026-06-21' }),
     ];
     const json = tasksToJson({ name: 'Groceries', kind: 'Shopping' }, items, new Map());
     const res = parseImport(json);
@@ -21,9 +21,9 @@ describe('parseImport — JSON round trip', () => {
     expect(res.name).toBe('Groceries');
     expect(res.kind).toBe('Shopping');
     expect(res.tasks).toEqual([
-      { title: 'Parent', level: 0, completed: false, notes: 'remember', quantity: 2, unit: 'kg', dueAt: null },
-      { title: 'Child', level: 1, completed: true, notes: null, quantity: null, unit: null, dueAt: '2026-06-20T09:00:00.000Z' },
-      { title: 'Sibling', level: 0, completed: false, notes: null, quantity: null, unit: null, dueAt: null },
+      { title: 'Parent', level: 0, completed: false, notes: 'remember', quantity: 2, unit: 'kg', dueOn: null, dueAt: null },
+      { title: 'Child', level: 1, completed: true, notes: null, quantity: null, unit: null, dueOn: null, dueAt: '2026-06-20T09:00:00.000Z' },
+      { title: 'Sibling', level: 0, completed: false, notes: null, quantity: null, unit: null, dueOn: '2026-06-21', dueAt: null },
     ]);
   });
 
@@ -32,6 +32,13 @@ describe('parseImport — JSON round trip', () => {
     expect(res.ok).toBe(true);
     if (!res.ok) return;
     expect(res.tasks.map(t => [t.title, t.completed])).toEqual([['A', false], ['B', true]]);
+  });
+
+  it('reads a yyyy-mm-dd due as whole-day and drops an unreadable one', () => {
+    const res = parseImport('[{"title":"A","due":"2026-06-20"},{"title":"B","due":"someday"}]');
+    expect(res.ok).toBe(true);
+    if (!res.ok) return;
+    expect(res.tasks.map(t => [t.dueOn, t.dueAt])).toEqual([['2026-06-20', null], [null, null]]);
   });
 
   it('returns an error for malformed JSON rather than treating it as a task', () => {

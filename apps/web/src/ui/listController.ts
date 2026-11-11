@@ -1,5 +1,6 @@
 import type { ListKind, SharedItemDto, SharedTagDto } from '@lupira/tasks-api/models';
 import type { PersonRef } from '@lupira/tasks-api/models';
+import type { Due } from '@lupira/tasks-domain/dueDate';
 
 // The surface-agnostic contract the task UI consumes. Both the account-less share hook
 // (useSharedList) and the member hook (useMemberList) produce this shape, so TaskList / TaskRow /
@@ -28,7 +29,7 @@ export interface ListActions {
   addTask: (title: string, parentItemId?: string | null) => void;
   rename: (itemId: string, title: string) => void;
   setNotes: (itemId: string, notes: string | null) => void;
-  setDue: (itemId: string, dueAt: string | null) => void;
+  setDue: (itemId: string, due: Due) => void;
   setQuantity: (itemId: string, quantity: number | null, unit: string | null) => void;
   setPriority: (itemId: string, priority: number) => void;
   setAssignee: (itemId: string, email: string | null) => void;

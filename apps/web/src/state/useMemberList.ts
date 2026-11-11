@@ -14,6 +14,7 @@ import {
 import { getGetListQueryKey, useGetList } from '@lupira/tasks-api/query/lists';
 import { ItemStatus } from '@lupira/tasks-api/models';
 import type { CreateItemRequest, ItemDto, ListDto, TagDto, UpdateItemRequest } from '@lupira/tasks-api/models';
+import type { Due } from '@lupira/tasks-domain/dueDate';
 import { newId } from '@lupira/tasks-domain/ids';
 import { descendantIds, nextChildSortOrder, topSortOrder } from '@lupira/tasks-domain/itemTree';
 import { useRemoteChanges } from './useRemoteChanges';
@@ -114,6 +115,7 @@ export function useMemberList(listId: string) {
         notes: null,
         completed: false,
         completedAt: null,
+        dueOn: body.dueOn ?? null,
         dueAt: body.dueAt ?? null,
         quantity: body.quantity ?? null,
         unit: body.unit ?? null,
@@ -135,7 +137,10 @@ export function useMemberList(listId: string) {
         const next = { ...it };
         if (body.titleProvided && body.title != null) next.title = body.title;
         if (body.notesProvided) next.notes = body.notes ?? null;
-        if (body.dueAtProvided) next.dueAt = body.dueAt ?? null;
+        if (body.dueAtProvided) {
+          next.dueOn = body.dueOn ?? null;
+          next.dueAt = body.dueAt ?? null;
+        }
         if (body.quantityProvided) {
           next.quantity = body.quantity ?? null;
           next.unit = body.unit ?? null;
@@ -202,8 +207,8 @@ export function useMemberList(listId: string) {
     setNotes(itemId: string, notes: string | null) {
       updateMut.mutate({ itemId, body: { notes, notesProvided: true } });
     },
-    setDue(itemId: string, dueAt: string | null) {
-      updateMut.mutate({ itemId, body: { dueAt, dueAtProvided: true } });
+    setDue(itemId: string, due: Due) {
+      updateMut.mutate({ itemId, body: { dueOn: due.dueOn, dueAt: due.dueAt, dueAtProvided: true } });
     },
     setQuantity(itemId: string, quantity: number | null, unit: string | null) {
       updateMut.mutate({ itemId, body: { quantity, unit, quantityProvided: true } });

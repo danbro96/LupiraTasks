@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/react-native';
 import { generateKeyBetween } from 'fractional-indexing';
 import { toast, toastError } from '@danbro96/lupira-expo-feedback/toast';
+import type { Due } from '@lupira/tasks-domain/dueDate';
 import { newId } from '@lupira/tasks-domain/ids';
 import type { ListOrderTarget } from '@lupira/tasks-domain/listOrder';
 import type { ListKind, ListRole } from '@lupira/tasks-api/models';
@@ -46,7 +47,7 @@ export function importList(name: string, listKind: ListKind, tasks: ImportedTask
     if (t.completed) ops.push({ ...onItem(itemId), kind: 'item.complete', listId, itemId });
     if (t.notes) ops.push({ ...onItem(itemId), kind: 'item.notes', listId, itemId, notes: t.notes });
     if (t.quantity != null || t.unit) ops.push({ ...onItem(itemId), kind: 'item.quantity', listId, itemId, quantity: t.quantity, unit: t.unit });
-    if (t.dueAt) ops.push({ ...onItem(itemId), kind: 'item.due', listId, itemId, dueAt: t.dueAt });
+    if (t.dueOn || t.dueAt) ops.push({ ...onItem(itemId), kind: 'item.due', listId, itemId, dueOn: t.dueOn, dueAt: t.dueAt });
     lastIdAtLevel[t.level] = itemId;
     lastIdAtLevel.length = t.level + 1;
   }
@@ -97,8 +98,8 @@ export const setNotes = (listId: string, itemId: string, notes: string | null) =
 export const setQuantity = (listId: string, itemId: string, quantity: number | null, unit: string | null) =>
   enqueue({ ...onItem(itemId), kind: 'item.quantity', listId, itemId, quantity, unit });
 
-export const setDue = (listId: string, itemId: string, dueAt: string | null) =>
-  enqueue({ ...onItem(itemId), kind: 'item.due', listId, itemId, dueAt });
+export const setDue = (listId: string, itemId: string, due: Due) =>
+  enqueue({ ...onItem(itemId), kind: 'item.due', listId, itemId, dueOn: due.dueOn, dueAt: due.dueAt });
 
 export const assignItem = (listId: string, itemId: string, member: { principalId: string; email: string } | null) =>
   enqueue({ ...onItem(itemId), kind: 'item.assign', listId, itemId, assigneePrincipalId: member?.principalId ?? null, assigneeEmail: member?.email ?? null });

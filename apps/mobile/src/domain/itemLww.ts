@@ -55,7 +55,7 @@ export function applyItemEvent(prev: ItemState, e: ItemEvent, actor: string | nu
 
     case 'ItemDueDateSet':
       if (s.deleted || !wins(e.occurredAt, e.commandId, s.dueTs, s.dueCmd)) return s;
-      s.dueAt = e.dueAt; s.dueTs = e.occurredAt; s.dueCmd = e.commandId; touch(s, e.occurredAt); return s;
+      s.dueOn = e.dueOn; s.dueAt = e.dueAt; s.dueTs = e.occurredAt; s.dueCmd = e.commandId; touch(s, e.occurredAt); return s;
 
     case 'ItemQuantitySet':
       if (s.deleted || !wins(e.occurredAt, e.commandId, s.qtyTs, s.qtyCmd)) return s;

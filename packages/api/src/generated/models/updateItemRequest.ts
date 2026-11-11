@@ -18,6 +18,12 @@ export interface UpdateItemRequest {
   /** @nullable */
   notes?: string | null;
   notesProvided?: boolean;
+  /**
+     * A date-only due; `dueAt` is the timed one. `dueAtProvided` covers both:
+     *             one of them set replaces the due, both null clears it, both set is rejected.
+     * @nullable
+     */
+  dueOn?: string | null;
   /** @nullable */
   dueAt?: string | null;
   dueAtProvided?: boolean;

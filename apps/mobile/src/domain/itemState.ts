@@ -24,6 +24,7 @@ export interface ItemState {
   completedBy: string | null; // principal id (resolved to a name at render time)
 
   assignedTo: string | null; // assignee principal id
+  dueOn: string | null;
   dueAt: Iso | null;
 
   quantity: number | null;
@@ -61,7 +62,7 @@ export function emptyItemState(): ItemState {
     id: '', listId: '', parentItemId: null,
     title: '', notes: null,
     completed: false, completedAt: null, completedBy: null,
-    assignedTo: null, dueAt: null,
+    assignedTo: null, dueOn: null, dueAt: null,
     quantity: null, unit: null,
     priority: 0,
     tags: [],

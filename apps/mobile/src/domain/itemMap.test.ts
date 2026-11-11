@@ -52,6 +52,7 @@ describe('itemFromWire', () => {
     expect(s.completedAt).toBeNull();
     expect(s.completedBy).toBeNull();
     expect(s.assignedTo).toBeNull();
+    expect(s.dueOn).toBeNull();
     expect(s.dueAt).toBeNull();
     expect(s.quantity).toBeNull();
     expect(s.unit).toBeNull();
@@ -68,6 +69,11 @@ describe('itemFromWire', () => {
     expect(s.assignedTo).toBe('p-assignee');
     expect(s.createdBy).toBe('p-creator');
     expect(s.completedBy).toBe('p-completer');
+  });
+
+  it('maps a whole-day due and a timed one', () => {
+    expect(toState({ dueOn: '2026-06-20', dueAt: null })).toMatchObject({ dueOn: '2026-06-20', dueAt: null });
+    expect(toState({ dueOn: null, dueAt: '2026-06-20T14:30:00Z' })).toMatchObject({ dueOn: null, dueAt: '2026-06-20T14:30:00Z' });
   });
 
   it('maps quantity, defaulting a missing one to null', () => {

@@ -16,26 +16,28 @@ import ButtonBase from '@mui/material/ButtonBase';
 import CloseIcon from '@mui/icons-material/Close';
 import type { ListActions, ListItem, ListViewModel } from '../listController';
 import { childrenOf } from '@lupira/tasks-domain/itemTree';
-import { dueInDays, dueNextWeekend, dueOnDate, formatDue, toDateInputValue } from '@lupira/tasks-domain/dueDate';
+import {
+  dueFromInputs,
+  dueInDays,
+  dueNextWeekend,
+  formatDue,
+  NO_DUE,
+  toDateInputValue,
+  toTimeInputValue,
+  type Due,
+} from '@lupira/tasks-domain/dueDate';
 import { oneLine } from '@lupira/tasks-domain/text';
 import { Checkbox } from './Checkbox';
 import { AddTaskBar } from './AddTaskBar';
 import { PriorityControl } from './PriorityControl';
 import { priorityLabel } from '@lupira/tasks-domain/itemFormat';
 
-const DUE_QUICK: { label: string; iso: () => string }[] = [
-  { label: 'Today', iso: () => dueInDays(0) },
-  { label: 'Tomorrow', iso: () => dueInDays(1) },
-  { label: 'This weekend', iso: dueNextWeekend },
-  { label: 'Next week', iso: () => dueInDays(7) },
+const DUE_QUICK: { label: string; due: () => Due }[] = [
+  { label: 'Today', due: () => dueInDays(0) },
+  { label: 'Tomorrow', due: () => dueInDays(1) },
+  { label: 'This weekend', due: dueNextWeekend },
+  { label: 'Next week', due: () => dueInDays(7) },
 ];
-
-function fromDateInput(v: string): string | null {
-  if (!v) return null;
-  const [y, m, d] = v.split('-').map(Number);
-  if (!y || !m || !d) return null;
-  return dueOnDate(new Date(y, m - 1, d));
-}
 
 interface TaskFields {
   title: string;
@@ -73,9 +75,21 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
 
   const subtasks = useMemo(() => childrenOf(items, item.id), [items, item.id]);
   const subtasksDone = subtasks.filter(s => s.completed).length;
-  const due = formatDue(item.dueAt);
+  const due = formatDue(item);
+  const dueDate = toDateInputValue(item);
+  const dueTime = toTimeInputValue(item);
+  const [dateDraft, setDateDraft] = useState(dueDate);
+  const [draftedFrom, setDraftedFrom] = useState(dueDate);
+  if (draftedFrom !== dueDate) {
+    setDraftedFrom(dueDate);
+    setDateDraft(dueDate);
+  }
   const itemTagIds = new Set(item.tags);
 
+  function commitDue(date: string, time: string) {
+    const next = dueFromInputs(date, time);
+    if (next) actions.setDue(item.id, next);
+  }
   function commitTitle() {
     const t = oneLine(getValues('title')).trim();
     if (!t || t === item.title) return;
@@ -161,21 +175,35 @@ export function TaskDetail({ item, list, items, canEdit, actions, members, onClo
                     key={q.label}
                     variant="outlined"
                     label={q.label}
-                    onClick={() => actions.setDue(item.id, q.iso())}
+                    onClick={() => actions.setDue(item.id, q.due())}
                   />
                 ))}
-                {item.dueAt ? (
-                  <Chip variant="outlined" color="error" label="Clear" onClick={() => actions.setDue(item.id, null)} />
+                {item.dueOn || item.dueAt ? (
+                  <Chip variant="outlined" color="error" label="Clear" onClick={() => actions.setDue(item.id, NO_DUE)} />
                 ) : null}
               </Box>
-              <TextField
-                fullWidth
-                type="date"
-                label="Pick a due date"
-                value={toDateInputValue(item.dueAt)}
-                slotProps={{ inputLabel: { shrink: true } }}
-                onChange={e => actions.setDue(item.id, fromDateInput(e.target.value))}
-              />
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <TextField
+                  type="date"
+                  label="Pick a due date"
+                  value={dateDraft}
+                  sx={{ flex: 2 }}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  onChange={e => {
+                    setDateDraft(e.target.value);
+                    commitDue(e.target.value, dueTime);
+                  }}
+                />
+                <TextField
+                  type="time"
+                  label="Time (optional)"
+                  value={dueTime}
+                  disabled={!dueDate}
+                  sx={{ flex: 1 }}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  onChange={e => commitDue(dueDate, e.target.value)}
+                />
+              </Box>
             </Box>
           ) : (
             <Typography component="p" sx={{ m: 0, pb: 1, color: due?.overdue ? 'error.main' : 'text.secondary' }}>

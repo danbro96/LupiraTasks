@@ -17,6 +17,7 @@ export interface ChangeableItem {
   title: string;
   completed: boolean;
   notes?: string | null;
+  dueOn?: string | null;
   dueAt?: string | null;
   priority?: number | null;
   quantity?: number | null;
@@ -40,10 +41,13 @@ export interface ItemChange<A> {
 
 // Everything the row renders. sortOrder is excluded: a remote reorder is self-evident, and
 // highlighting every moved row would drown the real edits.
-const SCALARS = ['notes', 'dueAt', 'priority', 'quantity', 'unit', 'parentItemId', 'assignedTo'] as const;
+const SCALARS = ['notes', 'dueOn', 'priority', 'quantity', 'unit', 'parentItemId', 'assignedTo'] as const;
+
+// By instant: an optimistic `…000Z` and the server's `…+00:00` echo are the same due.
+const sameInstant = (a?: string | null, b?: string | null) => a === b || (!!a && !!b && Date.parse(a) === Date.parse(b));
 
 function visiblyDiffers(a: ChangeableItem, b: ChangeableItem): boolean {
-  if (SCALARS.some(k => a[k] !== b[k])) return true;
+  if (SCALARS.some(k => a[k] !== b[k]) || !sameInstant(a.dueAt, b.dueAt)) return true;
   // Tags render as chips on the row, so an add/remove is a visible change. Order-insensitive.
   return [...a.tags].sort().join() !== [...b.tags].sort().join();
 }

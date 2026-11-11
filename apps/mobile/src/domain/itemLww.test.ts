@@ -106,6 +106,18 @@ describe('item LWW reducer', () => {
     expect(reduce([added(), e2, e1]).priority).toBe(7);
   });
 
+  it('sets the due as one field: a timed due replaces a whole-day one and clears it, both orders', () => {
+    const onDay: ItemEvent = { type: 'ItemDueDateSet', itemId: ITEM, dueOn: '2026-06-20', dueAt: null, occurredAt: at(10), commandId: cmd('10') };
+    const timed: ItemEvent = { type: 'ItemDueDateSet', itemId: ITEM, dueOn: null, dueAt: '2026-06-20T14:30:00.000Z', occurredAt: at(20), commandId: cmd('20') };
+    for (const s of [reduce([added(), onDay, timed]), reduce([added(), timed, onDay])]) {
+      expect(s.dueOn).toBeNull();
+      expect(s.dueAt).toBe('2026-06-20T14:30:00.000Z');
+      expect([s.dueTs, s.dueCmd]).toEqual([at(20), cmd('20')]);
+    }
+    const cleared = reduce([added(), timed, { type: 'ItemDueDateSet', itemId: ITEM, dueOn: null, dueAt: null, occurredAt: at(30), commandId: cmd('30') }]);
+    expect([cleared.dueOn, cleared.dueAt]).toEqual([null, null]);
+  });
+
   it('merges independent tag adds commutatively', () => {
     const t2 = '44444444-4444-4444-4444-444444444444';
     const a = reduce([

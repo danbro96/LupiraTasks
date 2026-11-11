@@ -11,7 +11,7 @@ export type ItemEvent =
   | { type: 'ItemRenamed'; itemId: Guid; title: string; occurredAt: Iso; commandId: Guid }
   | { type: 'ItemNotesEdited'; itemId: Guid; notes: string | null; occurredAt: Iso; commandId: Guid }
   | { type: 'ItemAssigned'; itemId: Guid; assigneePrincipalId: string | null; occurredAt: Iso; commandId: Guid }
-  | { type: 'ItemDueDateSet'; itemId: Guid; dueAt: Iso | null; occurredAt: Iso; commandId: Guid }
+  | { type: 'ItemDueDateSet'; itemId: Guid; dueOn: string | null; dueAt: Iso | null; occurredAt: Iso; commandId: Guid }
   | { type: 'ItemTagAdded'; itemId: Guid; tagId: Guid; occurredAt: Iso; commandId: Guid }
   | { type: 'ItemTagRemoved'; itemId: Guid; tagId: Guid; occurredAt: Iso; commandId: Guid }
   | { type: 'ItemQuantitySet'; itemId: Guid; quantity: number | null; unit: string | null; occurredAt: Iso; commandId: Guid }

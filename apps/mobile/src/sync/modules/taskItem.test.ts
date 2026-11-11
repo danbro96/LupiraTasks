@@ -90,6 +90,21 @@ describe('taskItem module', () => {
     expect(doc).toMatchObject({ title: 'Theirs', notes: 'my notes' });
   });
 
+  it('reads a due op queued without dueOn as a timed due', async () => {
+    const { engine, pull } = setup();
+    await pull(page([change('x')]));
+    await engine.enqueue(op('item.due', 'x', { dueAt: '2026-06-20T14:30:00.000Z' }));
+    const doc = (await engine.doc<{ dueOn: string | null; dueAt: string | null }, null>(TASK_ITEM, 'x'))!.doc;
+    expect(doc).toMatchObject({ dueOn: null, dueAt: '2026-06-20T14:30:00.000Z' });
+  });
+
+  it('reads a stored item without dueOn as having none', async () => {
+    const { db, pull } = setup();
+    await pull(page([change('x')]));
+    await db.run(`UPDATE docs SET local = json_remove(local, '$.doc.dueOn')`);
+    expect((await itemsOfList(db, LIST))[0].dueOn).toBeNull();
+  });
+
   it('removes an item the feed reports deleted', async () => {
     const { db, pull } = setup();
     await pull(page([change('x')]));

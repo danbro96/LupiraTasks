@@ -9,5 +9,8 @@ export async function itemsOfList(tx: Tx, listId: string): Promise<ItemState[]> 
      WHERE i.list_id = ? ORDER BY i.sort_order`,
     [TASK_ITEM, listId],
   );
-  return rows.map(r => (JSON.parse(r.local) as { doc: ItemState }).doc);
+  return rows.map(r => {
+    const { doc } = JSON.parse(r.local) as { doc: ItemState };
+    return { ...doc, dueOn: doc.dueOn ?? null };
+  });
 }

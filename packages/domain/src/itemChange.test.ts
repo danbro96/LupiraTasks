@@ -75,10 +75,17 @@ describe('diffItems', () => {
   });
 
   it('reports each changed item once, and skips the unchanged ones', () => {
-    const before = [item('A'), item('B'), item('C')];
-    const after = [item('A'), item('B', { completed: true }), item('C', { dueAt: '2026-08-01T00:00:00.000Z' })];
+    const before = [item('A'), item('B'), item('C'), item('D')];
+    const after = [item('A'), item('B', { completed: true }), item('C', { dueAt: '2026-08-01T00:00:00.000Z' }), item('D', { dueOn: '2026-08-01' })];
 
-    expect(diffItems(prevOf(before), after).map(c => c.itemId)).toEqual(['B', 'C']);
+    expect(diffItems(prevOf(before), after).map(c => c.itemId)).toEqual(['B', 'C', 'D']);
+  });
+
+  it('reads the same due instant in another offset as unchanged', () => {
+    const before = [item('A', { dueAt: '2026-08-01T13:30:00.000Z' })];
+    const after = [item('A', { dueAt: '2026-08-01T13:30:00+00:00' })];
+
+    expect(diffItems(prevOf(before), after)).toEqual([]);
   });
 });
 

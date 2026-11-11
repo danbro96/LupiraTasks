@@ -35,9 +35,9 @@ interface JsonTask {
 /**
  * Serialize a list's tasks to a nested JSON document. Subtasks nest under `subtasks`; only
  * non-empty fields are emitted (so a plain checklist stays terse). `done` appears only when the
- * task is completed; `due` is the raw dueAt instant; tag ids are resolved to labels via
- * `tagLabels` (falling back to the raw id). assignee (a principal id) and tags are export-only
- * (not re-imported).
+ * task is completed; `due` is a whole-day due's `yyyy-mm-dd` or a timed one's instant; tag ids
+ * are resolved to labels via `tagLabels` (falling back to the raw id). assignee (a principal id)
+ * and tags are export-only (not re-imported).
  */
 export function tasksToJson(list: { name: string; kind: string }, items: ItemState[], tagLabels: Map<string, string>): string {
   const children = byParent(items);
@@ -48,7 +48,8 @@ export function tasksToJson(list: { name: string; kind: string }, items: ItemSta
       if (item.notes) task.notes = item.notes;
       if (item.quantity != null) task.quantity = item.quantity;
       if (item.unit) task.unit = item.unit;
-      if (item.dueAt) task.due = item.dueAt;
+      const due = item.dueOn ?? item.dueAt;
+      if (due) task.due = due;
       if (item.assignedTo) task.assignee = item.assignedTo;
       if (item.tags.length) task.tags = item.tags.map(id => tagLabels.get(id) ?? id);
       const subtasks = build(item.id);

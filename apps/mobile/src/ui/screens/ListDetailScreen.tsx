@@ -112,7 +112,7 @@ const TaskRow = memo(function TaskRow({ item, depth, hasChildren, canEdit, dragg
         translateX.set(withSpring(0));
       }
     });
-  const due = formatDue(item.dueAt);
+  const due = formatDue(item);
   const qty = isShopping ? qtyLabel(item) : null;
 
   const inner = (

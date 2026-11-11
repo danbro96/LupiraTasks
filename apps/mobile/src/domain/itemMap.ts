@@ -16,7 +16,7 @@ export function itemFromWire({ item: r, guards: g }: ItemSyncChange): ItemState 
     id: r.id, listId: r.listId, parentItemId: r.parentItemId ?? null,
     title: r.title, notes: r.notes ?? null,
     completed: r.completed, completedAt: r.completedAt ?? null, completedBy: r.completedBy?.principalId ?? null,
-    assignedTo: r.assignee?.principalId ?? null, dueAt: r.dueAt ?? null,
+    assignedTo: r.assignee?.principalId ?? null, dueOn: r.dueOn ?? null, dueAt: r.dueAt ?? null,
     quantity: r.quantity ?? null, unit: r.unit ?? null,
     priority: r.priority ?? 0,
     tags: [...r.tags], sortOrder: r.sortOrder,

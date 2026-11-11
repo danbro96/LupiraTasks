@@ -9,7 +9,7 @@ vi.mock('../sync/engine', () => ({
 import { toast } from '@danbro96/lupira-expo-feedback/toast';
 import type { ClientOp } from '../domain/ops';
 import { engine } from '../sync/engine';
-import { deleteItems, importList, renameItem, UNDO_MS } from './commands';
+import { deleteItems, importList, renameItem, setDue, UNDO_MS } from './commands';
 
 const queued = (call = 0) => [vi.mocked(engine.enqueue).mock.calls[call][0]].flat() as ClientOp[];
 
@@ -23,14 +23,20 @@ describe('commands', () => {
 
   it('imports a list with nested tasks parented by level, in one enqueue', async () => {
     await importList('Trip', 'Todo', [
-      { level: 0, title: 'Pack', completed: false, notes: null, quantity: null, unit: null, dueAt: null },
-      { level: 1, title: 'Socks', completed: true, notes: null, quantity: null, unit: null, dueAt: null },
+      { level: 0, title: 'Pack', completed: false, notes: null, quantity: null, unit: null, dueOn: '2026-06-20', dueAt: null },
+      { level: 1, title: 'Socks', completed: true, notes: null, quantity: null, unit: null, dueOn: null, dueAt: null },
     ]);
-    const [create, pack, socks, complete] = queued();
+    const [create, pack, packDue, socks, complete] = queued();
     expect(create).toMatchObject({ kind: 'list.create', aggregate: 'task.list', name: 'Trip' });
     expect(pack).toMatchObject({ kind: 'item.create', listId: create.listId, parentItemId: null });
+    expect(packDue).toMatchObject({ kind: 'item.due', itemId: (pack as { itemId: string }).itemId, dueOn: '2026-06-20', dueAt: null });
     expect(socks).toMatchObject({ kind: 'item.create', parentItemId: (pack as { itemId: string }).itemId });
     expect(complete).toMatchObject({ kind: 'item.complete', itemId: (socks as { itemId: string }).itemId });
+  });
+
+  it('queues a due with both fields, the unset one null', async () => {
+    await setDue('l1', 'i1', { dueOn: null, dueAt: '2026-06-20T14:30:00.000Z' });
+    expect(queued()).toEqual([expect.objectContaining({ kind: 'item.due', itemId: 'i1', dueOn: null, dueAt: '2026-06-20T14:30:00.000Z' })]);
   });
 
   it('holds deletes for the undo window, and Undo discards them', async () => {

@@ -37,7 +37,7 @@ export async function replayOp(op: ClientOp): Promise<void> {
       await updateListItem(op.listId, op.itemId, { assigneeEmail: op.assigneeEmail, assigneeEmailProvided: true, occurredAt }, idem);
       return;
     case 'item.due':
-      await updateListItem(op.listId, op.itemId, { dueAt: op.dueAt, dueAtProvided: true, occurredAt }, idem);
+      await updateListItem(op.listId, op.itemId, { dueOn: op.dueOn, dueAt: op.dueAt, dueAtProvided: true, occurredAt }, idem);
       return;
     case 'item.quantity':
       await updateListItem(op.listId, op.itemId, { quantity: op.quantity, unit: op.unit, quantityProvided: true, occurredAt }, idem);

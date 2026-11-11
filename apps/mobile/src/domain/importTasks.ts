@@ -1,9 +1,11 @@
+import { dueFromText, NO_DUE } from '@lupira/tasks-domain/dueDate';
 import { oneLine } from '@lupira/tasks-domain/text';
 
 // Pure import parsing — the inverse of exportTasks.ts. Framework-free (domain layer), unit-tested
 // in node (see importTasks.test.ts). Two accepted shapes:
 //  - our own JSON export ({ tasks: [...] } or a bare [...] of task objects): title/done/notes/
-//    quantity/unit/due and nested subtasks are imported, other fields (assignee/tags) ignored;
+//    quantity/unit/due (`yyyy-mm-dd` = whole day) and nested subtasks are imported, other fields
+//    (assignee/tags) ignored;
 //  - anything else: every non-empty line becomes a top-level task title.
 // The nested JSON is flattened to a flat list with a `level` per task so the op-builder
 // (ImportListScreen.buildImportOps) stays format-agnostic.
@@ -15,6 +17,7 @@ export interface ImportedTask {
   notes: string | null;
   quantity: number | null;
   unit: string | null;
+  dueOn: string | null;
   dueAt: string | null;
 }
 
@@ -42,6 +45,7 @@ function flatten(nodes: unknown, level: number, out: ImportedTask[]): void {
     const n = node as Record<string, unknown>;
     const title = cleanTitle(n.title);
     if (!title) continue;
+    const due = asString(n.due);
     out.push({
       title,
       level,
@@ -49,7 +53,7 @@ function flatten(nodes: unknown, level: number, out: ImportedTask[]): void {
       notes: asString(n.notes),
       quantity: asNum(n.quantity),
       unit: asString(n.unit),
-      dueAt: asString(n.due),
+      ...((due ? dueFromText(due) : null) ?? NO_DUE),
     });
     if (Array.isArray(n.subtasks)) flatten(n.subtasks, level + 1, out);
   }
@@ -84,7 +88,7 @@ export function parseImport(text: string): ImportParseResult {
       .split(/\r?\n/)
       .map(cleanTitle)
       .filter(Boolean)
-      .map(title => ({ title, level: 0, completed: false, notes: null, quantity: null, unit: null, dueAt: null }));
+      .map(title => ({ title, level: 0, completed: false, notes: null, quantity: null, unit: null, ...NO_DUE }));
   }
 
   if (tasks.length === 0) return { ok: false, error: 'No tasks found in the pasted text.' };

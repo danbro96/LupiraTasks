@@ -37,6 +37,10 @@ describe('tasksToJson', () => {
     });
   });
 
+  it('emits a whole-day due as its yyyy-mm-dd day', () => {
+    expect(parse([item({ id: 'a', title: 'Bins', dueOn: '2026-06-20' })]).tasks[0]).toEqual({ title: 'Bins', due: '2026-06-20' });
+  });
+
   it('nests subtasks under their parent in sort order', () => {
     const doc = parse([
       item({ id: 'P', title: 'Parent', sortOrder: 'a' }),

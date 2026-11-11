@@ -26,7 +26,7 @@ export type ItemOp =
   | (I & { kind: 'item.rename'; listId: Guid; itemId: Guid; title: string })
   | (I & { kind: 'item.notes'; listId: Guid; itemId: Guid; notes: string | null })
   | (I & { kind: 'item.assign'; listId: Guid; itemId: Guid; assigneePrincipalId: string | null; assigneeEmail: string | null })
-  | (I & { kind: 'item.due'; listId: Guid; itemId: Guid; dueAt: Iso | null })
+  | (I & { kind: 'item.due'; listId: Guid; itemId: Guid; dueOn: string | null; dueAt: Iso | null })
   | (I & { kind: 'item.quantity'; listId: Guid; itemId: Guid; quantity: number | null; unit: string | null })
   | (I & { kind: 'item.priority'; listId: Guid; itemId: Guid; priority: number })
   | (I & { kind: 'item.tagAdd'; listId: Guid; itemId: Guid; tagId: Guid })
@@ -70,7 +70,7 @@ export function itemEventOf(op: ItemOp): ItemEvent {
     case 'item.assign':
       return { type: 'ItemAssigned', itemId: op.itemId, assigneePrincipalId: op.assigneePrincipalId, occurredAt, commandId };
     case 'item.due':
-      return { type: 'ItemDueDateSet', itemId: op.itemId, dueAt: op.dueAt, occurredAt, commandId };
+      return { type: 'ItemDueDateSet', itemId: op.itemId, dueOn: op.dueOn ?? null, dueAt: op.dueAt, occurredAt, commandId };
     case 'item.quantity':
       return { type: 'ItemQuantitySet', itemId: op.itemId, quantity: op.quantity, unit: op.unit, occurredAt, commandId };
     case 'item.priority':
