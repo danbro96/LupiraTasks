@@ -5,6 +5,7 @@
   },
   "build": {
     "development": {
+      "environment": "development",
       "developmentClient": true,
       "distribution": "internal",
       "channel": "development",
@@ -12,12 +13,14 @@
       "android": { "buildType": "apk" }
     },
     "preview": {
+      "environment": "preview",
       "distribution": "internal",
       "channel": "preview",
       "node": "26.13.1",
       "android": { "buildType": "apk" }
     },
     "production": {
+      "environment": "production",
       "channel": "production",
       "node": "26.13.1",
       "android": { "buildType": "app-bundle" },

@@ -21,12 +21,13 @@ changes and old builds correctly **won't** receive the update — that's your si
 - A dedicated **test Authentik account** for the Play "App access" form and for testers without an account.
 - Backend deployed at `tasks-api.lupira.com` (the app's `DEFAULT_API_URL`).
 - OIDC redirect `lupiratasks://oauthredirect` registered on the Authentik `tasks` client (already done).
-- *(Recommended)* `SENTRY_AUTH_TOKEN` as an EAS secret (`eas secret:create --name SENTRY_AUTH_TOKEN …`)
-  so release builds upload source maps for symbolicated crashes.
+- `SENTRY_AUTH_TOKEN` as an EAS environment variable in `development`, `preview` and `production`
+  (`eas env:create --name SENTRY_AUTH_TOKEN --environment <env> --visibility secret …`): release
+  builds upload source maps and the R8 mapping, and fail at that step without it.
 
 ## Build profiles (`eas.json`)
 
-| Profile | Output | Channel | Use |
+| Profile | Output | Channel / EAS environment | Use |
 |---|---|---|---|
 | `development` | APK, dev client | `development` | local dev with Metro (`npm run build:preview` is usually enough; this is for native debugging) |
 | `preview` | APK, internal distribution | `preview` | **pre-flight smoke test** — install directly, no Play |
@@ -122,8 +123,8 @@ update from Play once. After that, every JS-only fix goes out via section B.
   `production` profile's `autoIncrement` (already configured); don't pin `android.versionCode`.
 - **Login fails only in a standalone build:** confirm `lupiratasks://oauthredirect` is registered on
   the Authentik client and the device has network to `auth.lupira.com` / `tasks-api.lupira.com`.
-- **No symbolicated crashes in Sentry:** set the `SENTRY_AUTH_TOKEN` EAS secret so release builds
-  upload source maps.
+- **No symbolicated crashes in Sentry:** check `SENTRY_AUTH_TOKEN` exists in the profile's EAS
+  environment; variables on the GitHub runner do not reach the EAS build worker.
 
 ## Command reference
 
