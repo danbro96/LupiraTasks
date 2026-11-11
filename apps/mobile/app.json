@@ -34,7 +34,8 @@
         {
           "url": "https://de.sentry.io/",
           "project": "lupira-tasks",
-          "organization": "brostrom"
+          "organization": "brostrom",
+          "experimental_android": { "enableAndroidGradlePlugin": true }
         }
       ],
       "expo-status-bar",
@@ -47,6 +48,14 @@
           "imageWidth": 180,
           "resizeMode": "contain",
           "backgroundColor": "#0F172A"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraProguardRules": "-keep class * extends androidx.room.RoomDatabase { <init>(); }\n-keepclassmembers class * extends androidx.work.InputMerger { public <init>(); }"
+          }
         }
       ]
     ],
