@@ -5,8 +5,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import ReorderableList, { useReorderableDrag, useIsActive, reorderItems } from 'react-native-reorderable-list';
-import { Gesture } from 'react-native-gesture-handler';
-import { LinearTransition, runOnJS } from 'react-native-reanimated';
+import { LinearTransition } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import type { ListDto } from '@lupira/tasks-api/models';
 import type { RootStackParamList } from '../navigation/types';
 import { SyncBanner } from '../components/SyncBanner';
@@ -75,8 +75,6 @@ export function ListsScreen() {
     rendered.current = { lists, data };
   }, [lists, data]);
 
-  const [dragGesture] = useState(() => Gesture.Pan().activateAfterLongPress(520));
-
   function openList(l: ListDto) {
     nav.navigate('ListDetail', { listId: l.id, name: l.name });
   }
@@ -109,18 +107,18 @@ export function ListsScreen() {
       <ReorderableList
         data={data}
         keyExtractor={l => l?.id ?? ''}
-        panGesture={dragGesture}
+        panActivateAfterLongPress={520}
         shouldUpdateActiveItem
         itemLayoutAnimation={LinearTransition.duration(200)}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => run(refresh, 'Sync failed')} />}
         onDragStart={() => {
           'worklet';
-          runOnJS(hapticImpact)(); // "pickup" thunk when a row is grabbed to reorder
-          runOnJS(freezeForDrag)();
+          scheduleOnRN(hapticImpact); // "pickup" thunk when a row is grabbed to reorder
+          scheduleOnRN(freezeForDrag);
         }}
         onDragEnd={() => {
           'worklet';
-          runOnJS(setDragging)(false);
+          scheduleOnRN(setDragging, false);
         }}
         onReorder={onReorder}
         ListEmptyComponent={

@@ -5,8 +5,9 @@ import { useFocusEffect, useNavigation, useRoute, type RouteProp } from '@react-
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import ReorderableList, { useReorderableDrag, useIsActive, reorderItems } from 'react-native-reorderable-list';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { LinearTransition, runOnJS, SlideOutLeft, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
+import Animated, { LinearTransition, SlideOutLeft, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import { hapticImpact, hapticSuccess } from '@danbro96/lupira-expo-feedback/haptics';
 import { ListKind } from '@lupira/tasks-api/models';
 import type { RootStackParamList } from '../navigation/types';
@@ -43,6 +44,9 @@ const SWIPE_DELETE_THRESHOLD = -80; // swipe left past this (px) and release to 
 const REMOTE_FLASH_MS = 4000;
 const FLASH_IN_MS = 180;
 const FLASH_OUT_MS = 1200;
+// Gate the reorder drag behind a long-press so it doesn't claim the quick horizontal swipes used
+// for swipe-to-delete (slightly longer than the row's 500ms delayLongPress, per the lib's guidance).
+const DRAG_LONG_PRESS_MS = 520;
 
 interface RowProps {
   // Spread from the row wrapper rather than passed whole: the wrapper is rebuilt on every rowsForMode
@@ -97,21 +101,22 @@ const TaskRow = memo(function TaskRow({ item, depth, hasChildren, canEdit, dragg
   // Red delete backdrop is invisible until the row is actually swiped — so it never shows at rest
   // or while the row is picked up for reordering.
   const deleteBgStyle = useAnimatedStyle(() => ({ opacity: translateX.get() < -1 ? 1 : 0 }));
-  const swipe = Gesture.Pan()
-    .activeOffsetX(-15)
-    .failOffsetY([-12, 12])
-    .onUpdate(e => {
+  const swipe = usePanGesture({
+    activeOffsetX: -15,
+    failOffsetY: [-12, 12],
+    onUpdate: e => {
       translateX.set(Math.min(0, e.translationX));
-    })
-    .onEnd(e => {
+    },
+    onDeactivate: e => {
       if (e.translationX < SWIPE_DELETE_THRESHOLD) {
         // Remove it — the row's `exiting` animation slides it the rest of the way out and the
         // neighbors close the gap via the list's itemLayoutAnimation.
-        runOnJS(onDelete)(item);
+        scheduleOnRN(onDelete, item);
       } else {
         translateX.set(withSpring(0));
       }
-    });
+    },
+  });
   const due = formatDue(item);
   const qty = isShopping ? qtyLabel(item) : null;
 
@@ -168,9 +173,9 @@ const TaskRow = memo(function TaskRow({ item, depth, hasChildren, canEdit, dragg
 
   // Swipe the row left and release past the threshold to delete; otherwise it springs back.
   // A custom Pan (instead of Swipeable's open-callback, which doesn't fire reliably here) lets us
-  // own the release handler and call onDelete via runOnJS. activeOffsetX claims only leftward drags;
+  // own the release handler and call onDelete via scheduleOnRN. activeOffsetX claims only leftward drags;
   // failOffsetY yields vertical gestures to scroll. The reorder drag is gated behind a long-press
-  // (list `panGesture`, below) so it doesn't steal these quick horizontal swipes.
+  // (list `panActivateAfterLongPress`, below) so it doesn't steal these quick horizontal swipes.
   return (
     <View style={styles.swipeContainer}>
       <Animated.View style={[styles.swipeDelete, deleteBgStyle]} pointerEvents="none">
@@ -208,9 +213,6 @@ export function ListDetailScreen() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const c = useColors();
   const styles = makeStyles(c, TEXT_SIZE_SCALE[textSize], ROW_SPACING_PAD[rowSpacing]);
-  // Gate the reorder drag behind a long-press so it doesn't claim the quick horizontal swipes used
-  // for swipe-to-delete (slightly longer than the row's 500ms delayLongPress, per the lib's guidance).
-  const [dragGesture] = useState(() => Gesture.Pan().activateAfterLongPress(520));
 
   // Pull on focus (not just mount): native-stack keeps this screen mounted when TaskDetail /
   // ListSettings are pushed on top, so a mount-only effect would leave tasks stale on return.
@@ -351,12 +353,12 @@ export function ListDetailScreen() {
   };
   const onDragStart = () => {
     'worklet';
-    runOnJS(hapticImpact)(); // "pickup" thunk when a row is grabbed to reorder
-    runOnJS(freezeForDrag)();
+    scheduleOnRN(hapticImpact); // "pickup" thunk when a row is grabbed to reorder
+    scheduleOnRN(freezeForDrag);
   };
   const onDragEnd = () => {
     'worklet';
-    runOnJS(setDragging)(false);
+    scheduleOnRN(setDragging, false);
   };
   const renderItem = ({ item: row, index }: { item: (typeof listData)[number]; index: number }) =>
     !row?.item ? null : (
@@ -409,7 +411,7 @@ export function ListDetailScreen() {
         data={listData}
         keyExtractor={rowKey}
         dragEnabled={canEdit}
-        panGesture={dragGesture}
+        panActivateAfterLongPress={DRAG_LONG_PRESS_MS}
         shouldUpdateActiveItem
         // Rows are heavy (gesture + animated styles each); FlatList's default window mounts ~21
         // screens, i.e. every row of a long list.

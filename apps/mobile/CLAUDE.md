@@ -24,6 +24,6 @@
   fetch flavour, not the react-query one: the engine owns the mirror's caching, and the app keys its own queries.
 - **Palette**: the app's own semantics (`pending`, `failed`, `remoteChange`, `toast*`) ride on the Paper theme beside the MD3 colours. Colors come from `@lupira/tasks-tokens` (extending `@danbro96/lupira-tokens-core`'s `Palette` and `BannerPalette`, whose `banner*`/`onStatus` feed Paper's `StatusBanner`); spacing, radii and hit-slop from `@danbro96/lupira-tokens-core`.
 - **Row components** (`ListDetailScreen`, `ListsScreen`, and `PriorityControl`, which renders in those rows) follow the estate memo/styles-as-props rule. `ListDetailScreen` additionally interleaves long-press drag (`react-native-reorderable-list`), a
-  hand-built swipe-to-delete (`Gesture.Pan` — `Swipeable`'s open callback doesn't fire reliably here),
+  hand-built swipe-to-delete (`usePanGesture` — `Swipeable`'s open callback doesn't fire reliably here),
   the remote-change flash, and a drag-freeze that pins rendered rows mid-gesture.
 - `react-native-worklets/plugin` must stay last in `babel.config.js`.
