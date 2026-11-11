@@ -2,10 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // The session mechanics are covered in @danbro96/lupira-expo-oidc; these pin what Tasks adds on top.
 const secure = vi.hoisted(() => new Map<string, string>());
+const refusedDeletes = vi.hoisted(() => new Set<string>());
 vi.mock('expo-secure-store', () => ({
   getItemAsync: vi.fn(async (k: string) => secure.get(k) ?? null),
   setItemAsync: vi.fn(async (k: string, v: string) => void secure.set(k, v)),
-  deleteItemAsync: vi.fn(async (k: string) => void secure.delete(k)),
+  deleteItemAsync: vi.fn(async (k: string) => {
+    if (refusedDeletes.has(k)) throw new Error('keychain refused delete');
+    secure.delete(k);
+  }),
 }));
 vi.mock('react-native', () => ({ AppState: {} }));
 vi.mock('expo-auth-session', () => ({}));
@@ -20,6 +24,7 @@ vi.mock('../data/auth/oidc', () => ({ oidc: { refreshTokens: vi.fn() } }));
 vi.mock('../sync/engine', () => ({ engine: { wipe: vi.fn().mockResolvedValue(undefined) } }));
 
 import { toast } from '@danbro96/lupira-expo-feedback/toast';
+import { logDebug } from '@danbro96/lupira-expo-diagnostics/log';
 import { authPort } from '../data/api/authProvider';
 import { engine } from '../sync/engine';
 import { useAuth } from './auth-store';
@@ -32,6 +37,7 @@ const jwt = (claims: Record<string, unknown>) =>
 beforeEach(() => {
   vi.clearAllMocks();
   secure.clear();
+  refusedDeletes.clear();
   useAuth.setState({ token: 'tok-1', refreshToken: 'ref-1', expiresAt: Date.now() + 3_600_000, user: { sub: 'u@example.com' }, principalId: null, isAdmin: false });
 });
 
@@ -67,6 +73,15 @@ describe('sign-out', () => {
     vi.mocked(toast).mockClear();
     await useAuth.getState().clearSession();
     expect(toast).not.toHaveBeenCalled();
+  });
+
+  it('signs out when the stored principal cannot be deleted', async () => {
+    await useAuth.getState().applyProfile({ principalId: 'p-1' });
+    refusedDeletes.add(PRINCIPAL_KEY);
+
+    await expect(useAuth.getState().clearSession()).resolves.toBeUndefined();
+    expect(useAuth.getState()).toMatchObject({ token: null, user: null, principalId: null });
+    expect(logDebug).toHaveBeenCalledWith('auth:persist-error', 'keychain refused delete');
   });
 });
 

@@ -30,7 +30,11 @@ export const useAuth = createAuthStore<Profile>({
   beforeSignOut: async reason => {
     if (reason === 'expired') toast('Session expired — please sign in again.');
     useAuth.setState({ principalId: null, isAdmin: false });
-    await SecureStore.deleteItemAsync(KEY_PRINCIPAL);
+    try {
+      await SecureStore.deleteItemAsync(KEY_PRINCIPAL);
+    } catch (e) {
+      logDebug('auth:persist-error', e instanceof Error ? e.message : String(e));
+    }
   },
   onDefinitiveFailure: e => Sentry.captureMessage(`auth: definitive refresh failure — ${e.message}`, 'warning'),
   onLoad: async () => {
