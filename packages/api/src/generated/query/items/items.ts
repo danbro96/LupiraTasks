@@ -127,6 +127,10 @@ export type ListListItemsQueryResult = NonNullable<Awaited<ReturnType<typeof lis
 export type ListListItemsQueryError = ProblemDetails
 
 
+/**
+ * Excludes deleted items; ordered by `sortOrder`. Filters: `completed`, `tagId`, `parentItemId`, `assignedTo`, `status`.
+ * @summary List a list's items (Viewer+).
+ */
 export function useListListItems<TData = Awaited<ReturnType<typeof listListItems>>, TError = ProblemDetails>(
  listId: string,
     params: undefined |  ListListItemsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listListItems>>, TError, TData>> & Pick<
@@ -138,6 +142,10 @@ export function useListListItems<TData = Awaited<ReturnType<typeof listListItems
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Excludes deleted items; ordered by `sortOrder`. Filters: `completed`, `tagId`, `parentItemId`, `assignedTo`, `status`.
+ * @summary List a list's items (Viewer+).
+ */
 export function useListListItems<TData = Awaited<ReturnType<typeof listListItems>>, TError = ProblemDetails>(
  listId: string,
     params?: ListListItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listListItems>>, TError, TData>> & Pick<
@@ -149,15 +157,19 @@ export function useListListItems<TData = Awaited<ReturnType<typeof listListItems
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Excludes deleted items; ordered by `sortOrder`. Filters: `completed`, `tagId`, `parentItemId`, `assignedTo`, `status`.
+ * @summary List a list's items (Viewer+).
+ */
 export function useListListItems<TData = Awaited<ReturnType<typeof listListItems>>, TError = ProblemDetails>(
  listId: string,
     params?: ListListItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listListItems>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * Excludes deleted items; ordered by `sortOrder`. Filters: `completed`, `tagId`, `parentItemId`, `assignedTo`, `status`.
  * @summary List a list's items (Viewer+).
  */
-
 export function useListListItems<TData = Awaited<ReturnType<typeof listListItems>>, TError = ProblemDetails>(
  listId: string,
     params?: ListListItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listListItems>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
@@ -253,6 +265,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateListItemMutationVariables = {listId: string;data: CreateItemRequest}
 
     /**
+ * Body `{ id (GUIDv7), title, parentItemId?, dueAt?, assigneeEmail?, quantity?, unit?, priority? (0..9), tagIds?, sortOrder, occurredAt? }`. Re-sending an existing id is idempotent.
  * @summary Add an item (Editor+).
  */
 export const useCreateListItem = <TError = ProblemDetails,
@@ -344,6 +357,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type UpdateListItemMutationVariables = {listId: string;itemId: string;data: UpdateItemRequest}
 
     /**
+ * One event per changed field. Use the `*Provided` flags so a null can mean 'clear' rather than 'unchanged' (e.g. `priority` 0..9 with `priorityProvided`). Tags via `addTagIds`/`removeTagIds`.
  * @summary Edit item fields (Editor+).
  */
 export const useUpdateListItem = <TError = ProblemDetails,
@@ -429,6 +443,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DeleteListItemMutationVariables = {listId: string;itemId: string;params?: DeleteListItemParams}
 
     /**
+ * Optional `?occurredAt=` (ISO-8601) carries the client timestamp for LWW.
  * @summary Delete an item (Editor+). Tombstone.
  */
 export const useDeleteListItem = <TError = ProblemDetails,
@@ -518,9 +533,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CompleteItemMutationError = ProblemDetails
     export type CompleteItemMutationVariables = {listId: string;itemId: string;data?: null | ItemTimestampRequest}
 
-    /**
- * @summary Mark an item complete (Editor+).
- */
+    /** @summary Mark an item complete (Editor+). */
 export const useCompleteItem = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeItem>>, TError,CompleteItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -610,6 +623,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type MoveItemMutationVariables = {listId: string;itemId: string;data: MoveItemRequest}
 
     /**
+ * Carries the fractional-index `sortOrder` string and optional `parentItemId`.
  * @summary Reparent / reorder an item (Editor+).
  */
 export const useMoveItem = <TError = ProblemDetails,
@@ -699,9 +713,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type ReopenItemMutationError = ProblemDetails
     export type ReopenItemMutationVariables = {listId: string;itemId: string;data?: null | ItemTimestampRequest}
 
-    /**
- * @summary Reopen a completed item (Editor+).
- */
+    /** @summary Reopen a completed item (Editor+). */
 export const useReopenItem = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reopenItem>>, TError,ReopenItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<

@@ -125,6 +125,13 @@ export type SyncListQueryResult = NonNullable<Awaited<ReturnType<typeof syncList
 export type SyncListQueryError = ProblemDetails
 
 
+/**
+ * Returns the current list plus all its live items (v1 full re-derive,
+ * regardless of `?since=`) and a `nextCursor` to pass on the next pull. The
+ * client rebases its local mirror onto this base, then re-applies non-acked
+ * outbox rows.
+ * @summary Offline delta-pull for a list (Viewer+).
+ */
 export function useSyncList<TData = Awaited<ReturnType<typeof syncList>>, TError = ProblemDetails>(
  listId: string,
     params: undefined |  SyncListParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof syncList>>, TError, TData>> & Pick<
@@ -136,6 +143,13 @@ export function useSyncList<TData = Awaited<ReturnType<typeof syncList>>, TError
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns the current list plus all its live items (v1 full re-derive,
+ * regardless of `?since=`) and a `nextCursor` to pass on the next pull. The
+ * client rebases its local mirror onto this base, then re-applies non-acked
+ * outbox rows.
+ * @summary Offline delta-pull for a list (Viewer+).
+ */
 export function useSyncList<TData = Awaited<ReturnType<typeof syncList>>, TError = ProblemDetails>(
  listId: string,
     params?: SyncListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof syncList>>, TError, TData>> & Pick<
@@ -147,15 +161,25 @@ export function useSyncList<TData = Awaited<ReturnType<typeof syncList>>, TError
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns the current list plus all its live items (v1 full re-derive,
+ * regardless of `?since=`) and a `nextCursor` to pass on the next pull. The
+ * client rebases its local mirror onto this base, then re-applies non-acked
+ * outbox rows.
+ * @summary Offline delta-pull for a list (Viewer+).
+ */
 export function useSyncList<TData = Awaited<ReturnType<typeof syncList>>, TError = ProblemDetails>(
  listId: string,
     params?: SyncListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof syncList>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * Returns the current list plus all its live items (v1 full re-derive,
+ * regardless of `?since=`) and a `nextCursor` to pass on the next pull. The
+ * client rebases its local mirror onto this base, then re-applies non-acked
+ * outbox rows.
  * @summary Offline delta-pull for a list (Viewer+).
  */
-
 export function useSyncList<TData = Awaited<ReturnType<typeof syncList>>, TError = ProblemDetails>(
  listId: string,
     params?: SyncListParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof syncList>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
@@ -237,6 +261,10 @@ export type SyncItemsQueryResult = NonNullable<Awaited<ReturnType<typeof syncIte
 export type SyncItemsQueryError = ProblemDetails
 
 
+/**
+ * Omit `since` for a full sync; then pass back each returned `cursor`, looping while `hasMore`. `reset: true` = drop the mirror before applying the page (first page of a full sync, or the caller gained or lost a list). `limit` defaults to 200, max 500. `deleted` holds the ids of deleted items.
+ * @summary Items of the caller's readable lists that changed since a cursor, with per-field guards.
+ */
 export function useSyncItems<TData = Awaited<ReturnType<typeof syncItems>>, TError = ProblemDetails>(
  params: undefined |  SyncItemsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof syncItems>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -247,6 +275,10 @@ export function useSyncItems<TData = Awaited<ReturnType<typeof syncItems>>, TErr
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Omit `since` for a full sync; then pass back each returned `cursor`, looping while `hasMore`. `reset: true` = drop the mirror before applying the page (first page of a full sync, or the caller gained or lost a list). `limit` defaults to 200, max 500. `deleted` holds the ids of deleted items.
+ * @summary Items of the caller's readable lists that changed since a cursor, with per-field guards.
+ */
 export function useSyncItems<TData = Awaited<ReturnType<typeof syncItems>>, TError = ProblemDetails>(
  params?: SyncItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof syncItems>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -257,14 +289,18 @@ export function useSyncItems<TData = Awaited<ReturnType<typeof syncItems>>, TErr
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Omit `since` for a full sync; then pass back each returned `cursor`, looping while `hasMore`. `reset: true` = drop the mirror before applying the page (first page of a full sync, or the caller gained or lost a list). `limit` defaults to 200, max 500. `deleted` holds the ids of deleted items.
+ * @summary Items of the caller's readable lists that changed since a cursor, with per-field guards.
+ */
 export function useSyncItems<TData = Awaited<ReturnType<typeof syncItems>>, TError = ProblemDetails>(
  params?: SyncItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof syncItems>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * Omit `since` for a full sync; then pass back each returned `cursor`, looping while `hasMore`. `reset: true` = drop the mirror before applying the page (first page of a full sync, or the caller gained or lost a list). `limit` defaults to 200, max 500. `deleted` holds the ids of deleted items.
  * @summary Items of the caller's readable lists that changed since a cursor, with per-field guards.
  */
-
 export function useSyncItems<TData = Awaited<ReturnType<typeof syncItems>>, TError = ProblemDetails>(
  params?: SyncItemsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof syncItems>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
@@ -345,6 +381,10 @@ export type SyncListsQueryResult = NonNullable<Awaited<ReturnType<typeof syncLis
 export type SyncListsQueryError = ProblemDetails
 
 
+/**
+ * Omit `since` for a full sync; then pass back each returned `cursor`, looping while `hasMore`. `reset: true` = drop the mirror before applying the page (first page of a full sync, or the caller gained or lost a list). `limit` defaults to 200, max 500. Lists leave the mirror through `reset`, so `deleted` is always empty.
+ * @summary Lists the caller can read that changed since a cursor, for an offline mirror.
+ */
 export function useSyncLists<TData = Awaited<ReturnType<typeof syncLists>>, TError = ProblemDetails>(
  params: undefined |  SyncListsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof syncLists>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -355,6 +395,10 @@ export function useSyncLists<TData = Awaited<ReturnType<typeof syncLists>>, TErr
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Omit `since` for a full sync; then pass back each returned `cursor`, looping while `hasMore`. `reset: true` = drop the mirror before applying the page (first page of a full sync, or the caller gained or lost a list). `limit` defaults to 200, max 500. Lists leave the mirror through `reset`, so `deleted` is always empty.
+ * @summary Lists the caller can read that changed since a cursor, for an offline mirror.
+ */
 export function useSyncLists<TData = Awaited<ReturnType<typeof syncLists>>, TError = ProblemDetails>(
  params?: SyncListsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof syncLists>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -365,14 +409,18 @@ export function useSyncLists<TData = Awaited<ReturnType<typeof syncLists>>, TErr
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Omit `since` for a full sync; then pass back each returned `cursor`, looping while `hasMore`. `reset: true` = drop the mirror before applying the page (first page of a full sync, or the caller gained or lost a list). `limit` defaults to 200, max 500. Lists leave the mirror through `reset`, so `deleted` is always empty.
+ * @summary Lists the caller can read that changed since a cursor, for an offline mirror.
+ */
 export function useSyncLists<TData = Awaited<ReturnType<typeof syncLists>>, TError = ProblemDetails>(
  params?: SyncListsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof syncLists>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * Omit `since` for a full sync; then pass back each returned `cursor`, looping while `hasMore`. `reset: true` = drop the mirror before applying the page (first page of a full sync, or the caller gained or lost a list). `limit` defaults to 200, max 500. Lists leave the mirror through `reset`, so `deleted` is always empty.
  * @summary Lists the caller can read that changed since a cursor, for an offline mirror.
  */
-
 export function useSyncLists<TData = Awaited<ReturnType<typeof syncLists>>, TError = ProblemDetails>(
  params?: SyncListsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof syncLists>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient

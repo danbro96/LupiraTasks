@@ -6,5 +6,5 @@
  */
 
 export type DeleteListItemParams = {
-occurredAt?: string;
+  occurredAt?: string;
 };

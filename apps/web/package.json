@@ -15,7 +15,7 @@
   "dependencies": {
     "@danbro96/lupira-http": "0.3.0",
     "@danbro96/lupira-tokens-core": "0.3.0",
-    "@danbro96/lupira-web-mui": "0.2.1",
+    "@danbro96/lupira-web-mui": "0.3.0",
     "@danbro96/lupira-web-session": "0.2.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
@@ -27,7 +27,7 @@
     "@lupira/tasks-tokens": "*",
     "@mui/icons-material": "^9.3.1",
     "@mui/material": "^9.3.1",
-    "@tanstack/react-query": "^5.62.0",
+    "@tanstack/react-query": "^5.107.1",
     "fractional-indexing": "^4.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

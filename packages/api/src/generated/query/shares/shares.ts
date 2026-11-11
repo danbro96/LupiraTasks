@@ -134,6 +134,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateShareMutationVariables = {listId: string;data: CreateShareRequest}
 
     /**
+ * Body `{ access: 'Read' | 'ReadWrite', label?, expiresAt? }`. Returns the opaque token + a ready-to-copy URL. The link grants account-less access at `/shared/{token}` until revoked or expired.
  * @summary Mint a public share link for a list (Owner).
  */
 export const useCreateShare = <TError = ProblemDetails,
@@ -201,6 +202,7 @@ export type ListSharesQueryResult = NonNullable<Awaited<ReturnType<typeof listSh
 export type ListSharesQueryError = ProblemDetails
 
 
+/** @summary List a list's active share links (Owner). */
 export function useListShares<TData = Awaited<ReturnType<typeof listShares>>, TError = ProblemDetails>(
  listId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShares>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -211,6 +213,7 @@ export function useListShares<TData = Awaited<ReturnType<typeof listShares>>, TE
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary List a list's active share links (Owner). */
 export function useListShares<TData = Awaited<ReturnType<typeof listShares>>, TError = ProblemDetails>(
  listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShares>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -221,14 +224,12 @@ export function useListShares<TData = Awaited<ReturnType<typeof listShares>>, TE
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary List a list's active share links (Owner). */
 export function useListShares<TData = Awaited<ReturnType<typeof listShares>>, TError = ProblemDetails>(
  listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShares>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary List a list's active share links (Owner).
- */
-
+/** @summary List a list's active share links (Owner). */
 export function useListShares<TData = Awaited<ReturnType<typeof listShares>>, TError = ProblemDetails>(
  listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listShares>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
@@ -308,9 +309,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DeleteShareMutationError = ProblemDetails
     export type DeleteShareMutationVariables = {listId: string;shareId: string}
 
-    /**
- * @summary Revoke a share link (Owner). The token is rejected on its next use.
- */
+    /** @summary Revoke a share link (Owner). The token is rejected on its next use. */
 export const useDeleteShare = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteShare>>, TError,DeleteShareMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -397,6 +396,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type RedeemShareMutationVariables = {data: RedeemShareRequest}
 
     /**
+ * Body `{ token }`. Adds the caller to the linked list — `ReadWrite` → Editor, `Read` → Viewer — and returns `{ listId, role }`. Idempotent: an existing member keeps their current role. Used by the web client to cash in a share link after SSO.
  * @summary Redeem a share link as the authenticated caller (join the list).
  */
 export const useRedeemShare = <TError = ProblemDetails,

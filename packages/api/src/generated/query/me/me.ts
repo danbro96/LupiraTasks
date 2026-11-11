@@ -108,6 +108,12 @@ export type GetMeQueryResult = NonNullable<Awaited<ReturnType<typeof getMe>>>
 export type GetMeQueryError = ProblemDetails
 
 
+/**
+ * Upserts the caller's `UserProfile` from the bearer token (create on first
+ * login, else bump `LastSeenAt` and refresh display name / admin flag) and
+ * returns `{ email, displayName, isAdmin }`. Call on app cold start.
+ * @summary Provision and return the caller's profile.
+ */
 export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = ProblemDetails>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -118,6 +124,12 @@ export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = Pro
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Upserts the caller's `UserProfile` from the bearer token (create on first
+ * login, else bump `LastSeenAt` and refresh display name / admin flag) and
+ * returns `{ email, displayName, isAdmin }`. Call on app cold start.
+ * @summary Provision and return the caller's profile.
+ */
 export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -128,14 +140,22 @@ export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = Pro
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Upserts the caller's `UserProfile` from the bearer token (create on first
+ * login, else bump `LastSeenAt` and refresh display name / admin flag) and
+ * returns `{ email, displayName, isAdmin }`. Call on app cold start.
+ * @summary Provision and return the caller's profile.
+ */
 export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * Upserts the caller's `UserProfile` from the bearer token (create on first
+ * login, else bump `LastSeenAt` and refresh display name / admin flag) and
+ * returns `{ email, displayName, isAdmin }`. Call on app cold start.
  * @summary Provision and return the caller's profile.
  */
-
 export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMe>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient

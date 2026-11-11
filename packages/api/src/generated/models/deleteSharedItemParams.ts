@@ -6,5 +6,5 @@
  */
 
 export type DeleteSharedItemParams = {
-occurredAt?: string;
+  occurredAt?: string;
 };

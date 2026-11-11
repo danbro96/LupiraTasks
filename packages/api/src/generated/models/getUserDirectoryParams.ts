@@ -6,5 +6,5 @@
  */
 
 export type GetUserDirectoryParams = {
-q?: string;
+  q?: string;
 };

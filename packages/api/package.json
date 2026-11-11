@@ -23,7 +23,7 @@
     "./fetch/*": "./src/generated/fetch/*/*.ts"
   },
   "peerDependencies": {
-    "@tanstack/react-query": "^5.90.2"
+    "@tanstack/react-query": "^5.107.1"
   },
   "peerDependenciesMeta": {
     "@tanstack/react-query": {

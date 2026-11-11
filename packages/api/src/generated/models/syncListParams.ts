@@ -6,5 +6,5 @@
  */
 
 export type SyncListParams = {
-since?: number;
+  since?: number;
 };

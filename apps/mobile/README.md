@@ -5,7 +5,7 @@ React Native + Expo client for the Lupira Tasks API. Offline-first on the shared
 
 ## Stack
 
-- Expo 57 / React Native 0.86 / React 19, TypeScript (strict)
+- Expo 58 / React Native 0.88 / React 19, TypeScript (strict)
 - React Navigation (native stack)
 - Zustand 5 (prefs; auth via `@danbro96/lupira-expo-oidc`'s `createAuthStore`)
 - `expo-sqlite` + `@danbro96/lupira-sync-engine` — docs, outbox, cursors; React Query (`@danbro96/lupira-expo-query`) is the read path

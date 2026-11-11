@@ -116,6 +116,10 @@ export type GetSharedListQueryResult = NonNullable<Awaited<ReturnType<typeof get
 export type GetSharedListQueryError = ProblemDetails
 
 
+/**
+ * Returns the list + items, trimmed of all emails. `access` indicates read vs read/write.
+ * @summary View a shared list by token (no account needed).
+ */
 export function useGetSharedList<TData = Awaited<ReturnType<typeof getSharedList>>, TError = ProblemDetails>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSharedList>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -126,6 +130,10 @@ export function useGetSharedList<TData = Awaited<ReturnType<typeof getSharedList
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns the list + items, trimmed of all emails. `access` indicates read vs read/write.
+ * @summary View a shared list by token (no account needed).
+ */
 export function useGetSharedList<TData = Awaited<ReturnType<typeof getSharedList>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSharedList>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -136,14 +144,18 @@ export function useGetSharedList<TData = Awaited<ReturnType<typeof getSharedList
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * Returns the list + items, trimmed of all emails. `access` indicates read vs read/write.
+ * @summary View a shared list by token (no account needed).
+ */
 export function useGetSharedList<TData = Awaited<ReturnType<typeof getSharedList>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSharedList>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * Returns the list + items, trimmed of all emails. `access` indicates read vs read/write.
  * @summary View a shared list by token (no account needed).
  */
-
 export function useGetSharedList<TData = Awaited<ReturnType<typeof getSharedList>>, TError = ProblemDetails>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSharedList>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
@@ -235,9 +247,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateSharedItemMutationError = ProblemDetails
     export type CreateSharedItemMutationVariables = {data: CreateItemRequest}
 
-    /**
- * @summary Add an item via a read/write share link.
- */
+    /** @summary Add an item via a read/write share link. */
 export const useCreateSharedItem = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSharedItem>>, TError,CreateSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -323,9 +333,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type UpdateSharedItemMutationError = ProblemDetails
     export type UpdateSharedItemMutationVariables = {itemId: string;data: UpdateItemRequest}
 
-    /**
- * @summary Edit an item via a read/write share link.
- */
+    /** @summary Edit an item via a read/write share link. */
 export const useUpdateSharedItem = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSharedItem>>, TError,UpdateSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -405,9 +413,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DeleteSharedItemMutationError = ProblemDetails
     export type DeleteSharedItemMutationVariables = {itemId: string;params?: DeleteSharedItemParams}
 
-    /**
- * @summary Delete an item via a read/write share link.
- */
+    /** @summary Delete an item via a read/write share link. */
 export const useDeleteSharedItem = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSharedItem>>, TError,DeleteSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -493,9 +499,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CompleteSharedItemMutationError = ProblemDetails
     export type CompleteSharedItemMutationVariables = {itemId: string;data?: null | ItemTimestampRequest}
 
-    /**
- * @summary Mark an item complete via a read/write share link.
- */
+    /** @summary Mark an item complete via a read/write share link. */
 export const useCompleteSharedItem = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeSharedItem>>, TError,CompleteSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -581,9 +585,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type MoveSharedItemMutationError = ProblemDetails
     export type MoveSharedItemMutationVariables = {itemId: string;data: MoveItemRequest}
 
-    /**
- * @summary Reparent / reorder an item via a read/write share link.
- */
+    /** @summary Reparent / reorder an item via a read/write share link. */
 export const useMoveSharedItem = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof moveSharedItem>>, TError,MoveSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -669,9 +671,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type ReopenSharedItemMutationError = ProblemDetails
     export type ReopenSharedItemMutationVariables = {itemId: string;data?: null | ItemTimestampRequest}
 
-    /**
- * @summary Reopen a completed item via a read/write share link.
- */
+    /** @summary Reopen a completed item via a read/write share link. */
 export const useReopenSharedItem = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reopenSharedItem>>, TError,ReopenSharedItemMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<

@@ -7,9 +7,9 @@
 import type { ItemStatus } from './itemStatus';
 
 export type ListListItemsParams = {
-completed?: boolean;
-tagId?: string;
-parentItemId?: string;
-assignedTo?: string;
-status?: ItemStatus;
+  completed?: boolean;
+  tagId?: string;
+  parentItemId?: string;
+  assignedTo?: string;
+  status?: ItemStatus;
 };

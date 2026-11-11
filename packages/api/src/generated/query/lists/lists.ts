@@ -123,6 +123,10 @@ export type ListListsQueryResult = NonNullable<Awaited<ReturnType<typeof listLis
 export type ListListsQueryError = ProblemDetails
 
 
+/**
+ * `?archived=true` returns the caller's archived lists instead of the active ones.
+ * @summary List the lists the caller is a member of.
+ */
 export function useListLists<TData = Awaited<ReturnType<typeof listLists>>, TError = ProblemDetails>(
  params: undefined |  ListListsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLists>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -133,6 +137,10 @@ export function useListLists<TData = Awaited<ReturnType<typeof listLists>>, TErr
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * `?archived=true` returns the caller's archived lists instead of the active ones.
+ * @summary List the lists the caller is a member of.
+ */
 export function useListLists<TData = Awaited<ReturnType<typeof listLists>>, TError = ProblemDetails>(
  params?: ListListsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLists>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -143,14 +151,18 @@ export function useListLists<TData = Awaited<ReturnType<typeof listLists>>, TErr
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * `?archived=true` returns the caller's archived lists instead of the active ones.
+ * @summary List the lists the caller is a member of.
+ */
 export function useListLists<TData = Awaited<ReturnType<typeof listLists>>, TError = ProblemDetails>(
  params?: ListListsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLists>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * `?archived=true` returns the caller's archived lists instead of the active ones.
  * @summary List the lists the caller is a member of.
  */
-
 export function useListLists<TData = Awaited<ReturnType<typeof listLists>>, TError = ProblemDetails>(
  params?: ListListsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLists>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
@@ -244,6 +256,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type CreateListMutationVariables = {data: CreateListRequest}
 
     /**
+ * Body `{ id (GUIDv7), name, kind, color? }`. `kind` is `Todo`, `Shopping`, or `Agent` (agent/system-owned lists). Re-sending an existing id is an idempotent success.
  * @summary Create a list; the caller becomes Owner.
  */
 export const useCreateList = <TError = ProblemDetails,
@@ -311,6 +324,7 @@ export type GetListQueryResult = NonNullable<Awaited<ReturnType<typeof getList>>
 export type GetListQueryError = ProblemDetails
 
 
+/** @summary Get a list with its members and tags (Viewer+). */
 export function useGetList<TData = Awaited<ReturnType<typeof getList>>, TError = ProblemDetails>(
  listId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getList>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -321,6 +335,7 @@ export function useGetList<TData = Awaited<ReturnType<typeof getList>>, TError =
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Get a list with its members and tags (Viewer+). */
 export function useGetList<TData = Awaited<ReturnType<typeof getList>>, TError = ProblemDetails>(
  listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getList>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -331,14 +346,12 @@ export function useGetList<TData = Awaited<ReturnType<typeof getList>>, TError =
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Get a list with its members and tags (Viewer+). */
 export function useGetList<TData = Awaited<ReturnType<typeof getList>>, TError = ProblemDetails>(
  listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getList>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary Get a list with its members and tags (Viewer+).
- */
-
+/** @summary Get a list with its members and tags (Viewer+). */
 export function useGetList<TData = Awaited<ReturnType<typeof getList>>, TError = ProblemDetails>(
  listId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getList>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
@@ -433,6 +446,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type UpdateListMutationVariables = {listId: string;data: UpdateListRequest}
 
     /**
+ * Each provided field emits its own event. Set `colorProvided` to apply `color` (incl. clearing it). Send `simplePriority` (bool) to switch between simple on/off and the full 0..9 scale.
  * @summary Rename / recolor a list, or set its priority mode (Editor+).
  */
 export const useUpdateList = <TError = ProblemDetails,
@@ -505,9 +519,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type DeleteListMutationError = ProblemDetails
     export type DeleteListMutationVariables = {listId: string}
 
-    /**
- * @summary Delete a list (Owner). Tombstone — stream retained.
- */
+    /** @summary Delete a list (Owner). Tombstone — stream retained. */
 export const useDeleteList = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteList>>, TError,DeleteListMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -578,9 +590,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type ArchiveListMutationError = ProblemDetails
     export type ArchiveListMutationVariables = {listId: string}
 
-    /**
- * @summary Archive a list (Owner). Soft — items retained.
- */
+    /** @summary Archive a list (Owner). Soft — items retained. */
 export const useArchiveList = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof archiveList>>, TError,ArchiveListMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -668,6 +678,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type AddListMemberMutationVariables = {listId: string;data: AddMemberRequest}
 
     /**
+ * Body `{ email, role? }`. Direct-add, no invite/accept. An unseen email provisions a placeholder principal (its `sub` is upgraded when the person first logs in). Members are returned with their `principalId`; use that for role change / removal.
  * @summary Add a member by email (any member; defaults to Editor).
  */
 export const useAddListMember = <TError = ProblemDetails,
@@ -757,9 +768,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type UpdateListMemberMutationError = ProblemDetails
     export type UpdateListMemberMutationVariables = {listId: string;principalId: string;data: UpdateMemberRoleRequest}
 
-    /**
- * @summary Change a member's role by principal id (Owner only).
- */
+    /** @summary Change a member's role by principal id (Owner only). */
 export const useUpdateListMember = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateListMember>>, TError,UpdateListMemberMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -832,9 +841,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type RemoveListMemberMutationError = ProblemDetails
     export type RemoveListMemberMutationVariables = {listId: string;principalId: string}
 
-    /**
- * @summary Remove a member by principal id, or leave (self). Last owner leaving deletes the list for everyone.
- */
+    /** @summary Remove a member by principal id, or leave (self). Last owner leaving deletes the list for everyone. */
 export const useRemoveListMember = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeListMember>>, TError,RemoveListMemberMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -922,6 +929,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type ReorderListItemsMutationVariables = {listId: string;data: SetListOrderRequest}
 
     /**
+ * Body `{ sortOrder }` — a fractional-index key generated between the neighbours the list was dropped between. Per-user: other members' ordering is untouched, and this does not count as a change to the list. Returned as `sortOrder` on the caller's `ListDto`; lists the caller has never ordered come back null and sort by name after the ordered ones.
  * @summary Set the caller's own position for this list (Viewer+).
  */
 export const useReorderListItems = <TError = ProblemDetails,
@@ -994,9 +1002,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type RestoreListMutationError = ProblemDetails
     export type RestoreListMutationVariables = {listId: string}
 
-    /**
- * @summary Restore an archived list (Owner).
- */
+    /** @summary Restore an archived list (Owner). */
 export const useRestoreList = <TError = ProblemDetails,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof restoreList>>, TError,RestoreListMutationVariables, TContext>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient): UseMutationResult<

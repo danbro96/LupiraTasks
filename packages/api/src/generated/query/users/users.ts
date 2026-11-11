@@ -114,6 +114,10 @@ export type GetUserDirectoryQueryResult = NonNullable<Awaited<ReturnType<typeof 
 export type GetUserDirectoryQueryError = ProblemDetails
 
 
+/**
+ * `?q=` filters the distinct member emails (case-insensitive substring).
+ * @summary People seen across the caller's shared lists (for adding members).
+ */
 export function useGetUserDirectory<TData = Awaited<ReturnType<typeof getUserDirectory>>, TError = ProblemDetails>(
  params: undefined |  GetUserDirectoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserDirectory>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -124,6 +128,10 @@ export function useGetUserDirectory<TData = Awaited<ReturnType<typeof getUserDir
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * `?q=` filters the distinct member emails (case-insensitive substring).
+ * @summary People seen across the caller's shared lists (for adding members).
+ */
 export function useGetUserDirectory<TData = Awaited<ReturnType<typeof getUserDirectory>>, TError = ProblemDetails>(
  params?: GetUserDirectoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserDirectory>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -134,14 +142,18 @@ export function useGetUserDirectory<TData = Awaited<ReturnType<typeof getUserDir
       >, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * `?q=` filters the distinct member emails (case-insensitive substring).
+ * @summary People seen across the caller's shared lists (for adding members).
+ */
 export function useGetUserDirectory<TData = Awaited<ReturnType<typeof getUserDirectory>>, TError = ProblemDetails>(
  params?: GetUserDirectoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserDirectory>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
+ * `?q=` filters the distinct member emails (case-insensitive substring).
  * @summary People seen across the caller's shared lists (for adding members).
  */
-
 export function useGetUserDirectory<TData = Awaited<ReturnType<typeof getUserDirectory>>, TError = ProblemDetails>(
  params?: GetUserDirectoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUserDirectory>>, TError, TData>>, request?: SecondParameter<typeof apiRequest>}
  , queryClient?: QueryClient
